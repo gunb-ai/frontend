@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gunbai — design moodboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      /* Palette: earthy ledger on void */
+      --void: #000000;
+      --void-elevated: #000000;
+      --stone: rgba(228, 228, 222, 0.72);
+      --stone-muted: rgba(196, 196, 188, 0.5);
+      --moss: #4a8f62;
+      --moss-dim: #2d5c40;
+      --clay: #c14137;
+      --clay-muted: #8c312a;
+      --sand: #8c8c80;
+      --sand-dim: #5a5a54;
+      --border: 1px solid var(--sand-dim);
+      --font-mono: "JetBrains Mono", ui-monospace, monospace;
+      --font-serif: "Source Serif 4", Georgia, serif;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: var(--void);
+      color: var(--stone);
+      font-family: var(--font-mono);
+      font-size: 15px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    .wrap {
+      position: relative;
+      max-width: 58rem;
+      margin: 0 auto;
+      padding: 2.5rem 1.25rem 4rem;
+    }
+
+    .label {
+      display: inline-block;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--sand);
+      margin-bottom: 0.35rem;
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-weight: 400;
+      font-size: clamp(1.65rem, 4vw, 2.15rem);
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin: 0 0 0.5rem;
+      color: var(--stone);
+    }
+
+    .tagline {
+      color: var(--stone-muted);
+      font-size: 0.95rem;
+      max-width: 42em;
+      margin: 0 0 2rem;
+    }
+
+    section {
+      margin-top: 2.75rem;
+      padding-top: 1.75rem;
+      border-top: var(--border);
+    }
+
+    section h2 {
+      font-family: var(--font-serif);
+      font-size: 1.1rem;
+      font-weight: 400;
+      margin: 0 0 1rem;
+      color: var(--stone);
+    }
+
+    .grid-2 {
+      display: grid;
+      gap: 1rem;
+    }
+
+    @media (min-width: 720px) {
+      .grid-2 {
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+      }
+    }
+
+    .panel {
+      background: var(--void-elevated);
+      border: var(--border);
+      padding: 1rem 1.1rem;
+    }
+
+    .panel p {
+      margin: 0 0 0.65rem;
+      font-size: 0.88rem;
+      color: var(--stone-muted);
+    }
+
+    .panel p:last-child {
+      margin-bottom: 0;
+    }
+
+    ul.tight {
+      margin: 0;
+      padding-left: 1.15rem;
+      font-size: 0.88rem;
+      color: var(--stone-muted);
+    }
+
+    ul.tight li {
+      margin-bottom: 0.4rem;
+    }
+
+    /* Swatches */
+    .swatches {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+    }
+
+    .swatch {
+      flex: 1 1 8rem;
+      min-width: 7rem;
+      border: var(--border);
+      padding: 0.5rem 0.55rem 0.45rem;
+      font-size: 0.72rem;
+      line-height: 1.35;
+    }
+
+    .swatch .dot {
+      height: 2rem;
+      margin-bottom: 0.4rem;
+      border: 1px solid rgba(140, 140, 128, 0.35);
+    }
+
+    .swatch code {
+      color: var(--sand);
+      font-size: 0.68rem;
+    }
+
+    /* Type specimens */
+    .type-row {
+      margin-bottom: 1.25rem;
+    }
+
+    .type-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .specimen-serif {
+      font-family: var(--font-serif);
+      font-size: 1.35rem;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      color: var(--stone);
+    }
+
+    .specimen-mono {
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      color: var(--stone-muted);
+    }
+
+    .meta {
+      font-size: 0.72rem;
+      color: var(--sand);
+      margin-top: 0.35rem;
+    }
+
+    /* ASCII blocks */
+    pre.ascii {
+      margin: 0;
+      padding: 1rem 1rem 1rem 1.1rem;
+      background: #000000;
+      border: var(--border);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      line-height: 1.45;
+      color: var(--sand);
+      overflow-x: auto;
+      tab-size: 4;
+    }
+
+    pre.ascii .moss {
+      color: var(--moss);
+    }
+
+    pre.ascii .clay {
+      color: var(--clay);
+    }
+
+    pre.ascii .stone {
+      color: var(--stone-muted);
+    }
+
+    /* Interactive node strip (moodboard: hover = path highlight) */
+    .node-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.35rem 0.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      margin-top: 0.75rem;
+    }
+
+    .node-row .pipe {
+      color: var(--sand-dim);
+      user-select: none;
+    }
+
+    .node {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border: 1px solid var(--sand-dim);
+      color: var(--stone-muted);
+      background: transparent;
+      font: inherit;
+      cursor: default;
+      transition:
+        color 0.2s ease,
+        border-color 0.2s ease,
+        background 0.35s ease;
+    }
+
+    /* Tired / quiet: moss “snore” — very soft, slow, starts after a beat */
+    @keyframes node-snore-glow {
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(74, 143, 98, 0);
+      }
+      40% {
+        box-shadow: 0 0 14px 1px rgba(74, 143, 98, 0.06);
+      }
+      52% {
+        box-shadow: 0 0 22px 3px rgba(74, 143, 98, 0.09);
+      }
+      65% {
+        box-shadow: 0 0 16px 2px rgba(74, 143, 98, 0.05);
+      }
+    }
+
+    .node:hover,
+    .node:focus-visible {
+      color: var(--moss);
+      border-color: var(--moss);
+      background: rgba(74, 143, 98, 0.06);
+      outline: none;
+      animation: node-snore-glow 5.2s ease-in-out infinite;
+      animation-delay: 0.7s;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .node:hover,
+      .node:focus-visible {
+        animation: none;
+        box-shadow: none;
+      }
+    }
+
+    /* Prototype: hero strip */
+    .hero-proto {
+      border: var(--border);
+      background: var(--void);
+      padding: 1.35rem 1.25rem 1.5rem;
+    }
+
+    .hero-proto .domain {
+      font-size: 0.72rem;
+      color: var(--sand);
+      letter-spacing: 0.04em;
+      margin-bottom: 0.75rem;
+    }
+
+    .hero-proto .headline {
+      font-family: var(--font-serif);
+      font-size: 1.45rem;
+      font-weight: 400;
+      line-height: 1.25;
+      max-width: 22em;
+      margin: 0 0 1rem;
+    }
+
+    .hero-proto .sub {
+      font-size: 0.88rem;
+      color: var(--stone-muted);
+      max-width: 36em;
+      margin: 0 0 1.25rem;
+    }
+
+    .install {
+      display: inline-block;
+      padding: 0.45rem 0.65rem;
+      border: 1px solid var(--sand-dim);
+      font-size: 0.78rem;
+      color: var(--stone);
+      background: #000000;
+    }
+
+    .install kbd {
+      color: var(--moss);
+      font-weight: 400;
+    }
+
+    /* Stoic error */
+    .error-proto {
+      border-left: 3px solid var(--clay);
+      padding: 0.85rem 1rem;
+      background: rgba(193, 65, 55, 0.07);
+      margin-top: 1rem;
+    }
+
+    .error-proto .title {
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--clay-muted);
+      margin-bottom: 0.45rem;
+    }
+
+    .error-proto p {
+      margin: 0;
+      font-size: 0.82rem;
+      color: var(--stone-muted);
+    }
+
+    footer {
+      margin-top: 3rem;
+      padding-top: 1.25rem;
+      border-top: var(--border);
+      font-size: 0.72rem;
+      color: var(--sand);
+    }
+
+    a {
+      color: var(--moss);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    a:hover {
+      color: var(--stone-muted);
+    }
+
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="label">Gunbai · gunb.ai · moodboard</p>
+    <h1>Quiet power, rooted structure</h1>
+    <p class="tagline">
+      A single page to align themes, tokens, type, and UI prototypes for a minimal,
+      technical landing—bonsai brutalism: restraint over spectacle, care over scale; void, moss, clay, sand.
+    </p>
+
+    <section aria-labelledby="themes">
+      <h2 id="themes">Themes to communicate</h2>
+      <div class="grid-2">
+        <div class="panel">
+          <p><strong class="stone" style="color: var(--stone)">Correctness by construction</strong> — Invariants live in types and graph shape, not late scans.</p>
+          <p><strong style="color: var(--stone)">Determinism over magic</strong> — Pipeline semantics you can reason about; dry-run and tests as first-class.</p>
+          <p><strong style="color: var(--stone)">Structural I/O</strong> — The DAG shows where the world is touched; no annotated glue.</p>
+          <p><strong style="color: var(--stone)">Claims follow mechanisms</strong> — Prefer what the compiler checks and emits over slogans; humility is naming the boundary honestly.</p>
+        </div>
+        <div class="panel">
+          <p><strong style="color: var(--stone)">Humility</strong> — Bonsai brutalism: a small, honest surface; pruning and patience over hype. Say what the system does, what it refuses to do, and where the limits are.</p>
+          <p><strong style="color: var(--stone)">Quiet power</strong> — Like a gunbai: signal and orchestration, not volume. Strength is in restraint.</p>
+          <p><strong style="color: var(--stone)">Intellectual sustainability</strong> — Earthy permanence vs. disposable glue; a ledger, not a funnel.</p>
+          <p><strong style="color: var(--stone)">Assembly-line software</strong> — <code style="color: var(--moss)">a → b → c</code> as engineering, with explicit artifacts at boundaries.</p>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="palette">
+      <h2 id="palette">Color candidates (CSS variables)</h2>
+      <div class="swatches">
+        <div class="swatch">
+          <div class="dot" style="background: var(--void)"></div>
+          <strong>Void</strong><br />
+          <code>#000000</code> — canvas
+        </div>
+        <div class="swatch">
+          <div class="dot" style="background: rgba(228, 228, 222, 0.72)"></div>
+          <strong>Stone</strong><br />
+          <code>rgba(228,228,222,0.72)</code> — primary text
+        </div>
+        <div class="swatch">
+          <div class="dot" style="background: var(--moss)"></div>
+          <strong>Moss</strong><br />
+          <code>#4A8F62</code> — links, active path, success
+        </div>
+        <div class="swatch">
+          <div class="dot" style="background: var(--clay)"></div>
+          <strong>Clay</strong><br />
+          <code>#C14137</code> — firm errors, not alarm red
+        </div>
+        <div class="swatch">
+          <div class="dot" style="background: var(--sand)"></div>
+          <strong>Sand</strong><br />
+          <code>#8C8C80</code> — borders, secondary labels
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="type">
+      <h2 id="type">Font candidates</h2>
+      <div class="panel">
+        <div class="type-row">
+          <div class="specimen-serif">Software drifts when intent is inconsistent.</div>
+          <div class="meta">Source Serif 4 — manifesto / section titles (permanence, ledger)</div>
+        </div>
+        <div class="type-row">
+          <div class="specimen-mono">
+            VerifiedDag&lt;LoweredOp&gt; &nbsp;·&nbsp; parse → resolve → typecheck → lower → emit
+          </div>
+          <div class="meta">JetBrains Mono — ASCII graphs, CLI, code, metadata (default for UI body is optional)</div>
+        </div>
+      </div>
+      <p style="font-size: 0.8rem; color: var(--sand); margin-top: 0.85rem; max-width: 42em">
+        Alternative monos worth testing: IBM Plex Mono, Berkeley Mono. If you want a colder headline sans later, keep it secondary—mono-first keeps the “instrument” read.
+      </p>
+    </section>
+
+    <section aria-labelledby="motifs">
+      <h2 id="motifs">Visual motifs</h2>
+      <p style="font-size: 0.8rem; color: var(--stone-muted); margin: 0 0 1.15rem; max-width: 46em">
+        <strong style="color: var(--stone); font-weight: 400">Two axes, one story.</strong>
+        <strong style="color: var(--stone); font-weight: 400">Left → right = time</strong> everywhere it makes sense (pipelines, steps, timelines)—keep that consistent across the page so readers don’t re-learn direction.
+        <strong style="color: var(--stone); font-weight: 400">Downward growth (moss):</strong> trunk or main line first, then branches hang <em>under</em>—like the ix ASCII: horizontal spine,
+        then <code style="color: var(--sand)">│</code> / <code style="color: var(--sand)">└──</code> forks below. On the web, that lines up with scroll:
+        hero and primary story first; anything optional (tests, dry-run, tangents) lives <strong style="color: var(--stone); font-weight: 400">below</strong> as side quests, not competing with the spine for “first read.”
+      </p>
+      <div class="grid-2">
+        <div>
+          <p class="label">Branch / fork (ix-style)</p>
+          <p style="font-size: 0.72rem; color: var(--sand); margin: -0.2rem 0 0.55rem; max-width: 28em">
+            Grows down from <span class="moss" style="color: var(--moss)">main</span>—same motion we want on the page.
+          </p>
+          <pre class="ascii" aria-label="ASCII branch diagram"><span class="stone">○──○──○──○──○──○──○──○</span>  <span class="moss">main</span>
+<span class="stone">│</span>
+<span class="stone">└──○──○──○──○</span>  <span class="moss">fork-a</span>
+<span class="stone">│</span>
+<span class="stone">└──○──○</span>  <span class="moss">fork-b</span></pre>
+        </div>
+        <div>
+          <p class="label">Pipeline → artifact (from README)</p>
+          <pre class="ascii" aria-label="Compiler pipeline ASCII">.dag source
+    <span class="stone">│</span>
+<span class="moss">COMPILER</span>  parse <span class="stone">→</span> resolve <span class="stone">→</span> typecheck <span class="stone">→</span> lower <span class="stone">→</span> derive <span class="stone">→</span> emit
+    <span class="stone">│</span>
+<span class="stone">VerifiedDag&lt;LoweredOp&gt;</span>  <span class="moss">&lt;- THE ARTIFACT</span>
+    <span class="stone">│</span>                    <span class="stone">│</span>
+ emit <span class="stone">→</span> cargo          interpret</pre>
+        </div>
+      </div>
+
+      <p class="label" style="margin-top: 1.25rem">Lego-y nodes (hover)</p>
+      <div class="panel">
+        <span style="font-size: 0.8rem; color: var(--sand)">Hover blocks—moss snap, then a very slow faint moss glow (snore), delayed ~0.7s.</span>
+        <div class="node-row" role="group" aria-label="Pipeline nodes">
+          <button type="button" class="node" tabindex="0">parse</button>
+          <span class="pipe">──</span>
+          <button type="button" class="node">resolve</button>
+          <span class="pipe">──</span>
+          <button type="button" class="node">typecheck</button>
+          <span class="pipe">──</span>
+          <button type="button" class="node">lower</button>
+          <span class="pipe">──</span>
+          <button type="button" class="node">emit</button>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="voice">
+      <h2 id="voice">Voice: humble, quiet, precise</h2>
+      <div class="panel">
+        <ul class="tight">
+          <li><strong style="color: var(--stone)">Humility first.</strong> Describe behavior, not destiny. Prefer “is designed to,” “refuses to,” “attempts,” over “guarantees,” “revolutionary,” or unqualified absolutes—unless the math really is there.</li>
+          <li><strong style="color: var(--stone)">Quiet confidence.</strong> System-contract tone: facts, boundaries, invariants. Let the structure speak; don’t narrate victory.</li>
+          <li><strong style="color: var(--stone)">Errors as boundaries, not shame.</strong> State the violation calmly (clay)—“compilation halted,” not panic or blame. The compiler is a collaborator with limits, not a judge.</li>
+          <li><strong style="color: var(--stone)">Credit tradeoffs.</strong> Where something costs complexity or excludes a use case, say so. Bonsai is honest pruning, not pretending the pot is infinite.</li>
+          <li><strong style="color: var(--stone)">Visual anti-patterns (same as voice).</strong> No purple gradients, big radii, “empower your team,” generic AI hero art—those read as loud sales, not humble tools.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section aria-labelledby="prototype">
+      <h2 id="prototype">Hero + error prototypes</h2>
+      <div class="hero-proto">
+        <div class="domain">gunb.ai</div>
+        <p class="headline">DSL-first workflows. Everything is a DAG.</p>
+        <p class="sub">
+          A workflow compiler built on structural I/O, shared IR, and generated tests—claims
+          kept small, enforced by the graph. <em style="color: var(--stone-muted); font-style: italic">No louder than it needs to be.</em>
+        </p>
+        <div class="install" role="group" aria-label="Install command">
+          <kbd>git clone</kbd> &lt;repo&gt; <kbd>&amp;&amp;</kbd> cd gunbc <kbd>&amp;&amp;</kbd> make install
+        </div>
+        <div class="error-proto">
+          <div class="title">Invariant</div>
+          <p>
+            Lowering failed: expression does not map to structural nodes. No interpreter fallback—
+            the build stops here.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      Static moodboard — open in a browser. Next step: split tokens into <code>tokens.css</code> and reuse in <code>index.html</code> for the real landing.
+    </footer>
+  </div>
+</body>
+</html>
