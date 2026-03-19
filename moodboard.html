@@ -365,6 +365,12 @@
       color: var(--stone-muted);
     }
 
+    /* Theme labels: no bold—slightly quieter than the line body, letterspace only */
+    .theme-term {
+      font-weight: 400;
+      letter-spacing: 0.05em;
+      color: rgba(196, 196, 188, 0.4);
+    }
   </style>
 </head>
 <body>
@@ -380,16 +386,16 @@
       <h2 id="themes">Themes to communicate</h2>
       <div class="grid-2">
         <div class="panel">
-          <p><strong class="stone" style="color: var(--stone)">Correctness by construction</strong> — Invariants live in types and graph shape, not late scans.</p>
-          <p><strong style="color: var(--stone)">Determinism over magic</strong> — Pipeline semantics you can reason about; dry-run and tests as first-class.</p>
-          <p><strong style="color: var(--stone)">Structural I/O</strong> — The DAG shows where the world is touched; no annotated glue.</p>
-          <p><strong style="color: var(--stone)">Claims follow mechanisms</strong> — Prefer what the compiler checks and emits over slogans; humility is naming the boundary honestly.</p>
+          <p><span class="theme-term">Correctness by construction</span> — Invariants live in types and graph shape, not late scans.</p>
+          <p><span class="theme-term">Determinism over magic</span> — Pipeline semantics you can reason about; dry-run and tests as first-class.</p>
+          <p><span class="theme-term">Structural I/O</span> — The DAG shows where the world is touched; no annotated glue.</p>
+          <p><span class="theme-term">Claims follow mechanisms</span> — Prefer what the compiler checks and emits over slogans; humility is naming the boundary honestly.</p>
         </div>
         <div class="panel">
-          <p><strong style="color: var(--stone)">Humility</strong> — Bonsai brutalism: a small, honest surface; pruning and patience over hype. Say what the system does, what it refuses to do, and where the limits are.</p>
-          <p><strong style="color: var(--stone)">Quiet power</strong> — Like a gunbai: signal and orchestration, not volume. Strength is in restraint.</p>
-          <p><strong style="color: var(--stone)">Intellectual sustainability</strong> — Earthy permanence vs. disposable glue; a ledger, not a funnel.</p>
-          <p><strong style="color: var(--stone)">Assembly-line software</strong> — <code style="color: var(--moss)">a → b → c</code> as engineering, with explicit artifacts at boundaries.</p>
+          <p><span class="theme-term">Humility</span> — Bonsai brutalism: a small, honest surface; pruning and patience over hype. Say what the system does, what it refuses to do, and where the limits are.</p>
+          <p><span class="theme-term">Quiet power</span> — Like a gunbai: signal and orchestration, not volume. Strength is in restraint.</p>
+          <p><span class="theme-term">Intellectual sustainability</span> — Earthy permanence vs. disposable glue; a ledger, not a funnel.</p>
+          <p><span class="theme-term">Assembly-line software</span> — <code style="color: var(--moss)">a → b → c</code> as engineering, with explicit artifacts at boundaries.</p>
         </div>
       </div>
     </section>
