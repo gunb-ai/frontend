@@ -233,34 +233,36 @@
     }
 
     .node {
+      --node-charge: 0;
+      --node-ring-tight: 0px;
+      --node-ring-wide: 0px;
+      --node-glow-blur: 0px;
+      --node-alpha-tight: 0;
+      --node-alpha-wide: 0;
+      --node-alpha-haze: 0;
+      position: relative;
+      z-index: 0;
+      overflow: visible;
       display: inline-block;
       padding: 0.15rem 0.45rem;
       border: 1px solid var(--sand-dim);
+      border-radius: 2px;
       color: var(--stone-muted);
       background: transparent;
       font: inherit;
       cursor: default;
+      -webkit-appearance: none;
+      appearance: none;
+      /* Keep the halo on the element so the hover fill does not cover it. */
+      box-shadow:
+        0 0 0 var(--node-ring-tight) rgba(74, 143, 98, var(--node-alpha-tight)),
+        0 0 0 var(--node-ring-wide) rgba(74, 143, 98, var(--node-alpha-wide)),
+        0 0 var(--node-glow-blur) 0 rgba(74, 143, 98, var(--node-alpha-haze));
       transition:
         color 0.2s ease,
         border-color 0.2s ease,
-        background 0.35s ease;
-    }
-
-    /* Tired / quiet: moss “snore” — very soft, slow, starts after a beat */
-    @keyframes node-snore-glow {
-      0%,
-      100% {
-        box-shadow: 0 0 0 0 rgba(74, 143, 98, 0);
-      }
-      40% {
-        box-shadow: 0 0 14px 1px rgba(74, 143, 98, 0.06);
-      }
-      52% {
-        box-shadow: 0 0 22px 3px rgba(74, 143, 98, 0.09);
-      }
-      65% {
-        box-shadow: 0 0 16px 2px rgba(74, 143, 98, 0.05);
-      }
+        background 0.35s ease,
+        box-shadow 0.12s linear;
     }
 
     .node:hover,
@@ -269,15 +271,12 @@
       border-color: var(--moss);
       background: rgba(74, 143, 98, 0.06);
       outline: none;
-      animation: node-snore-glow 5.2s ease-in-out infinite;
-      animation-delay: 0.7s;
     }
 
     @media (prefers-reduced-motion: reduce) {
       .node:hover,
       .node:focus-visible {
-        animation: none;
-        box-shadow: none;
+        box-shadow: 0 0 0 1px rgba(74, 143, 98, 0.35);
       }
     }
 
@@ -365,11 +364,129 @@
       color: var(--stone-muted);
     }
 
-    /* Theme labels: no bold—slightly quieter than the line body, letterspace only */
+    /* Lead phrase: sand/stone channel, same weight as body—color does the separation */
     .theme-term {
       font-weight: 400;
       letter-spacing: 0.05em;
-      color: rgba(196, 196, 188, 0.4);
+      color: var(--sand);
+    }
+
+    /* Logo — tilted fan in a seal (circle / rounded square) */
+    .logo-row {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    @media (min-width: 720px) {
+      .logo-row {
+        grid-template-columns: repeat(2, 1fr);
+        align-items: stretch;
+      }
+    }
+
+    .logo-proto {
+      border: var(--border);
+      background: var(--void-elevated);
+      padding: 1rem 0.85rem 1.1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .logo-proto .mark {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 8rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .logo-proto svg {
+      display: block;
+      width: 128px;
+      height: auto;
+      flex-shrink: 0;
+    }
+
+    .logo-proto figcaption {
+      align-self: stretch;
+      text-align: left;
+    }
+
+    .logo-proto .logo-name {
+      display: block;
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--sand);
+      margin-bottom: 0.35rem;
+    }
+
+    .logo-proto .logo-caption {
+      font-size: 0.72rem;
+      line-height: 1.4;
+      color: var(--stone-muted);
+      margin: 0;
+    }
+
+    .logo-scale-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem 1.75rem;
+      margin-top: 1.25rem;
+      padding: 1rem 0 0.25rem;
+      border-top: var(--border);
+    }
+
+    .logo-scale-row .logo-scale-h {
+      flex-basis: 100%;
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--sand);
+      margin: 0 0 0.35rem;
+    }
+
+    .logo-scale-row .logo-scale-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+
+    .logo-scale-row .logo-scale-label {
+      font-size: 0.7rem;
+      color: var(--stone-muted);
+      font-variant-numeric: tabular-nums;
+      min-width: 5.5rem;
+    }
+
+    .logo-scale-row svg {
+      display: block;
+      flex-shrink: 0;
+    }
+
+    /* Moss glow on logo marks—matches node halo language (drop-shadow reads on strokes) */
+    .logo-proto .mark svg,
+    .logo-scale-row .logo-scale-item svg {
+      transition: filter 0.45s ease;
+    }
+
+    .logo-proto:hover .mark svg,
+    .logo-proto:focus-within .mark svg,
+    .logo-scale-row .logo-scale-item:hover svg {
+      filter:
+        drop-shadow(0 0 3px rgba(74, 143, 98, 0.45)) drop-shadow(0 0 14px rgba(74, 143, 98, 0.28));
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .logo-proto:hover .mark svg,
+      .logo-proto:focus-within .mark svg,
+      .logo-scale-row .logo-scale-item:hover svg {
+        filter: drop-shadow(0 0 2px rgba(74, 143, 98, 0.35));
+        transition: none;
+      }
     }
   </style>
 </head>
@@ -380,7 +497,165 @@
     <p class="tagline">
       A single page to align themes, tokens, type, and UI prototypes for a minimal,
       technical landing—bonsai brutalism: restraint over spectacle, care over scale; void, moss, clay, sand.
+      The look leans <em style="color: var(--stone-muted); font-style: italic">late-web</em> on purpose: monospace, ASCII, hard edges—an instrument, not a period costume.
     </p>
+
+    <section aria-labelledby="logo">
+      <h2 id="logo">Logo mark (SVG)</h2>
+      <!-- Shared fan geometry for <use> in the marks below (hidden, not displayed). -->
+      <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="0" height="0" style="position: absolute">
+        <defs>
+          <g id="gunbai-fan-core">
+            <!--
+              Rigid gunbai paddle—blade path + two ribs (t=⅓,⅔ on top arc); four moss nodes.
+              Sand: staff collinear with symmetry axis through pivot and curve apex.
+            -->
+            <g transform="rotate(50 32 32)">
+              <!-- Blade scales from pivot; staff unscaled, slightly longer for balance -->
+                <g transform="translate(32, 39) scale(1.1) translate(-32, -39)">
+                  <path
+                    d="M 32 39 L 13.6 29.4 Q 32 9.4 50.4 29.4 L 32 39 Z"
+                    fill="none"
+                    stroke="var(--moss)"
+                    stroke-width="1.35"
+                    stroke-linejoin="round"
+                  />
+                  <line x1="32" y1="39" x2="25.867" y2="20.511" stroke="var(--moss)" stroke-width="1.35" stroke-linecap="round" />
+                  <line x1="32" y1="39" x2="38.133" y2="20.511" stroke="var(--moss)" stroke-width="1.35" stroke-linecap="round" />
+                  <circle cx="13.6" cy="29.4" r="2.2" fill="var(--void)" stroke="var(--moss)" stroke-width="1.15" />
+                  <circle cx="50.4" cy="29.4" r="2.2" fill="var(--void)" stroke="var(--moss)" stroke-width="1.15" />
+                  <circle cx="25.867" cy="20.511" r="2.2" fill="var(--void)" stroke="var(--moss)" stroke-width="1.15" />
+                  <circle cx="38.133" cy="20.511" r="2.2" fill="var(--void)" stroke="var(--moss)" stroke-width="1.15" />
+                </g>
+                <line x1="32" y1="39" x2="32" y2="52.5" stroke="var(--sand)" stroke-width="1.75" stroke-linecap="round" />
+                <circle cx="32" cy="39" r="2.35" fill="var(--void)" stroke="var(--sand)" stroke-width="1.15" />
+                <circle cx="32" cy="52.5" r="2.2" fill="var(--void)" stroke="var(--sand)" stroke-width="1.15" />
+            </g>
+          </g>
+        </defs>
+      </svg>
+      <p style="font-size: 0.8rem; color: var(--stone-muted); margin: 0 0 0.25rem; max-width: 48em">
+        Rigid <strong style="font-weight: 400; color: var(--stone)">gunbai</strong> paddle—wireframe blade (four moss nodes) and sand pivot + staff. The <strong style="font-weight: 400; color: var(--stone)">blade</strong> is <strong style="font-weight: 400; color: var(--stone)">1.1×</strong> about the pivot <code style="color: var(--sand)">(32,39)</code>; the <strong style="font-weight: 400; color: var(--stone)">staff</strong> is not scaled (<strong style="font-weight: 400; color: var(--stone)">13.5</strong> units). Centered in the view—no positional nudge. Rotated <strong style="font-weight: 400; color: var(--stone)">50°</strong>; clip + frame = badge.
+      </p>
+      <div class="logo-row">
+        <figure class="logo-proto">
+          <div class="mark">
+            <svg viewBox="0 0 64 64" width="128" height="128" xmlns="http://www.w3.org/2000/svg" aria-labelledby="logo-circle-title">
+              <title id="logo-circle-title">Gunbai — circle seal</title>
+              <defs>
+                <clipPath id="gunbai-clip-circle">
+                  <circle cx="32" cy="32" r="25.5" />
+                </clipPath>
+              </defs>
+              <g clip-path="url(#gunbai-clip-circle)">
+                <use href="#gunbai-fan-core" />
+              </g>
+              <circle cx="32" cy="32" r="26" fill="none" stroke="var(--sand-dim)" stroke-width="1.25" />
+            </svg>
+          </div>
+          <figcaption>
+            <span class="logo-name">Circle seal</span>
+            <p class="logo-caption">
+              Classic “coin” / avatar crop. Reads well on dark UI chrome and profile bubbles.
+            </p>
+          </figcaption>
+        </figure>
+        <figure class="logo-proto">
+          <div class="mark">
+            <svg viewBox="0 0 64 64" width="128" height="128" xmlns="http://www.w3.org/2000/svg" aria-labelledby="logo-square-title">
+              <title id="logo-square-title">Gunbai — rounded square</title>
+              <defs>
+                <clipPath id="gunbai-clip-roundrect">
+                  <rect x="8" y="8" width="48" height="48" rx="10" ry="10" />
+                </clipPath>
+              </defs>
+              <g clip-path="url(#gunbai-clip-roundrect)">
+                <use href="#gunbai-fan-core" />
+              </g>
+              <rect
+                x="8"
+                y="8"
+                width="48"
+                height="48"
+                rx="10"
+                ry="10"
+                fill="none"
+                stroke="var(--sand-dim)"
+                stroke-width="1.25"
+              />
+            </svg>
+          </div>
+          <figcaption>
+            <span class="logo-name">Rounded square</span>
+            <p class="logo-caption">
+              Slightly more “app icon” / favicon-square friendly; same interior mark via <code style="color: var(--sand)">use</code>.
+            </p>
+          </figcaption>
+        </figure>
+      </div>
+      <div class="logo-scale-row" aria-label="Logo at favicon sizes">
+        <p class="logo-scale-h">Small sizes (same <code style="color: var(--sand)">#gunbai-fan-core</code>)</p>
+        <div class="logo-scale-item">
+          <span class="logo-scale-label">Circle · 24px</span>
+          <svg viewBox="0 0 64 64" width="24" height="24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+            <defs>
+              <clipPath id="gunbai-clip-circle-sm24">
+                <circle cx="32" cy="32" r="25.5" />
+              </clipPath>
+            </defs>
+            <g clip-path="url(#gunbai-clip-circle-sm24)">
+              <use href="#gunbai-fan-core" />
+            </g>
+            <circle cx="32" cy="32" r="26" fill="none" stroke="var(--sand-dim)" stroke-width="1.25" />
+          </svg>
+        </div>
+        <div class="logo-scale-item">
+          <span class="logo-scale-label">Rounded sq · 24px</span>
+          <svg viewBox="0 0 64 64" width="24" height="24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+            <defs>
+              <clipPath id="gunbai-clip-roundrect-sm24">
+                <rect x="8" y="8" width="48" height="48" rx="10" ry="10" />
+              </clipPath>
+            </defs>
+            <g clip-path="url(#gunbai-clip-roundrect-sm24)">
+              <use href="#gunbai-fan-core" />
+            </g>
+            <rect x="8" y="8" width="48" height="48" rx="10" ry="10" fill="none" stroke="var(--sand-dim)" stroke-width="1.25" />
+          </svg>
+        </div>
+        <div class="logo-scale-item">
+          <span class="logo-scale-label">Circle · 16px</span>
+          <svg viewBox="0 0 64 64" width="16" height="16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+            <defs>
+              <clipPath id="gunbai-clip-circle-sm16">
+                <circle cx="32" cy="32" r="25.5" />
+              </clipPath>
+            </defs>
+            <g clip-path="url(#gunbai-clip-circle-sm16)">
+              <use href="#gunbai-fan-core" />
+            </g>
+            <circle cx="32" cy="32" r="26" fill="none" stroke="var(--sand-dim)" stroke-width="1.25" />
+          </svg>
+        </div>
+        <div class="logo-scale-item">
+          <span class="logo-scale-label">Rounded sq · 16px</span>
+          <svg viewBox="0 0 64 64" width="16" height="16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+            <defs>
+              <clipPath id="gunbai-clip-roundrect-sm16">
+                <rect x="8" y="8" width="48" height="48" rx="10" ry="10" />
+              </clipPath>
+            </defs>
+            <g clip-path="url(#gunbai-clip-roundrect-sm16)">
+              <use href="#gunbai-fan-core" />
+            </g>
+            <rect x="8" y="8" width="48" height="48" rx="10" ry="10" fill="none" stroke="var(--sand-dim)" stroke-width="1.25" />
+          </svg>
+        </div>
+      </div>
+      <p class="meta" style="margin-top: 0.85rem; max-width: 44em">
+        Same mark scaled in CSS—if ribs or nodes collapse at 16px, we can ship a simplified single-stroke symbol for production favicons.
+      </p>
+    </section>
 
     <section aria-labelledby="themes">
       <h2 id="themes">Themes to communicate</h2>
@@ -397,6 +672,11 @@
           <p><span class="theme-term">Intellectual sustainability</span> — Earthy permanence vs. disposable glue; a ledger, not a funnel.</p>
           <p><span class="theme-term">Assembly-line software</span> — <code style="color: var(--moss)">a → b → c</code> as engineering, with explicit artifacts at boundaries.</p>
         </div>
+      </div>
+      <div class="panel" style="margin-top: 1rem">
+        <p style="margin: 0; font-size: 0.88rem">
+          <span class="theme-term">Instrumental / late-web</span> — Call it 90s-adjacent if you like: tight type, structure, and chrome that read as <em style="color: var(--stone-muted); font-style: italic">highly technical and precise</em>. That’s intentional—not nostalgia marketing, but the same signal as serious tools: clarity over gloss, proof over vibe.
+        </p>
       </div>
     </section>
 
@@ -485,7 +765,7 @@
 
       <p class="label" style="margin-top: 1.25rem">Lego-y nodes (hover)</p>
       <div class="panel">
-        <span style="font-size: 0.8rem; color: var(--sand)">Hover blocks—moss snap, then a very slow faint moss glow (snore), delayed ~0.7s.</span>
+        <span style="font-size: 0.8rem; color: var(--sand)">Hover for moss snap; keep the pointer over a block—the tight moss halo slowly charges (longer dwell = stronger).</span>
         <div class="node-row" role="group" aria-label="Pipeline nodes">
           <button type="button" class="node" tabindex="0">parse</button>
           <span class="pipe">──</span>
@@ -504,11 +784,11 @@
       <h2 id="voice">Voice: humble, quiet, precise</h2>
       <div class="panel">
         <ul class="tight">
-          <li><strong style="color: var(--stone)">Humility first.</strong> Describe behavior, not destiny. Prefer “is designed to,” “refuses to,” “attempts,” over “guarantees,” “revolutionary,” or unqualified absolutes—unless the math really is there.</li>
-          <li><strong style="color: var(--stone)">Quiet confidence.</strong> System-contract tone: facts, boundaries, invariants. Let the structure speak; don’t narrate victory.</li>
-          <li><strong style="color: var(--stone)">Errors as boundaries, not shame.</strong> State the violation calmly (clay)—“compilation halted,” not panic or blame. The compiler is a collaborator with limits, not a judge.</li>
-          <li><strong style="color: var(--stone)">Credit tradeoffs.</strong> Where something costs complexity or excludes a use case, say so. Bonsai is honest pruning, not pretending the pot is infinite.</li>
-          <li><strong style="color: var(--stone)">Visual anti-patterns (same as voice).</strong> No purple gradients, big radii, “empower your team,” generic AI hero art—those read as loud sales, not humble tools.</li>
+          <li><span class="theme-term">Humility first.</span> Describe behavior, not destiny. Prefer “is designed to,” “refuses to,” “attempts,” over “guarantees,” “revolutionary,” or unqualified absolutes—unless the math really is there.</li>
+          <li><span class="theme-term">Quiet confidence.</span> System-contract tone: facts, boundaries, invariants. Let the structure speak; don’t narrate victory.</li>
+          <li><span class="theme-term">Errors as boundaries, not shame.</span> State the violation calmly (clay)—“compilation halted,” not panic or blame. The compiler is a collaborator with limits, not a judge.</li>
+          <li><span class="theme-term">Credit tradeoffs.</span> Where something costs complexity or excludes a use case, say so. Bonsai is honest pruning, not pretending the pot is infinite.</li>
+          <li><span class="theme-term">Visual anti-patterns (same as voice).</span> No purple gradients, big radii, “empower your team,” generic AI hero art—those read as loud sales, not humble tools.</li>
         </ul>
       </div>
     </section>
@@ -539,5 +819,74 @@
       Static moodboard — open in a browser. Next step: split tokens into <code>tokens.css</code> and reuse in <code>index.html</code> for the real landing.
     </footer>
   </div>
+  <script>
+    (function () {
+      const CHARGE_MS = 2200;
+      const DECAY_MS = 320;
+      const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+      document.querySelectorAll(".node").forEach((node) => {
+        let raf = null;
+        let active = false;
+        let charge = 0;
+        let t0 = 0;
+
+        function setCharge(v) {
+          charge = Math.min(1, Math.max(0, v));
+          node.style.setProperty("--node-charge", charge.toFixed(5));
+          node.style.setProperty("--node-ring-tight", `${(charge * 1.4).toFixed(2)}px`);
+          node.style.setProperty("--node-ring-wide", `${(charge * 4.5).toFixed(2)}px`);
+          node.style.setProperty("--node-glow-blur", `${(charge * 16).toFixed(2)}px`);
+          node.style.setProperty("--node-alpha-tight", (charge * 0.46).toFixed(3));
+          node.style.setProperty("--node-alpha-wide", (charge * 0.2).toFixed(3));
+          node.style.setProperty("--node-alpha-haze", (charge * 0.32).toFixed(3));
+        }
+
+        function tick(now) {
+          if (!active) return;
+          const elapsed = now - t0;
+          setCharge(elapsed / CHARGE_MS);
+          if (elapsed < CHARGE_MS) raf = requestAnimationFrame(tick);
+        }
+
+        function startCharge() {
+          if (raf) cancelAnimationFrame(raf);
+          active = true;
+          if (mq.matches) return;
+          t0 = performance.now() - charge * CHARGE_MS;
+          raf = requestAnimationFrame(tick);
+        }
+
+        function startDecay() {
+          const start = charge;
+          if (start <= 0) {
+            setCharge(0);
+            return;
+          }
+          const tDecay = performance.now();
+          function decay(now) {
+            const t = Math.min(1, (now - tDecay) / DECAY_MS);
+            setCharge(start * (1 - t));
+            if (t < 1) raf = requestAnimationFrame(decay);
+            else raf = null;
+          }
+          raf = requestAnimationFrame(decay);
+        }
+
+        function stopCharge() {
+          active = false;
+          if (raf) cancelAnimationFrame(raf);
+          raf = null;
+          if (mq.matches) return;
+          startDecay();
+        }
+
+        node.addEventListener("pointerenter", startCharge);
+        node.addEventListener("pointerleave", stopCharge);
+        node.addEventListener("focus", startCharge);
+        node.addEventListener("blur", stopCharge);
+      });
+    })();
+  </script>
 </body>
 </html>
