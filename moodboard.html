@@ -12,17 +12,30 @@
   />
   <style>
     :root {
-      /* Palette: earthy ledger on void */
+      /* Palette: midnight only */
+      --canvas: #000000;
+      --canvas-rgb: 0, 0, 0;
+      --shell: rgba(0, 0, 0, 0.98);
+      --wrap-border: rgba(188, 185, 168, 0.34);
+      --shadow-rgb: 0, 0, 0;
+      --night-glow-blur: 6.8px;
+      --night-glow-alpha: 0.078;
+      --night-glow-core-alpha: 0.14;
       --void: #000000;
-      --void-elevated: #000000;
-      --stone: rgba(228, 228, 222, 0.72);
-      --stone-muted: rgba(196, 196, 188, 0.5);
-      --moss: #4a8f62;
-      --moss-dim: #2d5c40;
-      --clay: #c14137;
-      --clay-muted: #8c312a;
-      --sand: #8c8c80;
-      --sand-dim: #5a5a54;
+      --void-rgb: 0, 0, 0;
+      --void-elevated: rgba(0, 0, 0, 1);
+      --stone: #f4f0e7;
+      --stone-rgb: 244, 240, 231;
+      --stone-muted: #d8d1c5;
+      --moss: #4e9868;
+      --moss-dim: #356747;
+      --moss-rgb: 78, 152, 104;
+      --clay: #f06155;
+      --clay-muted: #c2483e;
+      --clay-rgb: 240, 97, 85;
+      --sand: #b6b4a4;
+      --sand-rgb: 182, 180, 164;
+      --sand-dim: #817f73;
       --border: 1px solid var(--sand-dim);
       --font-mono: "JetBrains Mono", ui-monospace, monospace;
       --font-serif: "Source Serif 4", Georgia, serif;
@@ -35,7 +48,7 @@
     }
 
     html {
-      background: var(--void);
+      background: var(--canvas);
       color: var(--stone);
       font-family: var(--font-mono);
       font-size: 15px;
@@ -46,13 +59,27 @@
     body {
       margin: 0;
       min-height: 100vh;
+      background: var(--canvas);
     }
 
     .wrap {
       position: relative;
+      isolation: isolate;
       max-width: 58rem;
       margin: 0 auto;
       padding: 2.5rem 1.25rem 4rem;
+    }
+
+    .wrap::before {
+      content: "";
+      position: absolute;
+      inset: 0.65rem 0.35rem 0.9rem;
+      border: 1px solid var(--wrap-border);
+      border-radius: 1rem;
+      background: var(--shell);
+      box-shadow: 0 24px 64px rgba(var(--shadow-rgb), 0.34);
+      z-index: -1;
+      pointer-events: none;
     }
 
     .label {
@@ -111,6 +138,7 @@
       background: var(--void-elevated);
       border: var(--border);
       padding: 1rem 1.1rem;
+      box-shadow: 0 10px 26px rgba(var(--shadow-rgb), 0.16);
     }
 
     .panel p {
@@ -145,20 +173,28 @@
       flex: 1 1 8rem;
       min-width: 7rem;
       border: var(--border);
+      background: var(--void-elevated);
       padding: 0.5rem 0.55rem 0.45rem;
       font-size: 0.72rem;
       line-height: 1.35;
     }
 
     .swatch .dot {
+      --swatch-rgb: var(--sand-rgb);
       height: 2rem;
       margin-bottom: 0.4rem;
-      border: 1px solid rgba(140, 140, 128, 0.35);
+      border: 1px solid var(--sand-dim);
+      box-shadow:
+        0 0 calc(var(--night-glow-blur) * 0.35) rgba(var(--swatch-rgb), var(--night-glow-core-alpha)),
+        0 0 var(--night-glow-blur) rgba(var(--swatch-rgb), var(--night-glow-alpha));
     }
 
     .swatch code {
       color: var(--sand);
       font-size: 0.68rem;
+      text-shadow:
+        0 0 calc(var(--night-glow-blur) * 0.35) rgba(var(--sand-rgb), var(--night-glow-core-alpha)),
+        0 0 var(--night-glow-blur) rgba(var(--sand-rgb), var(--night-glow-alpha));
     }
 
     /* Type specimens */
@@ -194,7 +230,7 @@
     pre.ascii {
       margin: 0;
       padding: 1rem 1rem 1rem 1.1rem;
-      background: #000000;
+      background: var(--void);
       border: var(--border);
       font-family: var(--font-mono);
       font-size: 0.78rem;
@@ -206,10 +242,16 @@
 
     pre.ascii .moss {
       color: var(--moss);
+      text-shadow:
+        0 0 calc(var(--night-glow-blur) * 0.35) rgba(var(--moss-rgb), var(--night-glow-core-alpha)),
+        0 0 var(--night-glow-blur) rgba(var(--moss-rgb), var(--night-glow-alpha));
     }
 
     pre.ascii .clay {
       color: var(--clay);
+      text-shadow:
+        0 0 calc(var(--night-glow-blur) * 0.35) rgba(var(--clay-rgb), var(--night-glow-core-alpha)),
+        0 0 var(--night-glow-blur) rgba(var(--clay-rgb), var(--night-glow-alpha));
     }
 
     pre.ascii .stone {
@@ -255,9 +297,9 @@
       appearance: none;
       /* Keep the halo on the element so the hover fill does not cover it. */
       box-shadow:
-        0 0 0 var(--node-ring-tight) rgba(74, 143, 98, var(--node-alpha-tight)),
-        0 0 0 var(--node-ring-wide) rgba(74, 143, 98, var(--node-alpha-wide)),
-        0 0 var(--node-glow-blur) 0 rgba(74, 143, 98, var(--node-alpha-haze));
+        0 0 0 var(--node-ring-tight) rgba(var(--moss-rgb), var(--node-alpha-tight)),
+        0 0 0 var(--node-ring-wide) rgba(var(--moss-rgb), var(--node-alpha-wide)),
+        0 0 var(--node-glow-blur) 0 rgba(var(--moss-rgb), var(--node-alpha-haze));
       transition:
         color 0.2s ease,
         border-color 0.2s ease,
@@ -269,14 +311,14 @@
     .node:focus-visible {
       color: var(--moss);
       border-color: var(--moss);
-      background: rgba(74, 143, 98, 0.045);
+      background: rgba(var(--moss-rgb), 0.08);
       outline: none;
     }
 
     @media (prefers-reduced-motion: reduce) {
       .node:hover,
       .node:focus-visible {
-        box-shadow: 0 0 0 1px rgba(74, 143, 98, 0.22);
+        box-shadow: 0 0 0 1px rgba(var(--moss-rgb), 0.22);
       }
     }
 
@@ -316,7 +358,7 @@
       border: 1px solid var(--sand-dim);
       font-size: 0.78rem;
       color: var(--stone);
-      background: #000000;
+      background: var(--void);
     }
 
     .install kbd {
@@ -328,7 +370,7 @@
     .error-proto {
       border-left: 3px solid var(--clay);
       padding: 0.85rem 1rem;
-      background: rgba(193, 65, 55, 0.07);
+      background: rgba(var(--clay-rgb), 0.08);
       margin-top: 1rem;
     }
 
@@ -362,6 +404,29 @@
 
     a:hover {
       color: var(--stone-muted);
+    }
+
+    .label,
+    .meta,
+    .theme-term,
+    .logo-proto .logo-name,
+    .logo-scale-row .logo-scale-h {
+      text-shadow:
+        0 0 calc(var(--night-glow-blur) * 0.35) rgba(var(--sand-rgb), var(--night-glow-core-alpha)),
+        0 0 var(--night-glow-blur) rgba(var(--sand-rgb), var(--night-glow-alpha));
+    }
+
+    a,
+    .install kbd {
+      text-shadow:
+        0 0 calc(var(--night-glow-blur) * 0.35) rgba(var(--moss-rgb), var(--night-glow-core-alpha)),
+        0 0 var(--night-glow-blur) rgba(var(--moss-rgb), var(--night-glow-alpha));
+    }
+
+    .error-proto .title {
+      text-shadow:
+        0 0 calc(var(--night-glow-blur) * 0.35) rgba(var(--clay-rgb), var(--night-glow-core-alpha)),
+        0 0 var(--night-glow-blur) rgba(var(--clay-rgb), var(--night-glow-alpha));
     }
 
     /* Lead phrase: sand/stone channel, same weight as body—color does the separation */
@@ -467,27 +532,6 @@
       flex-shrink: 0;
     }
 
-    /* Moss only: a tiny diner-sign haze on the green strokes, not the sand frame. */
-    .logo-proto .fan-moss,
-    .logo-scale-row .fan-moss {
-      filter:
-        drop-shadow(0 0 1.1px rgba(74, 143, 98, 0.16)) drop-shadow(0 0 4px rgba(74, 143, 98, 0.07));
-      transition: filter 0.45s ease;
-    }
-
-    .logo-proto:hover .fan-moss,
-    .logo-proto:focus-within .fan-moss,
-    .logo-scale-row .logo-scale-item:hover .fan-moss {
-      filter:
-        drop-shadow(0 0 1.35px rgba(74, 143, 98, 0.18)) drop-shadow(0 0 5.5px rgba(74, 143, 98, 0.09));
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .logo-proto .fan-moss,
-      .logo-scale-row .fan-moss {
-        transition: none;
-      }
-    }
   </style>
 </head>
 <body>
@@ -556,7 +600,7 @@
                 </clipPath>
               </defs>
               <g clip-path="url(#gunbai-clip-circle)">
-                <use class="fan-moss" href="#gunbai-fan-moss" />
+                <use href="#gunbai-fan-moss" />
                 <use href="#gunbai-fan-sand" />
               </g>
               <circle cx="32" cy="32" r="26" fill="none" stroke="var(--sand-dim)" stroke-width="1.25" />
@@ -579,7 +623,7 @@
                 </clipPath>
               </defs>
               <g clip-path="url(#gunbai-clip-roundrect)">
-                <use class="fan-moss" href="#gunbai-fan-moss" />
+                <use href="#gunbai-fan-moss" />
                 <use href="#gunbai-fan-sand" />
               </g>
               <rect
@@ -614,7 +658,7 @@
               </clipPath>
             </defs>
             <g clip-path="url(#gunbai-clip-circle-sm24)">
-              <use class="fan-moss" href="#gunbai-fan-moss" />
+              <use href="#gunbai-fan-moss" />
               <use href="#gunbai-fan-sand" />
             </g>
             <circle cx="32" cy="32" r="26" fill="none" stroke="var(--sand-dim)" stroke-width="1.25" />
@@ -629,7 +673,7 @@
               </clipPath>
             </defs>
             <g clip-path="url(#gunbai-clip-roundrect-sm24)">
-              <use class="fan-moss" href="#gunbai-fan-moss" />
+              <use href="#gunbai-fan-moss" />
               <use href="#gunbai-fan-sand" />
             </g>
             <rect x="8" y="8" width="48" height="48" rx="10" ry="10" fill="none" stroke="var(--sand-dim)" stroke-width="1.25" />
@@ -644,7 +688,7 @@
               </clipPath>
             </defs>
             <g clip-path="url(#gunbai-clip-circle-sm16)">
-              <use class="fan-moss" href="#gunbai-fan-moss" />
+              <use href="#gunbai-fan-moss" />
               <use href="#gunbai-fan-sand" />
             </g>
             <circle cx="32" cy="32" r="26" fill="none" stroke="var(--sand-dim)" stroke-width="1.25" />
@@ -659,7 +703,7 @@
               </clipPath>
             </defs>
             <g clip-path="url(#gunbai-clip-roundrect-sm16)">
-              <use class="fan-moss" href="#gunbai-fan-moss" />
+              <use href="#gunbai-fan-moss" />
               <use href="#gunbai-fan-sand" />
             </g>
             <rect x="8" y="8" width="48" height="48" rx="10" ry="10" fill="none" stroke="var(--sand-dim)" stroke-width="1.25" />
@@ -695,32 +739,33 @@
     </section>
 
     <section aria-labelledby="palette">
-      <h2 id="palette">Color candidates (CSS variables)</h2>
+      <h2 id="palette">Midnight palette</h2>
+      <p class="meta" style="margin-top: 0; max-width: 44em">Locked to the midnight palette for now: absolute black field, earthy moss/clay/sand accents, and only a faint neon spill around the brightest channels.</p>
       <div class="swatches">
         <div class="swatch">
-          <div class="dot" style="background: var(--void)"></div>
-          <strong>Void</strong><br />
-          <code>#000000</code> — canvas
+          <div class="dot" style="--swatch-rgb: var(--canvas-rgb); background: var(--canvas)"></div>
+          <strong>Field</strong><br />
+          <code>#000000</code> — outer page field
         </div>
         <div class="swatch">
-          <div class="dot" style="background: rgba(228, 228, 222, 0.72)"></div>
+          <div class="dot" style="--swatch-rgb: var(--stone-rgb); background: var(--stone)"></div>
           <strong>Stone</strong><br />
-          <code>rgba(228,228,222,0.72)</code> — primary text
+          <code>#F4F0E7</code> — primary text
         </div>
         <div class="swatch">
-          <div class="dot" style="background: var(--moss)"></div>
+          <div class="dot" style="--swatch-rgb: var(--moss-rgb); background: var(--moss)"></div>
           <strong>Moss</strong><br />
-          <code>#4A8F62</code> — links, active path, success
+          <code>#4E9868</code> — links, active path, toned down from neon green
         </div>
         <div class="swatch">
-          <div class="dot" style="background: var(--clay)"></div>
+          <div class="dot" style="--swatch-rgb: var(--clay-rgb); background: var(--clay)"></div>
           <strong>Clay</strong><br />
-          <code>#C14137</code> — firm errors, not alarm red
+          <code>#F06155</code> — errors, hard boundaries
         </div>
         <div class="swatch">
-          <div class="dot" style="background: var(--sand)"></div>
+          <div class="dot" style="--swatch-rgb: var(--sand-rgb); background: var(--sand)"></div>
           <strong>Sand</strong><br />
-          <code>#8C8C80</code> — borders, secondary labels
+          <code>#B6B4A4</code> — borders, labels, frame read
         </div>
       </div>
     </section>
