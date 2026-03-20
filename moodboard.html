@@ -259,6 +259,42 @@
       color: var(--stone-muted);
     }
 
+    .ascii-tree {
+      padding: 1rem 1rem 1rem 1.1rem;
+      background: var(--void);
+      border: var(--border);
+      overflow-x: auto;
+    }
+
+    .ascii-tree-grid {
+      display: inline-grid;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      line-height: 1.22;
+      letter-spacing: -0.01em;
+      color: var(--sand);
+      white-space: pre;
+    }
+
+    .ascii-tree-cell {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1ch;
+      height: 1.22em;
+    }
+
+    .ascii-tree-glyph {
+      color: var(--stone-muted);
+    }
+
+    .ascii-tree-label {
+      color: var(--moss);
+      text-shadow:
+        0 0 calc(var(--night-glow-blur) * 0.35) rgba(var(--moss-rgb), var(--night-glow-core-alpha)),
+        0 0 var(--night-glow-blur) rgba(var(--moss-rgb), var(--night-glow-alpha));
+    }
+
     /* Interactive node strip (moodboard: hover = path highlight) */
     .node-row {
       display: flex;
@@ -805,11 +841,11 @@
           <p style="font-size: 0.72rem; color: var(--sand); margin: -0.2rem 0 0.55rem; max-width: 28em">
             Grows down from <span class="moss" style="color: var(--moss)">main</span>—same motion we want on the page.
           </p>
-          <pre class="ascii" aria-label="ASCII branch diagram"><span class="stone">○──○──○──○──○──┬──○──○</span>  <span class="moss">main</span>
-<span class="stone">              │</span>
-<span class="stone">              ├──○──○──○──○</span>  <span class="moss">fork-a</span>
-<span class="stone">              │</span>
-<span class="stone">              └────○──○</span>      <span class="moss">fork-b</span></pre>
+          <div
+            class="ascii-tree"
+            aria-label="ASCII branch diagram"
+            data-ascii-tree='{"main":{"nodes":8,"branchAt":5,"label":"main"},"forks":[{"offset":2,"span":4,"label":"fork-a"},{"offset":4,"span":2,"lead":2,"label":"fork-b"}]}'
+          ></div>
         </div>
         <div>
           <p class="label">Pipeline → artifact (from README)</p>
@@ -879,6 +915,91 @@
   </div>
   <script>
     (function () {
+      function renderAsciiTrees() {
+        document.querySelectorAll(".ascii-tree[data-ascii-tree]").forEach((root) => {
+          let spec = null;
+          try {
+            spec = JSON.parse(root.dataset.asciiTree);
+          } catch (_err) {
+            return;
+          }
+
+          const branchAt = spec.main.branchAt;
+          const mainNodes = spec.main.nodes;
+          const forks = spec.forks || [];
+          const trunkCol = branchAt * 2 + 1;
+          const maxOffset = forks.reduce((max, fork) => Math.max(max, fork.offset || 0), 0);
+          const rows = Math.max(1, maxOffset + 1);
+          const mainEndCol = (mainNodes - 1) * 2;
+          const widestForkCol = forks.reduce(
+            (max, fork) => Math.max(max, trunkCol + (fork.lead || 0) + Math.max(1, fork.span * 2)),
+            mainEndCol
+          );
+          const labelStart = widestForkCol + 3;
+          const longestLabel = [spec.main.label, ...forks.map((fork) => fork.label)].reduce(
+            (max, label) => Math.max(max, label.length),
+            0
+          );
+          const cols = labelStart + longestLabel + 2;
+          const grid = Array.from({ length: rows }, () => Array.from({ length: cols }, () => ({ char: " ", cls: "" })));
+
+          function put(row, col, char, cls = "ascii-tree-glyph") {
+            if (row < 0 || row >= rows || col < 0 || col >= cols) return;
+            grid[row][col] = { char, cls };
+          }
+
+          function write(row, col, text, cls) {
+            [...text].forEach((char, index) => put(row, col + index, char, cls));
+          }
+
+          for (let i = 0; i < mainNodes; i += 1) {
+            const col = i * 2;
+            put(0, col, "○");
+            if (i < mainNodes - 1) put(0, col + 1, col + 1 === trunkCol ? "┬" : "─");
+          }
+          write(0, labelStart, spec.main.label, "ascii-tree-label");
+
+          const forkOffsets = new Set(forks.map((fork) => fork.offset || 0));
+          for (let row = 1; row <= maxOffset; row += 1) {
+            put(row, trunkCol, forkOffsets.has(row) ? (row === maxOffset ? "└" : "├") : "│");
+          }
+
+          forks.forEach((fork) => {
+            const row = fork.offset || 0;
+            const lead = fork.lead || 0;
+            const firstNodeCol = trunkCol + lead + 2;
+            const lastNodeCol = firstNodeCol + (Math.max(1, fork.span) - 1) * 2;
+
+            for (let col = trunkCol + 1; col < firstNodeCol; col += 1) {
+              put(row, col, "─");
+            }
+
+            for (let col = firstNodeCol; col <= lastNodeCol; col += 2) {
+              put(row, col, "○");
+              if (col < lastNodeCol) put(row, col + 1, "─");
+            }
+            write(row, labelStart, fork.label, "ascii-tree-label");
+          });
+
+          const gridEl = document.createElement("div");
+          gridEl.className = "ascii-tree-grid";
+          gridEl.style.gridTemplateColumns = `repeat(${cols}, 1ch)`;
+
+          grid.forEach((line) => {
+            line.forEach((cell) => {
+              const span = document.createElement("span");
+              span.className = `ascii-tree-cell ${cell.cls}`.trim();
+              span.textContent = cell.char;
+              gridEl.appendChild(span);
+            });
+          });
+
+          root.replaceChildren(gridEl);
+        });
+      }
+
+      renderAsciiTrees();
+
       const CHARGE_MS = 3000;
       const DECAY_MS = 420;
       const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
