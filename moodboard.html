@@ -12,15 +12,16 @@
   />
   <style>
     :root {
-      /* Palette: midnight with cool greys */
+      /* Palette: fixed night theme; after-hours glow is time-based */
       --canvas: #000000;
       --canvas-rgb: 0, 0, 0;
       --shell: rgba(0, 0, 0, 0.98);
       --wrap-border: rgba(149, 155, 164, 0.32);
       --shadow-rgb: 0, 0, 0;
-      --night-glow-blur: 6.8px;
-      --night-glow-alpha: 0.078;
-      --night-glow-core-alpha: 0.14;
+      --night-glow-blur: 0px;
+      --night-glow-alpha: 0;
+      --night-glow-core-alpha: 0;
+      --night-glow-outer-alpha: 0;
       --void: #000000;
       --void-rgb: 0, 0, 0;
       --void-elevated: rgba(0, 0, 0, 1);
@@ -180,21 +181,77 @@
     }
 
     .swatch .dot {
-      --swatch-rgb: var(--sand-rgb);
       height: 2rem;
       margin-bottom: 0.4rem;
       border: 1px solid var(--sand-dim);
+      position: relative;
+      isolation: isolate;
+    }
+
+    .swatch .dot.accent-moss {
       box-shadow:
-        0 0 calc(var(--night-glow-blur) * 0.35) rgba(var(--swatch-rgb), var(--night-glow-core-alpha)),
-        0 0 var(--night-glow-blur) rgba(var(--swatch-rgb), var(--night-glow-alpha));
+        0 0 calc(var(--night-glow-blur) * 0.55) rgba(var(--moss-rgb), var(--night-glow-core-alpha)),
+        0 0 calc(var(--night-glow-blur) * 1.35) rgba(var(--moss-rgb), var(--night-glow-alpha)),
+        0 0 calc(var(--night-glow-blur) * 3.1) rgba(var(--moss-rgb), var(--night-glow-outer-alpha));
+    }
+
+    .swatch .dot.accent-clay {
+      box-shadow:
+        0 0 calc(var(--night-glow-blur) * 0.55) rgba(var(--clay-rgb), var(--night-glow-core-alpha)),
+        0 0 calc(var(--night-glow-blur) * 1.35) rgba(var(--clay-rgb), var(--night-glow-alpha)),
+        0 0 calc(var(--night-glow-blur) * 3.1) rgba(var(--clay-rgb), var(--night-glow-outer-alpha));
     }
 
     .swatch code {
       color: var(--sand);
       font-size: 0.68rem;
-      text-shadow:
-        0 0 calc(var(--night-glow-blur) * 0.35) rgba(var(--sand-rgb), var(--night-glow-core-alpha)),
-        0 0 var(--night-glow-blur) rgba(var(--sand-rgb), var(--night-glow-alpha));
+    }
+
+    .glow-test {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem 0.7rem;
+      margin-top: 0.55rem;
+    }
+
+    .glow-test-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--sand);
+    }
+
+    .glow-test-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+
+    .glow-test-button {
+      border: 1px solid var(--sand-dim);
+      background: transparent;
+      color: var(--stone-muted);
+      font: inherit;
+      font-size: 0.72rem;
+      line-height: 1;
+      padding: 0.35rem 0.55rem;
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .glow-test-button:hover,
+    .glow-test-button:focus-visible {
+      border-color: var(--moss);
+      color: var(--moss);
+      outline: none;
+    }
+
+    .glow-test-button.is-active {
+      border-color: var(--moss);
+      color: var(--moss);
+      box-shadow: inset 0 0 0 1px rgba(var(--moss-rgb), 0.16);
     }
 
     /* Type specimens */
@@ -443,27 +500,19 @@
       color: var(--stone-muted);
     }
 
-    .label,
-    .meta,
-    .theme-term,
-    .logo-proto .logo-name,
-    .logo-scale-row .logo-scale-h {
-      text-shadow:
-        0 0 calc(var(--night-glow-blur) * 0.35) rgba(var(--sand-rgb), var(--night-glow-core-alpha)),
-        0 0 var(--night-glow-blur) rgba(var(--sand-rgb), var(--night-glow-alpha));
-    }
-
     a,
     .install kbd {
       text-shadow:
         0 0 calc(var(--night-glow-blur) * 0.35) rgba(var(--moss-rgb), var(--night-glow-core-alpha)),
-        0 0 var(--night-glow-blur) rgba(var(--moss-rgb), var(--night-glow-alpha));
+        0 0 var(--night-glow-blur) rgba(var(--moss-rgb), var(--night-glow-alpha)),
+        0 0 calc(var(--night-glow-blur) * 1.7) rgba(var(--moss-rgb), var(--night-glow-outer-alpha));
     }
 
     .error-proto .title {
       text-shadow:
         0 0 calc(var(--night-glow-blur) * 0.35) rgba(var(--clay-rgb), var(--night-glow-core-alpha)),
-        0 0 var(--night-glow-blur) rgba(var(--clay-rgb), var(--night-glow-alpha));
+        0 0 var(--night-glow-blur) rgba(var(--clay-rgb), var(--night-glow-alpha)),
+        0 0 calc(var(--night-glow-blur) * 1.7) rgba(var(--clay-rgb), var(--night-glow-outer-alpha));
     }
 
     /* Lead phrase: muted neutral channel, same weight as body—color does the separation */
@@ -475,45 +524,43 @@
 
     /* Logo — tilted fan in a seal (circle / rounded square) */
     .logo-row {
-      display: grid;
-      gap: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      gap: 1rem 1.75rem;
       margin-top: 1rem;
     }
 
     @media (min-width: 720px) {
       .logo-row {
-        grid-template-columns: repeat(2, 1fr);
-        align-items: stretch;
+        gap: 1.15rem 2rem;
       }
     }
 
     .logo-proto {
-      border: var(--border);
-      background: var(--void-elevated);
-      padding: 1rem 0.85rem 1.1rem;
-      display: flex;
-      flex-direction: column;
+      margin: 0;
+      display: inline-flex;
       align-items: center;
+      gap: 0.9rem;
     }
 
     .logo-proto .mark {
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 8rem;
-      margin-bottom: 0.75rem;
+      flex-shrink: 0;
     }
 
     .logo-proto svg {
       display: block;
-      width: 128px;
+      width: 104px;
       height: auto;
       flex-shrink: 0;
     }
 
     .logo-proto figcaption {
-      align-self: stretch;
       text-align: left;
+      max-width: 16rem;
     }
 
     .logo-proto .logo-name {
@@ -567,6 +614,13 @@
     .logo-scale-row svg {
       display: block;
       flex-shrink: 0;
+    }
+
+    .logo-moss {
+      filter:
+        drop-shadow(0 0 calc(var(--night-glow-blur) * 0.35) rgba(var(--moss-rgb), var(--night-glow-core-alpha)))
+        drop-shadow(0 0 var(--night-glow-blur) rgba(var(--moss-rgb), var(--night-glow-alpha)))
+        drop-shadow(0 0 calc(var(--night-glow-blur) * 1.8) rgba(var(--moss-rgb), var(--night-glow-outer-alpha)));
     }
 
   </style>
@@ -637,7 +691,7 @@
                 </clipPath>
               </defs>
               <g clip-path="url(#gunbai-clip-circle)">
-                <use href="#gunbai-fan-moss" />
+                <g class="logo-moss"><use href="#gunbai-fan-moss" /></g>
                 <use href="#gunbai-fan-sand" />
               </g>
               <circle cx="32" cy="32" r="26" fill="none" stroke="var(--sand-dim)" stroke-width="1.25" />
@@ -660,7 +714,7 @@
                 </clipPath>
               </defs>
               <g clip-path="url(#gunbai-clip-roundrect)">
-                <use href="#gunbai-fan-moss" />
+                <g class="logo-moss"><use href="#gunbai-fan-moss" /></g>
                 <use href="#gunbai-fan-sand" />
               </g>
               <rect
@@ -695,7 +749,7 @@
               </clipPath>
             </defs>
             <g clip-path="url(#gunbai-clip-circle-sm24)">
-              <use href="#gunbai-fan-moss" />
+              <g class="logo-moss"><use href="#gunbai-fan-moss" /></g>
               <use href="#gunbai-fan-sand" />
             </g>
             <circle cx="32" cy="32" r="26" fill="none" stroke="var(--sand-dim)" stroke-width="1.25" />
@@ -710,7 +764,7 @@
               </clipPath>
             </defs>
             <g clip-path="url(#gunbai-clip-roundrect-sm24)">
-              <use href="#gunbai-fan-moss" />
+              <g class="logo-moss"><use href="#gunbai-fan-moss" /></g>
               <use href="#gunbai-fan-sand" />
             </g>
             <rect x="8" y="8" width="48" height="48" rx="10" ry="10" fill="none" stroke="var(--sand-dim)" stroke-width="1.25" />
@@ -725,7 +779,7 @@
               </clipPath>
             </defs>
             <g clip-path="url(#gunbai-clip-circle-sm16)">
-              <use href="#gunbai-fan-moss" />
+              <g class="logo-moss"><use href="#gunbai-fan-moss" /></g>
               <use href="#gunbai-fan-sand" />
             </g>
             <circle cx="32" cy="32" r="26" fill="none" stroke="var(--sand-dim)" stroke-width="1.25" />
@@ -740,7 +794,7 @@
               </clipPath>
             </defs>
             <g clip-path="url(#gunbai-clip-roundrect-sm16)">
-              <use href="#gunbai-fan-moss" />
+              <g class="logo-moss"><use href="#gunbai-fan-moss" /></g>
               <use href="#gunbai-fan-sand" />
             </g>
             <rect x="8" y="8" width="48" height="48" rx="10" ry="10" fill="none" stroke="var(--sand-dim)" stroke-width="1.25" />
@@ -777,30 +831,40 @@
 
     <section aria-labelledby="palette">
       <h2 id="palette">Midnight palette</h2>
-      <p class="meta" style="margin-top: 0; max-width: 44em">Locked to the midnight palette for now: absolute black field, moss/clay accents, and a band of softened greys for text, labels, and frame.</p>
+      <p class="meta" style="margin-top: 0; max-width: 44em">Base theme stays locked to the night palette all day: absolute black field, moss/clay accents, and a band of softened greys for text, labels, and frame.</p>
+      <p class="meta" id="after-hours-status" style="margin-top: 0.35rem; max-width: 44em">After-hours glow is idle.</p>
+      <div class="glow-test" role="group" aria-label="After-hours glow test controls">
+        <span class="glow-test-label">Glow test</span>
+        <div class="glow-test-row">
+          <button type="button" class="glow-test-button is-active" data-glow-mode="auto" aria-pressed="true">Auto</button>
+          <button type="button" class="glow-test-button" data-glow-mode="off" aria-pressed="false">Off</button>
+          <button type="button" class="glow-test-button" data-glow-mode="faint" aria-pressed="false">Faint</button>
+          <button type="button" class="glow-test-button" data-glow-mode="peak" aria-pressed="false">Peak</button>
+        </div>
+      </div>
       <div class="swatches">
         <div class="swatch">
-          <div class="dot" style="--swatch-rgb: var(--canvas-rgb); background: var(--canvas)"></div>
+          <div class="dot" style="background: var(--canvas)"></div>
           <strong>Field</strong><br />
           <code>#000000</code> — outer page field
         </div>
         <div class="swatch">
-          <div class="dot" style="--swatch-rgb: var(--stone-rgb); background: var(--stone)"></div>
+          <div class="dot" style="background: var(--stone)"></div>
           <strong>Soft Grey</strong><br />
           <code>#D9DEE5</code> — primary text
         </div>
         <div class="swatch">
-          <div class="dot" style="--swatch-rgb: var(--moss-rgb); background: var(--moss)"></div>
+          <div class="dot accent-moss" style="background: var(--moss)"></div>
           <strong>Moss</strong><br />
           <code>#4E9868</code> — links, active path, toned down from neon green
         </div>
         <div class="swatch">
-          <div class="dot" style="--swatch-rgb: var(--clay-rgb); background: var(--clay)"></div>
+          <div class="dot accent-clay" style="background: var(--clay)"></div>
           <strong>Clay</strong><br />
           <code>#F06155</code> — errors, hard boundaries
         </div>
         <div class="swatch">
-          <div class="dot" style="--swatch-rgb: var(--sand-rgb); background: var(--sand)"></div>
+          <div class="dot" style="background: var(--sand)"></div>
           <strong>Faded Grey</strong><br />
           <code>#9098A1</code> — borders, labels, frame read
         </div>
@@ -1003,6 +1067,74 @@
       const CHARGE_MS = 3000;
       const DECAY_MS = 420;
       const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const root = document.documentElement;
+      const afterHoursStatus = document.getElementById("after-hours-status");
+      const glowModeButtons = Array.from(document.querySelectorAll(".glow-test-button"));
+      const timeFormatter = new Intl.DateTimeFormat(undefined, {
+        hour: "numeric",
+        minute: "2-digit",
+      });
+      const glowModeProfiles = {
+        auto: { strength: null, boost: 1 },
+        off: { strength: 0, boost: 1 },
+        faint: { strength: 0.4, boost: 2.8 },
+        peak: { strength: 1, boost: 6.5 },
+      };
+      let glowMode = "auto";
+
+      function syncGlowModeButtons() {
+        glowModeButtons.forEach((button) => {
+          const active = button.dataset.glowMode === glowMode;
+          button.classList.toggle("is-active", active);
+          button.setAttribute("aria-pressed", active ? "true" : "false");
+        });
+      }
+
+      function updateAfterHoursGlow() {
+        const now = new Date();
+        const minutes = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+        const distanceToMidnight = Math.min(minutes, 1440 - minutes);
+        const strength = Math.exp(-0.5 * Math.pow(distanceToMidnight / 85, 2));
+        const autoGlow = strength < 0.035 ? 0 : strength;
+        const profile = glowModeProfiles[glowMode] ?? glowModeProfiles.auto;
+        const glow = glowMode === "auto" ? autoGlow : profile.strength;
+        const boost = profile.boost;
+        const maxGlowAlpha = glowMode === "auto" ? 0.18 : 0.28;
+        const maxGlowCoreAlpha = glowMode === "auto" ? 0.28 : 0.4;
+        const maxGlowOuterAlpha = glowMode === "auto" ? 0.12 : 0.18;
+
+        root.style.setProperty("--night-glow-blur", `${(glow * 5.2 * boost).toFixed(2)}px`);
+        root.style.setProperty("--night-glow-alpha", Math.min(maxGlowAlpha, glow * 0.05 * boost).toFixed(3));
+        root.style.setProperty("--night-glow-core-alpha", Math.min(maxGlowCoreAlpha, glow * 0.09 * boost).toFixed(3));
+        root.style.setProperty("--night-glow-outer-alpha", Math.min(maxGlowOuterAlpha, glow * 0.032 * boost).toFixed(3));
+
+        if (afterHoursStatus) {
+          if (glowMode === "auto") {
+            let state = "idle";
+            if (glow >= 0.82) state = "peak";
+            else if (glow >= 0.42) state = "active";
+            else if (glow > 0) state = "faint";
+            afterHoursStatus.textContent = `After-hours glow · ${timeFormatter.format(now)} · ${state} · centered on 12:00 AM`;
+          } else {
+            afterHoursStatus.textContent = `After-hours glow test · ${glowMode} override · ${Math.round(glow * 100)}% intensity · ${boost.toFixed(1)}x visual boost`;
+          }
+        }
+      }
+
+      glowModeButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          glowMode = button.dataset.glowMode || "auto";
+          syncGlowModeButtons();
+          updateAfterHoursGlow();
+        });
+      });
+
+      syncGlowModeButtons();
+      updateAfterHoursGlow();
+      window.setInterval(updateAfterHoursGlow, 60000);
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) updateAfterHoursGlow();
+      });
 
       document.querySelectorAll(".node").forEach((node) => {
         let raf = null;
