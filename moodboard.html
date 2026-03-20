@@ -12,11 +12,11 @@
   />
   <style>
     :root {
-      /* Palette: midnight only */
+      /* Palette: midnight with cool greys */
       --canvas: #000000;
       --canvas-rgb: 0, 0, 0;
       --shell: rgba(0, 0, 0, 0.98);
-      --wrap-border: rgba(188, 185, 168, 0.34);
+      --wrap-border: rgba(149, 155, 164, 0.32);
       --shadow-rgb: 0, 0, 0;
       --night-glow-blur: 6.8px;
       --night-glow-alpha: 0.078;
@@ -24,18 +24,18 @@
       --void: #000000;
       --void-rgb: 0, 0, 0;
       --void-elevated: rgba(0, 0, 0, 1);
-      --stone: #f4f0e7;
-      --stone-rgb: 244, 240, 231;
-      --stone-muted: #d8d1c5;
+      --stone: #d9dee5;
+      --stone-rgb: 217, 222, 229;
+      --stone-muted: #a8afb8;
       --moss: #4e9868;
       --moss-dim: #356747;
       --moss-rgb: 78, 152, 104;
       --clay: #f06155;
       --clay-muted: #c2483e;
       --clay-rgb: 240, 97, 85;
-      --sand: #b6b4a4;
-      --sand-rgb: 182, 180, 164;
-      --sand-dim: #817f73;
+      --sand: #9098a1;
+      --sand-rgb: 144, 152, 161;
+      --sand-dim: #5f6670;
       --border: 1px solid var(--sand-dim);
       --font-mono: "JetBrains Mono", ui-monospace, monospace;
       --font-serif: "Source Serif 4", Georgia, serif;
@@ -234,7 +234,8 @@
       border: var(--border);
       font-family: var(--font-mono);
       font-size: 0.78rem;
-      line-height: 1.45;
+      line-height: 1.28;
+      letter-spacing: -0.01em;
       color: var(--sand);
       overflow-x: auto;
       tab-size: 4;
@@ -429,7 +430,7 @@
         0 0 var(--night-glow-blur) rgba(var(--clay-rgb), var(--night-glow-alpha));
     }
 
-    /* Lead phrase: sand/stone channel, same weight as body—color does the separation */
+    /* Lead phrase: muted neutral channel, same weight as body—color does the separation */
     .theme-term {
       font-weight: 400;
       letter-spacing: 0.05em;
@@ -540,7 +541,7 @@
     <h1>Quiet power, rooted structure</h1>
     <p class="tagline">
       A single page to align themes, tokens, type, and UI prototypes for a minimal,
-      technical landing—bonsai brutalism: restraint over spectacle, care over scale; void, moss, clay, sand.
+      technical landing—bonsai brutalism: restraint over spectacle, care over scale; void, moss, clay, and softened grey neutrals.
       The look leans <em style="color: var(--stone-muted); font-style: italic">late-web</em> on purpose: monospace, ASCII, hard edges—an instrument, not a period costume.
     </p>
 
@@ -551,7 +552,7 @@
         <defs>
           <!--
             Rigid gunbai paddle—blade path + two ribs (t=⅓,⅔ on top arc); four moss nodes.
-            Sand: staff collinear with symmetry axis through pivot and curve apex.
+            Neutral grey: staff collinear with symmetry axis through pivot and curve apex.
           -->
           <g id="gunbai-fan-moss">
             <g transform="rotate(50 32 32)">
@@ -587,7 +588,7 @@
         </defs>
       </svg>
       <p style="font-size: 0.8rem; color: var(--stone-muted); margin: 0 0 0.25rem; max-width: 48em">
-        Rigid <strong style="font-weight: 400; color: var(--stone)">gunbai</strong> paddle—wireframe blade (four moss nodes) and sand pivot + staff. The <strong style="font-weight: 400; color: var(--stone)">blade</strong> is <strong style="font-weight: 400; color: var(--stone)">1.1×</strong> about the pivot <code style="color: var(--sand)">(32,39)</code>; the <strong style="font-weight: 400; color: var(--stone)">staff</strong> is not scaled (<strong style="font-weight: 400; color: var(--stone)">13.5</strong> units). Centered in the view—no positional nudge. Rotated <strong style="font-weight: 400; color: var(--stone)">50°</strong>; clip + frame = badge.
+        Rigid <strong style="font-weight: 400; color: var(--stone)">gunbai</strong> paddle—wireframe blade (four moss nodes) and a faded-grey pivot + staff. The <strong style="font-weight: 400; color: var(--stone)">blade</strong> is <strong style="font-weight: 400; color: var(--stone)">1.1×</strong> about the pivot <code style="color: var(--sand)">(32,39)</code>; the <strong style="font-weight: 400; color: var(--stone)">staff</strong> is not scaled (<strong style="font-weight: 400; color: var(--stone)">13.5</strong> units). Centered in the view—no positional nudge. Rotated <strong style="font-weight: 400; color: var(--stone)">50°</strong>; clip + frame = badge.
       </p>
       <div class="logo-row">
         <figure class="logo-proto">
@@ -727,7 +728,7 @@
         <div class="panel">
           <p><span class="theme-term">Humility</span> — Bonsai brutalism: a small, honest surface; pruning and patience over hype. Say what the system does, what it refuses to do, and where the limits are.</p>
           <p><span class="theme-term">Quiet power</span> — Like a gunbai: signal and orchestration, not volume. Strength is in restraint.</p>
-          <p><span class="theme-term">Intellectual sustainability</span> — Earthy permanence vs. disposable glue; a ledger, not a funnel.</p>
+          <p><span class="theme-term">Intellectual sustainability</span> — Quiet permanence vs. disposable glue; a ledger, not a funnel.</p>
           <p><span class="theme-term">Assembly-line software</span> — <code style="color: var(--moss)">a → b → c</code> as engineering, with explicit artifacts at boundaries.</p>
         </div>
       </div>
@@ -740,7 +741,7 @@
 
     <section aria-labelledby="palette">
       <h2 id="palette">Midnight palette</h2>
-      <p class="meta" style="margin-top: 0; max-width: 44em">Locked to the midnight palette for now: absolute black field, earthy moss/clay/sand accents, and only a faint neon spill around the brightest channels.</p>
+      <p class="meta" style="margin-top: 0; max-width: 44em">Locked to the midnight palette for now: absolute black field, moss/clay accents, and a band of softened greys for text, labels, and frame.</p>
       <div class="swatches">
         <div class="swatch">
           <div class="dot" style="--swatch-rgb: var(--canvas-rgb); background: var(--canvas)"></div>
@@ -749,8 +750,8 @@
         </div>
         <div class="swatch">
           <div class="dot" style="--swatch-rgb: var(--stone-rgb); background: var(--stone)"></div>
-          <strong>Stone</strong><br />
-          <code>#F4F0E7</code> — primary text
+          <strong>Soft Grey</strong><br />
+          <code>#D9DEE5</code> — primary text
         </div>
         <div class="swatch">
           <div class="dot" style="--swatch-rgb: var(--moss-rgb); background: var(--moss)"></div>
@@ -764,8 +765,8 @@
         </div>
         <div class="swatch">
           <div class="dot" style="--swatch-rgb: var(--sand-rgb); background: var(--sand)"></div>
-          <strong>Sand</strong><br />
-          <code>#B6B4A4</code> — borders, labels, frame read
+          <strong>Faded Grey</strong><br />
+          <code>#9098A1</code> — borders, labels, frame read
         </div>
       </div>
     </section>
@@ -804,21 +805,19 @@
           <p style="font-size: 0.72rem; color: var(--sand); margin: -0.2rem 0 0.55rem; max-width: 28em">
             Grows down from <span class="moss" style="color: var(--moss)">main</span>—same motion we want on the page.
           </p>
-          <pre class="ascii" aria-label="ASCII branch diagram"><span class="stone">○──○──○──○──○──○──○──○</span>  <span class="moss">main</span>
-<span class="stone">│</span>
-<span class="stone">└──○──○──○──○</span>  <span class="moss">fork-a</span>
-<span class="stone">│</span>
-<span class="stone">└──○──○</span>  <span class="moss">fork-b</span></pre>
+          <pre class="ascii" aria-label="ASCII branch diagram"><span class="stone">○──○──○──○──○──┬──○──○</span>  <span class="moss">main</span>
+<span class="stone">              │</span>
+<span class="stone">              ├──○──○──○──○</span>  <span class="moss">fork-a</span>
+<span class="stone">              │</span>
+<span class="stone">              └────○──○</span>      <span class="moss">fork-b</span></pre>
         </div>
         <div>
           <p class="label">Pipeline → artifact (from README)</p>
-          <pre class="ascii" aria-label="Compiler pipeline ASCII">.dag source
-    <span class="stone">│</span>
-<span class="moss">COMPILER</span>  parse <span class="stone">→</span> resolve <span class="stone">→</span> typecheck <span class="stone">→</span> lower <span class="stone">→</span> derive <span class="stone">→</span> emit
-    <span class="stone">│</span>
-<span class="stone">VerifiedDag&lt;LoweredOp&gt;</span>  <span class="moss">&lt;- THE ARTIFACT</span>
-    <span class="stone">│</span>                    <span class="stone">│</span>
- emit <span class="stone">→</span> cargo          interpret</pre>
+          <pre class="ascii" aria-label="Compiler pipeline ASCII">.dag source  <span class="stone">→</span>  <span class="moss">COMPILER</span>
+              <span class="stone">├──</span> parse <span class="stone">→</span> resolve <span class="stone">→</span> typecheck <span class="stone">→</span> lower <span class="stone">→</span> derive <span class="stone">→</span> emit
+              <span class="stone">└──</span> <span class="stone">VerifiedDag&lt;LoweredOp&gt;</span>  <span class="moss">&lt;- THE ARTIFACT</span>
+                  <span class="stone">├──</span> emit <span class="stone">→</span> cargo
+                  <span class="stone">└──</span> interpret</pre>
         </div>
       </div>
 
