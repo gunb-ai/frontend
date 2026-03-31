@@ -12,36 +12,48 @@
   />
   <style>
     :root {
-      --void: #0C0C0C;
-      --void-up: #151514;
-      --void-up2: #1D1D1B;
+      /* ── Parametric base ── */
+      --hue-warm: 37;
+      --hue-moss: 134;
+      --hue-clay: 7;
 
-      --moss: #5B8C65;
-      --moss-dim: #3D6347;
-      --moss-subtle: rgba(91, 140, 101, 0.10);
-      --moss-on-light: #3D6347;
+      --accent-sat: 28%;
+      --accent-l: 45%;
+      --accent-l-dim: 33%;
 
-      --clay: #AD5B4E;
-      --clay-dim: #8A4840;
-      --clay-subtle: rgba(173, 91, 78, 0.10);
-      --clay-on-light: #8A4840;
+      /* ── Accents: moss and clay share saturation + lightness ── */
+      --moss: hsl(var(--hue-moss), var(--accent-sat), var(--accent-l));
+      --moss-dim: hsl(var(--hue-moss), var(--accent-sat), var(--accent-l-dim));
+      --moss-subtle: hsla(var(--hue-moss), var(--accent-sat), var(--accent-l), 0.10);
+      --moss-on-light: hsl(var(--hue-moss), var(--accent-sat), var(--accent-l-dim));
 
-      --stone: #C4BCB0;
-      --stone-dim: #8A847C;
-      --stone-faint: #5C5852;
+      --clay: hsl(var(--hue-clay), var(--accent-sat), var(--accent-l));
+      --clay-dim: hsl(var(--hue-clay), var(--accent-sat), var(--accent-l-dim));
+      --clay-subtle: hsla(var(--hue-clay), var(--accent-sat), var(--accent-l), 0.10);
+      --clay-on-light: hsl(var(--hue-clay), var(--accent-sat), var(--accent-l-dim));
 
-      --warm-white: #F4F1EC;
-      --warm-white-dim: #E4DFD8;
-      --warm-white-up: #FAF8F5;
+      /* ── Neutrals: warm base hue, saturation rises with lightness ── */
+      --void: hsl(var(--hue-warm), 0%, 5%);
+      --void-up: hsl(var(--hue-warm), 3%, 8%);
+      --void-up2: hsl(var(--hue-warm), 4%, 11%);
 
-      --text-dark: #2C2A26;
-      --text-dark-dim: #6B6660;
+      --stone: hsl(var(--hue-warm), 15%, 73%);
+      --stone-dim: hsl(var(--hue-warm), 6%, 51%);
+      --stone-faint: hsl(var(--hue-warm), 6%, 34%);
+
+      --warm-white: hsl(var(--hue-warm), 27%, 94%);
+      --warm-white-dim: hsl(var(--hue-warm), 18%, 87%);
+      --warm-white-up: hsl(var(--hue-warm), 33%, 97%);
+
+      --text-dark: hsl(var(--hue-warm), 7%, 16%);
+      --text-dark-dim: hsl(var(--hue-warm), 5%, 40%);
+
+      /* ── Borders: neutrals at low opacity ── */
+      --border-dark: hsla(var(--hue-warm), 15%, 73%, 0.08);
+      --border-light: hsla(var(--hue-warm), 7%, 16%, 0.10);
 
       --font-mono: "JetBrains Mono", ui-monospace, monospace;
       --font-serif: "Source Serif 4", Georgia, serif;
-
-      --border-dark: rgba(196, 188, 176, 0.08);
-      --border-light: rgba(44, 42, 38, 0.10);
     }
 
     *, *::before, *::after { box-sizing: border-box; }
@@ -187,7 +199,7 @@
     }
     [data-mode="light"] .proto-install kbd { color: var(--moss-on-light); }
     [data-mode="light"] .proto-error {
-      background: rgba(173, 91, 78, 0.06);
+      background: hsla(var(--hue-clay), var(--accent-sat), var(--accent-l), 0.06);
       border-left-color: var(--clay-on-light);
     }
     [data-mode="light"] .proto-error-title { color: var(--clay-on-light); }
@@ -421,11 +433,11 @@
 
     .mode-success { font-size: 0.78rem; padding: 0.45rem 0.6rem; border-radius: 2px; margin-bottom: 0.5rem; }
     .mode-box.dark .mode-success { color: var(--moss); background: var(--moss-subtle); }
-    .mode-box.light .mode-success { color: var(--moss-on-light); background: rgba(61, 99, 71, 0.08); }
+    .mode-box.light .mode-success { color: var(--moss-on-light); background: hsla(var(--hue-moss), var(--accent-sat), var(--accent-l-dim), 0.08); }
 
     .mode-error { font-size: 0.78rem; padding: 0.45rem 0.6rem; border-radius: 2px; border-left: 2px solid; }
     .mode-box.dark .mode-error { color: var(--clay); background: var(--clay-subtle); border-left-color: var(--clay); }
-    .mode-box.light .mode-error { color: var(--clay-on-light); background: rgba(138, 72, 64, 0.06); border-left-color: var(--clay-on-light); }
+    .mode-box.light .mode-error { color: var(--clay-on-light); background: hsla(var(--hue-clay), var(--accent-sat), var(--accent-l-dim), 0.06); border-left-color: var(--clay-on-light); }
 
     .type-spec {
       border: 1px solid;
@@ -562,7 +574,7 @@
   <div class="page">
 
     <div class="s">
-      <span class="label">Gunbai · Design Reference · v3</span>
+      <span class="label">Gunbai · Design Reference · v4</span>
       <h1>Design decisions, grounded</h1>
       <p class="lead">
         This page captures <em>why</em> the design looks the way it does—not
@@ -758,7 +770,7 @@
         <div class="swatch">
           <div class="swatch-dot bordered" style="background: var(--void)"></div>
           <div class="swatch-name">Void</div>
-          <div class="swatch-hex">#0C0C0C</div>
+          <div class="swatch-hex">hsl(37, 0%, 5%)</div>
           <div class="swatch-role">
             The ground. Near-black, very slightly warm. Product
             surfaces, the compiler's natural habitat.
@@ -767,7 +779,7 @@
         <div class="swatch">
           <div class="swatch-dot" style="background: var(--moss)"></div>
           <div class="swatch-name">Moss</div>
-          <div class="swatch-hex">#5B8C65</div>
+          <div class="swatch-hex">hsl(134, 28%, 45%)</div>
           <div class="swatch-role">
             Quiet confidence. Correctness held. Things grew here
             slowly. Links, active paths, success that doesn't
@@ -777,7 +789,7 @@
         <div class="swatch">
           <div class="swatch-dot" style="background: var(--clay)"></div>
           <div class="swatch-name">Clay</div>
-          <div class="swatch-hex" id="clay-hex">#AD5B4E</div>
+          <div class="swatch-hex">hsl(7, 28%, 45%)</div>
           <div class="swatch-role">
             Calm boundary. Something cracked, but nothing exploded.
             The compiler reports, it doesn't react. Errors, warnings,
@@ -787,7 +799,7 @@
         <div class="swatch">
           <div class="swatch-dot" style="background: var(--stone)"></div>
           <div class="swatch-name">Stone</div>
-          <div class="swatch-hex">#C4BCB0</div>
+          <div class="swatch-hex">hsl(37, 15%, 73%)</div>
           <div class="swatch-role">
             Primary text on dark. Warm grey—not blue-tinted, not
             cool. Readable, recessive, patient.
@@ -796,7 +808,7 @@
         <div class="swatch">
           <div class="swatch-dot" style="background: var(--warm-white)"></div>
           <div class="swatch-name">Warm White</div>
-          <div class="swatch-hex">#F4F1EC</div>
+          <div class="swatch-hex">hsl(37, 27%, 94%)</div>
           <div class="swatch-role">
             Light mode surface. Off-white with a warm cast. Not
             clinical, not paper—somewhere between.
@@ -938,6 +950,50 @@
       </div>
     </div>
 
+    <!-- ═══════════════════ DIAGRAMS ═══════════════════ -->
+
+    <div class="s-rule">
+      <span class="label">Diagrams</span>
+      <h2>DAG rendering — future work</h2>
+      <div class="body">
+        <p>
+          The landing page should eventually include a holistic DAG
+          diagram—something that communicates the compiler's worldview at
+          a glance: workflows as directed graphs, structure as node + edge
+          composition, the pipeline as a left-to-right chain of pure
+          transforms. Think agent workflow visualizations, but grounded in
+          the compiler's actual semantics.
+        </p>
+        <p>
+          <span class="term">Style constraint:</span> the diagram must be
+          consistent with the rest of the page's text-first, monospace-native
+          register. The initial moodboard used ASCII box-drawing characters
+          for branch diagrams (<code style="font-size:0.82rem">○──○──○</code>,
+          <code style="font-size:0.82rem">│</code>,
+          <code style="font-size:0.82rem">└──</code>). Any richer rendering
+          (SVG, canvas) should feel like a natural extension of that
+          vocabulary—not a foreign element dropped into the page.
+        </p>
+        <p>
+          <span class="term">Source material:</span>
+          <code style="font-size:0.82rem">gunbc/docs/architecture.md</code>
+          describes the substrate (Node + Edge), the two structural patterns
+          (Product = all edges connected, Coproduct = one edge active), the
+          pipeline stages (parse → resolve → typecheck → lower → emit), and
+          the composition stack (classical logic → bit → machine words →
+          algebraic types → collections → domain). The README has the
+          pipeline diagram and the v2 compiler file layout. These are the
+          reference for what to draw.
+        </p>
+        <p>
+          <span class="term">Open direction:</span> could be ASCII/text-only
+          (most on-brand), a minimal CSS/HTML rendering using the existing
+          panel/border vocabulary, or a carefully constrained SVG that
+          inherits the page's type and color system. Dedicated session.
+        </p>
+      </div>
+    </div>
+
     <!-- ═══════════════════ PROTOTYPE ═══════════════════ -->
 
     <div class="s-rule">
@@ -966,51 +1022,68 @@
 
     <!-- ═══════════════════ OPEN QUESTIONS ═══════════════════ -->
 
+    <!-- ═══════════════════ RESOLVED ═══════════════════ -->
+
+    <div class="s-rule">
+      <span class="label">Resolved</span>
+      <h2>Decisions made in this version</h2>
+      <div class="body">
+        <p>
+          <span class="term moss-text">Parametric color system.</span>
+          Implemented. Moss and clay now share saturation (28%) and
+          lightness (45% base, 33% dim) derived from three hue families:
+          warm (37°), moss (134°), clay (7°). The neutral stack derives
+          from the warm hue with saturation that rises naturally with
+          lightness. Adjusting <code style="font-size:0.82rem">--accent-sat</code>
+          pulls both accents consistently.
+        </p>
+        <p>
+          <span class="term">Mascot.</span> Deferred. Not for early
+          release. The project's personality comes from how the compiler
+          communicates, not from a character. Revisit after the project
+          has a community.
+        </p>
+        <p>
+          <span class="term">Motion language.</span> Deferred. No motion
+          for the initial landing page beyond potential subtle tree growth
+          animation if the tree motif is adopted.
+        </p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ OPEN QUESTIONS ═══════════════════ -->
+
     <div class="s-rule">
       <span class="label">Open questions</span>
       <h2>Decisions not yet made</h2>
       <div class="body">
         <p>
-          <span class="term">1. Mascot.</span> The brand probably wants a
-          mascot—many languages/compilers have one (Go's gopher, Rust's
-          crab, Zig's ziggy). The Figma "Stoic Giant" explored one
-          direction (big rounded shape, deadpan face) but didn't land.
-          The mascot should be awkward/cute without being forced.
-          Revisit after the core identity (palette, type, mark) is stable.
+          <span class="term">1. Mark shape.</span> The squircle holds its
+          seat as a neutral placeholder. It works at 16px and doesn't
+          commit to a direction prematurely. Explore gunbai fan silhouette,
+          bonsai, or graph-node in a dedicated session—the shape should
+          feel like it belongs to this project, not to every SaaS product.
         </p>
         <p>
-          <span class="term">2. Mark shape.</span> The squircle works as a
-          neutral placeholder but reads as generic app-icon. Explore:
-          gunbai fan silhouette, bonsai, graph-node, or something else
-          that carries meaning and survives at 16px. The shape should feel
-          like it belongs to this project, not to every SaaS product.
+          <span class="term">2. The tree / DAG motif.</span> The project's
+          data structure is a DAG. A procedural branching tree maps both
+          literally (compiler structure) and thematically (bonsai = organic
+          material in deliberate form). Open question: does this become the
+          hero visual for the landing page, a background texture, or
+          something else? The diagram section above establishes the
+          structural vocabulary; the tree would be its expressive form.
         </p>
         <p>
-          <span class="term">3. Parametric color system.</span> Moss and
-          clay should be functions of the same saturation/lightness
-          parameters, not independent hex picks. The neutral stack (void →
-          stone → warm white) should derive from a shared warm temperature.
-          Build this as an actual system (JS or CSS custom properties from
-          HSL) so adjusting one parameter pulls everything consistently.
-        </p>
-        <p>
-          <span class="term">4. The tree.</span> The existing docs site
-          has a procedural branching tree (brown trunk, green typographic
-          leaves on void). It's beautiful and on-brand. Open question:
-          does this motif carry into the broader brand, or stay as a
-          one-off landing page illustration?
-        </p>
-        <p>
-          <span class="term">5. Motion language.</span> If a mascot or
-          character survives, what's the motion vocabulary? Slow breathing
-          = correct, faster = working, still = error? Or something else
-          entirely. Deferred until the mascot question is settled.
+          <span class="term">3. Landing page scope.</span> The page needs
+          to communicate: this exists, these are its goals/non-goals, try
+          it here, reach out here. What's the minimum viable structure?
+          Hero + pipeline diagram + install + contact? Or something leaner?
         </p>
       </div>
     </div>
 
     <div class="foot">
-      Design reference v3 · gunb.ai · open in browser · this document is
+      Design reference v4 · gunb.ai · parametric palette · this document is
       the source of truth until it's updated.
     </div>
   </div>
@@ -1068,7 +1141,7 @@
       sizes.forEach(function (s) {
         var cell = document.createElement("div");
         cell.className = "mark-cell on-dark";
-        cell.appendChild(makeMark(s.px, "#C4BCB0"));
+        cell.appendChild(makeMark(s.px, "#C4BDB0"));
         var lbl = document.createElement("span");
         lbl.className = "size-label";
         lbl.textContent = s.label;
@@ -1079,7 +1152,7 @@
       sizes.forEach(function (s) {
         var cell = document.createElement("div");
         cell.className = "mark-cell on-light";
-        cell.appendChild(makeMark(s.px, "#0C0C0C"));
+        cell.appendChild(makeMark(s.px, "#0D0D0D"));
         var lbl = document.createElement("span");
         lbl.className = "size-label";
         lbl.textContent = s.label;
