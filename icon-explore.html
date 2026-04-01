@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gunbai — Icon Explorations</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Recursive:CASL,MONO,wght@0..1,0..1,400..600&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --hue-warm: 37;
+      --hue-moss: 134;
+      --hue-clay: 7;
+      --accent-sat: 28%;
+      --accent-l: 45%;
+      --accent-l-dim: 33%;
+
+      --moss: hsl(var(--hue-moss), var(--accent-sat), var(--accent-l));
+      --clay: hsl(var(--hue-clay), var(--accent-sat), var(--accent-l));
+
+      --void: hsl(var(--hue-warm), 0%, 5%);
+      --void-up: hsl(var(--hue-warm), 3%, 8%);
+      --void-up2: hsl(var(--hue-warm), 4%, 11%);
+
+      --stone: hsl(var(--hue-warm), 15%, 73%);
+      --stone-dim: hsl(var(--hue-warm), 6%, 51%);
+      --stone-faint: hsl(var(--hue-warm), 6%, 34%);
+
+      --warm-white: hsl(var(--hue-warm), 27%, 94%);
+      --warm-white-dim: hsl(var(--hue-warm), 18%, 87%);
+      --warm-white-up: hsl(var(--hue-warm), 33%, 97%);
+
+      --text-dark: hsl(var(--hue-warm), 7%, 16%);
+      --text-dark-dim: hsl(var(--hue-warm), 5%, 40%);
+
+      --border-dark: hsla(var(--hue-warm), 15%, 73%, 0.08);
+      --border-light: hsla(var(--hue-warm), 7%, 16%, 0.10);
+
+      --font-mono: "JetBrains Mono", ui-monospace, monospace;
+      --font-display: "Recursive", ui-monospace, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { font-family: var(--font-mono); font-size: 15px; }
+
+    [data-mode="dark"] body { background: var(--void); color: var(--stone); }
+    [data-mode="light"] body { background: var(--warm-white); color: var(--text-dark); }
+    body { margin: 0; }
+
+    .page { max-width: 58rem; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+
+    .back {
+      display: inline-block; font-size: 0.68rem;
+      letter-spacing: 0.06em; text-decoration: none; margin-bottom: 1.5rem;
+    }
+    [data-mode="dark"] .back { color: var(--stone-faint); }
+    [data-mode="light"] .back { color: var(--text-dark-dim); }
+    .back:hover { color: var(--moss); }
+
+    .label {
+      display: block; font-size: 0.65rem; letter-spacing: 0.12em;
+      text-transform: uppercase; margin-bottom: 0.5rem;
+    }
+    [data-mode="dark"] .label { color: var(--stone-faint); }
+    [data-mode="light"] .label { color: var(--text-dark-dim); }
+
+    h1 {
+      font-family: var(--font-display);
+      font-variation-settings: "MONO" 0.45, "CASL" 0.3;
+      font-weight: 500; font-size: clamp(1.4rem, 3vw, 1.8rem);
+      line-height: 1.2; margin: 0 0 0.6rem;
+    }
+
+    .lead {
+      font-size: 0.82rem; line-height: 1.65; max-width: 48em;
+      margin: 0 0 3rem;
+    }
+    [data-mode="dark"] .lead { color: var(--stone-dim); }
+    [data-mode="light"] .lead { color: var(--text-dark-dim); }
+
+    .concept {
+      margin-bottom: 3.5rem; padding-bottom: 3.5rem;
+      border-bottom: 1px solid var(--border-dark);
+    }
+    [data-mode="light"] .concept { border-bottom-color: var(--border-light); }
+    .concept:last-child { border-bottom: none; }
+
+    .concept h2 {
+      font-family: var(--font-display);
+      font-variation-settings: "MONO" 0.45, "CASL" 0.3;
+      font-weight: 500; font-size: 1.05rem; margin: 0 0 0.3rem;
+    }
+    .concept-note {
+      font-size: 0.72rem; line-height: 1.6; max-width: 48em;
+      margin-bottom: 1.25rem;
+    }
+    [data-mode="dark"] .concept-note { color: var(--stone-dim); }
+    [data-mode="light"] .concept-note { color: var(--text-dark-dim); }
+
+    .grounds {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;
+    }
+    @media (max-width: 640px) { .grounds { grid-template-columns: 1fr; } }
+
+    .ground { border-radius: 3px; padding: 1.5rem 1rem; }
+    .ground.dark {
+      background: var(--void-up); border: 1px solid var(--border-dark);
+    }
+    .ground.light {
+      background: var(--warm-white); border: 1px solid var(--border-light);
+    }
+
+    .ground-label {
+      font-size: 0.58rem; letter-spacing: 0.1em;
+      text-transform: uppercase; margin-bottom: 1rem;
+    }
+    .ground.dark .ground-label { color: var(--stone-faint); }
+    .ground.light .ground-label { color: var(--text-dark-dim); }
+
+    .icon-row { display: flex; align-items: flex-end; gap: 1.5rem; }
+
+    .icon-cell {
+      display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+    }
+    .icon-dim { font-size: 0.5rem; letter-spacing: 0.04em; }
+    .ground.dark .icon-dim { color: var(--stone-faint); }
+    .ground.light .icon-dim { color: var(--text-dark-dim); }
+
+    .icon-hero { width: 160px; height: 160px; }
+    .icon-mark { width: 64px; height: 64px; }
+    .icon-sm { width: 32px; height: 32px; }
+
+    .ground.dark svg { color: var(--stone); }
+    .ground.light svg { color: var(--text-dark); }
+
+    .ground.dark svg.moss { color: var(--moss); }
+    .ground.light svg.moss { color: var(--moss); }
+
+    .mode-toggle {
+      position: fixed; bottom: 1.25rem; right: 1.25rem;
+      background: var(--void-up2); color: var(--stone-dim);
+      border: 1px solid var(--border-dark); border-radius: 3px;
+      font-family: var(--font-mono); font-size: 0.65rem;
+      letter-spacing: 0.08em; padding: 0.4rem 0.65rem; cursor: pointer;
+    }
+    [data-mode="light"] .mode-toggle {
+      background: var(--warm-white-up); color: var(--text-dark-dim);
+      border-color: var(--border-light);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════ SVG Symbols ═══════ -->
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
+
+  <!--
+    Paddle path (shared across all symbols):
+    Smooth double-lobe with vertical tangents at the waist for kink-free sides.
+    Upper widest y≈30 (68), waist y≈52 (60, 88%), lower y≈72 (64, 94%).
+    Height 84, handle y86–97. Ratio ≈ 1.24:1.
+  -->
+
+  <!-- Traditional: sun disc (upper-right) + crescent (lower-left) -->
+  <symbol id="gunbai-traditional" viewBox="0 0 100 100">
+    <path d="M50,4 C76,4 84,16 84,30 C84,40 80,48 80,52 C80,56 82,64 82,72 C82,80 68,88 50,88 C32,88 18,80 18,72 C18,64 20,56 20,52 C20,48 16,40 16,30 C16,16 24,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="2.5"/>
+    <line x1="50" y1="86" x2="50" y2="97" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="60" cy="24" r="6" fill="currentColor"/>
+    <path d="M40,56 A6,6 0 1,1 40,68 A3,6 0 1,0 40,56 Z" fill="currentColor"/>
+  </symbol>
+
+  <!-- Crescent moon only (dark mode) — upper-right -->
+  <symbol id="gunbai-moon" viewBox="0 0 100 100">
+    <path d="M50,4 C76,4 84,16 84,30 C84,40 80,48 80,52 C80,56 82,64 82,72 C82,80 68,88 50,88 C32,88 18,80 18,72 C18,64 20,56 20,52 C20,48 16,40 16,30 C16,16 24,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="2.5"/>
+    <line x1="50" y1="86" x2="50" y2="97" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+    <path d="M61,18 A10,10 0 1,1 61,38 A5,10 0 1,0 61,18 Z" fill="currentColor"/>
+  </symbol>
+
+  <!-- Sun disc only (light mode) — upper-right -->
+  <symbol id="gunbai-sun" viewBox="0 0 100 100">
+    <path d="M50,4 C76,4 84,16 84,30 C84,40 80,48 80,52 C80,56 82,64 82,72 C82,80 68,88 50,88 C32,88 18,80 18,72 C18,64 20,56 20,52 C20,48 16,40 16,30 C16,16 24,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="2.5"/>
+    <line x1="50" y1="86" x2="50" y2="97" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="61" cy="28" r="8" fill="currentColor"/>
+  </symbol>
+
+  <!-- Solid silhouette -->
+  <symbol id="gunbai-solid" viewBox="0 0 100 100">
+    <path d="M50,4 C76,4 84,16 84,30 C84,40 80,48 80,52 C80,56 82,64 82,72 C82,80 68,88 50,88 C32,88 18,80 18,72 C18,64 20,56 20,52 C20,48 16,40 16,30 C16,16 24,4 50,4 Z" fill="currentColor"/>
+    <rect x="47" y="84" width="6" height="14" rx="3" fill="currentColor"/>
+  </symbol>
+
+  <!-- Outline only -->
+  <symbol id="gunbai-outline" viewBox="0 0 100 100">
+    <path d="M50,4 C76,4 84,16 84,30 C84,40 80,48 80,52 C80,56 82,64 82,72 C82,80 68,88 50,88 C32,88 18,80 18,72 C18,64 20,56 20,52 C20,48 16,40 16,30 C16,16 24,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="2.5"/>
+    <line x1="50" y1="86" x2="50" y2="97" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+  </symbol>
+
+  <!-- ── Favicon-optimised bold variants ── -->
+
+  <symbol id="gunbai-traditional-bold" viewBox="0 0 100 100">
+    <path d="M50,4 C76,4 84,16 84,30 C84,40 80,48 80,52 C80,56 82,64 82,72 C82,80 68,88 50,88 C32,88 18,80 18,72 C18,64 20,56 20,52 C20,48 16,40 16,30 C16,16 24,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/>
+    <line x1="50" y1="86" x2="50" y2="97" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="60" cy="24" r="8" fill="currentColor"/>
+    <path d="M40,54 A8,8 0 1,1 40,70 A4,8 0 1,0 40,54 Z" fill="currentColor"/>
+  </symbol>
+
+  <symbol id="gunbai-moon-bold" viewBox="0 0 100 100">
+    <path d="M50,4 C76,4 84,16 84,30 C84,40 80,48 80,52 C80,56 82,64 82,72 C82,80 68,88 50,88 C32,88 18,80 18,72 C18,64 20,56 20,52 C20,48 16,40 16,30 C16,16 24,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/>
+    <line x1="50" y1="86" x2="50" y2="97" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+    <path d="M61,15 A13,13 0 1,1 61,41 A6,13 0 1,0 61,15 Z" fill="currentColor"/>
+  </symbol>
+
+  <symbol id="gunbai-sun-bold" viewBox="0 0 100 100">
+    <path d="M50,4 C76,4 84,16 84,30 C84,40 80,48 80,52 C80,56 82,64 82,72 C82,80 68,88 50,88 C32,88 18,80 18,72 C18,64 20,56 20,52 C20,48 16,40 16,30 C16,16 24,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/>
+    <line x1="50" y1="86" x2="50" y2="97" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="61" cy="28" r="11" fill="currentColor"/>
+  </symbol>
+
+</svg>
+
+<!-- ═══════ Page ═══════ -->
+<div class="page">
+
+  <a href="moodboard.html" class="back">&larr; Back to moodboard</a>
+
+  <span class="label">Icon explorations</span>
+  <h1>The gunbai</h1>
+  <p class="lead">
+    軍配 — the commander's war fan. The double-lobed paddle carries
+    sun and moon — day and night, held in one hand. The shape
+    itself is the name made literal: a tool for directing structure.
+  </p>
+
+  <!-- ═══════ Traditional: both symbols ═══════ -->
+
+  <div class="concept">
+    <h2>Traditional mark</h2>
+    <p class="concept-note">
+      The authentic gunbai design: sun disc in the upper-right, crescent
+      moon in the lower-left. This dual mark works as a permanent logo —
+      the shape communicates duality without needing a theme swap.
+    </p>
+
+    <div class="grounds">
+      <div class="ground dark">
+        <div class="ground-label">Dark</div>
+        <div class="icon-row">
+          <div class="icon-cell">
+            <svg class="icon-hero"><use href="#gunbai-traditional"/></svg>
+            <span class="icon-dim">160</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-mark"><use href="#gunbai-traditional"/></svg>
+            <span class="icon-dim">64</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-sm"><use href="#gunbai-traditional-bold"/></svg>
+            <span class="icon-dim">32</span>
+          </div>
+        </div>
+      </div>
+      <div class="ground light">
+        <div class="ground-label">Light</div>
+        <div class="icon-row">
+          <div class="icon-cell">
+            <svg class="icon-hero"><use href="#gunbai-traditional"/></svg>
+            <span class="icon-dim">160</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-mark"><use href="#gunbai-traditional"/></svg>
+            <span class="icon-dim">64</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-sm"><use href="#gunbai-traditional-bold"/></svg>
+            <span class="icon-dim">32</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ Theme-reactive: one symbol per mode ═══════ -->
+
+  <div class="concept">
+    <h2>Theme-reactive mark</h2>
+    <p class="concept-note">
+      Dark mode gets the crescent moon alone; light mode gets the sun disc.
+      Same paddle shape, one symbol at a time — the swap reinforces that
+      the tool adapts while the structure holds.
+    </p>
+
+    <div class="grounds">
+      <div class="ground dark">
+        <div class="ground-label">Dark — moon</div>
+        <div class="icon-row">
+          <div class="icon-cell">
+            <svg class="icon-hero"><use href="#gunbai-moon"/></svg>
+            <span class="icon-dim">160</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-mark"><use href="#gunbai-moon"/></svg>
+            <span class="icon-dim">64</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-sm"><use href="#gunbai-moon-bold"/></svg>
+            <span class="icon-dim">32</span>
+          </div>
+        </div>
+      </div>
+      <div class="ground light">
+        <div class="ground-label">Light — sun</div>
+        <div class="icon-row">
+          <div class="icon-cell">
+            <svg class="icon-hero"><use href="#gunbai-sun"/></svg>
+            <span class="icon-dim">160</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-mark"><use href="#gunbai-sun"/></svg>
+            <span class="icon-dim">64</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-sm"><use href="#gunbai-sun-bold"/></svg>
+            <span class="icon-dim">32</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ Moss accent ═══════ -->
+
+  <div class="concept">
+    <h2>Moss accent</h2>
+    <p class="concept-note">
+      The traditional mark rendered in the moss accent color.
+      Tests whether the brand color works as the primary mark color
+      or should stay reserved for UI signals.
+    </p>
+
+    <div class="grounds">
+      <div class="ground dark">
+        <div class="ground-label">Dark — moss</div>
+        <div class="icon-row">
+          <div class="icon-cell">
+            <svg class="icon-hero moss"><use href="#gunbai-traditional"/></svg>
+            <span class="icon-dim">160</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-mark moss"><use href="#gunbai-traditional"/></svg>
+            <span class="icon-dim">64</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-sm moss"><use href="#gunbai-traditional-bold"/></svg>
+            <span class="icon-dim">32</span>
+          </div>
+        </div>
+      </div>
+      <div class="ground light">
+        <div class="ground-label">Light — moss</div>
+        <div class="icon-row">
+          <div class="icon-cell">
+            <svg class="icon-hero moss"><use href="#gunbai-traditional"/></svg>
+            <span class="icon-dim">160</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-mark moss"><use href="#gunbai-traditional"/></svg>
+            <span class="icon-dim">64</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-sm moss"><use href="#gunbai-traditional-bold"/></svg>
+            <span class="icon-dim">32</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ Reduced forms ═══════ -->
+
+  <div class="concept">
+    <h2>Reduced forms</h2>
+    <p class="concept-note">
+      The paddle shape alone — filled silhouette and bare outline.
+      Tests whether the double-lobed gunbai reads without interior symbols.
+      Useful for watermarks, app chrome, or monochrome contexts.
+    </p>
+
+    <div class="grounds">
+      <div class="ground dark">
+        <div class="ground-label">Dark — solid &amp; outline</div>
+        <div class="icon-row">
+          <div class="icon-cell">
+            <svg class="icon-mark"><use href="#gunbai-solid"/></svg>
+            <span class="icon-dim">solid</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-mark"><use href="#gunbai-outline"/></svg>
+            <span class="icon-dim">outline</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-sm"><use href="#gunbai-solid"/></svg>
+            <span class="icon-dim">32</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-sm"><use href="#gunbai-outline"/></svg>
+            <span class="icon-dim">32</span>
+          </div>
+        </div>
+      </div>
+      <div class="ground light">
+        <div class="ground-label">Light — solid &amp; outline</div>
+        <div class="icon-row">
+          <div class="icon-cell">
+            <svg class="icon-mark"><use href="#gunbai-solid"/></svg>
+            <span class="icon-dim">solid</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-mark"><use href="#gunbai-outline"/></svg>
+            <span class="icon-dim">outline</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-sm"><use href="#gunbai-solid"/></svg>
+            <span class="icon-dim">32</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-sm"><use href="#gunbai-outline"/></svg>
+            <span class="icon-dim">32</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<button id="mode-toggle" class="mode-toggle">
+  <span id="mode-label-text">Dark</span>
+</button>
+
+<script>
+  (function () {
+    var html = document.documentElement;
+    var toggle = document.getElementById("mode-toggle");
+    var label = document.getElementById("mode-label-text");
+
+    function setMode(m) {
+      html.setAttribute("data-mode", m);
+      label.textContent = m === "dark" ? "Dark" : "Light";
+    }
+
+    toggle.addEventListener("click", function () {
+      var cur = html.getAttribute("data-mode") || "dark";
+      setMode(cur === "dark" ? "light" : "dark");
+    });
+  })();
+</script>
+
+</body>
+</html>
