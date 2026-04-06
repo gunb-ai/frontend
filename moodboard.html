@@ -17,19 +17,19 @@
       --hue-moss: 134;
       --hue-clay: 7;
 
-      --accent-sat: 28%;
-      --accent-l: 45%;
-      --accent-l-dim: 33%;
+      --accent-sat: 36%;
+      --accent-l: 48%;
+      --accent-l-dim: 36%;
 
       /* ── Accents: moss and clay share saturation + lightness ── */
       --moss: hsl(var(--hue-moss), var(--accent-sat), var(--accent-l));
       --moss-dim: hsl(var(--hue-moss), var(--accent-sat), var(--accent-l-dim));
-      --moss-subtle: hsla(var(--hue-moss), var(--accent-sat), var(--accent-l), 0.10);
+      --moss-subtle: hsla(var(--hue-moss), var(--accent-sat), var(--accent-l), 0.14);
       --moss-on-light: hsl(var(--hue-moss), var(--accent-sat), var(--accent-l-dim));
 
       --clay: hsl(var(--hue-clay), var(--accent-sat), var(--accent-l));
       --clay-dim: hsl(var(--hue-clay), var(--accent-sat), var(--accent-l-dim));
-      --clay-subtle: hsla(var(--hue-clay), var(--accent-sat), var(--accent-l), 0.10);
+      --clay-subtle: hsla(var(--hue-clay), var(--accent-sat), var(--accent-l), 0.14);
       --clay-on-light: hsl(var(--hue-clay), var(--accent-sat), var(--accent-l-dim));
 
       /* ── Neutrals: warm base hue, saturation rises with lightness ── */
@@ -199,7 +199,7 @@
     }
     [data-mode="light"] .proto-install kbd { color: var(--moss); }
     [data-mode="light"] .proto-error {
-      background: hsla(var(--hue-clay), var(--accent-sat), var(--accent-l), 0.10);
+      background: hsla(var(--hue-clay), var(--accent-sat), var(--accent-l), 0.14);
       border-left-color: var(--clay);
     }
     [data-mode="light"] .proto-error-title { color: var(--clay); }
@@ -439,11 +439,11 @@
 
     .mode-success { font-size: 0.78rem; padding: 0.45rem 0.6rem; border-radius: 2px; margin-bottom: 0.5rem; }
     .mode-box.dark .mode-success { color: var(--moss); background: var(--moss-subtle); }
-    .mode-box.light .mode-success { color: var(--moss); background: hsla(var(--hue-moss), var(--accent-sat), var(--accent-l), 0.13); }
+    .mode-box.light .mode-success { color: var(--moss); background: hsla(var(--hue-moss), var(--accent-sat), var(--accent-l), 0.14); }
 
-    .mode-error { font-size: 0.78rem; padding: 0.45rem 0.6rem; border-radius: 2px; border-left: 2px solid; }
+    .mode-error { font-size: 0.78rem; font-weight: 500; padding: 0.45rem 0.6rem; border-radius: 2px; border-left: 2px solid; }
     .mode-box.dark .mode-error { color: var(--clay); background: var(--clay-subtle); border-left-color: var(--clay); }
-    .mode-box.light .mode-error { color: var(--clay); background: hsla(var(--hue-clay), var(--accent-sat), var(--accent-l), 0.10); border-left-color: var(--clay); }
+    .mode-box.light .mode-error { color: var(--clay); background: hsla(var(--hue-clay), var(--accent-sat), var(--accent-l), 0.14); border-left-color: var(--clay); }
 
     .type-spec {
       border: 1px solid;
@@ -505,8 +505,8 @@
       border-radius: 0 2px 2px 0;
       margin-top: 1rem;
     }
-    .proto-error-title { font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.2rem; }
-    .proto-error p { font-size: 0.78rem; margin: 0; }
+    .proto-error-title { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.2rem; }
+    .proto-error p { font-size: 0.78rem; font-weight: 500; margin: 0; }
 
     .foot {
       margin-top: 3.5rem;
@@ -573,6 +573,19 @@
   </style>
 </head>
 <body>
+
+<!-- Stoic Giant SVG symbol (shared with icon-explore.html) -->
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
+  <symbol id="stoic-idle" viewBox="0 0 120 120">
+    <path fill-rule="evenodd" fill="currentColor" d="
+      M40,20 H80 A30,30 0 0,1 110,50 V70 A30,30 0 0,1 80,100 H40 A30,30 0 0,1 10,70 V50 A30,30 0 0,1 40,20 Z
+      M35,40 A8,8 0 0,1 35,56 A8,8 0 0,1 35,40 Z
+      M85,40 A8,8 0 0,1 85,56 A8,8 0 0,1 85,40 Z
+      M54,54 H66 A2,2 0 0,1 68,56 V58 A2,2 0 0,1 66,60 H54 A2,2 0 0,1 52,58 V56 A2,2 0 0,1 54,54 Z
+    "/>
+  </symbol>
+</svg>
+
   <button class="mode-toggle" id="mode-toggle" type="button" aria-label="Toggle light/dark mode">
     <span class="indicator"></span>
     <span id="mode-label-text">Dark</span>
@@ -786,7 +799,7 @@
         <div class="swatch">
           <div class="swatch-dot" style="background: var(--moss)"></div>
           <div class="swatch-name">Moss</div>
-          <div class="swatch-hex">hsl(134, 28%, 45%)</div>
+          <div class="swatch-hex">hsl(134, 36%, 48%)</div>
           <div class="swatch-role">
             Quiet confidence. Correctness held. Things grew here
             slowly. Links, active paths, success that doesn't
@@ -796,7 +809,7 @@
         <div class="swatch">
           <div class="swatch-dot" style="background: var(--clay)"></div>
           <div class="swatch-name">Clay</div>
-          <div class="swatch-hex">hsl(7, 28%, 45%)</div>
+          <div class="swatch-hex">hsl(7, 36%, 48%)</div>
           <div class="swatch-role">
             Calm boundary. Something cracked, but nothing exploded.
             The compiler reports, it doesn't react. Errors, warnings,
@@ -898,21 +911,20 @@
 
     <div class="s-rule">
       <span class="label">Mark</span>
-      <h2>Neutral mark, for now</h2>
+      <h2>The Stoic Giant</h2>
       <div class="body" style="margin-bottom: 1.25rem">
         <p>
-          The current mark is a squircle—a rounded square with enough
-          radius to feel weighty. It's a placeholder that works: reads at
-          16px, looks fine on both backgrounds, doesn't commit to a
-          direction we're not sure about yet.
+          A deadpan face in a squircle. Two round eyes, one flat mouth—the
+          minimum geometry for expression. Eyes and mouth are transparent
+          cutouts (evenodd fill), so the background always shows through.
+          This gives infinite palette flexibility from a single SVG path.
         </p>
         <p>
-          <span class="term">Shape is an open question.</span> The squircle
-          is safe but may read as generic (Discord, Slack, every app icon
-          since 2018). We should explore whether the gunbai fan, a bonsai
-          silhouette, or something else can be reduced to a single shape
-          that survives at favicon scale. For now, the squircle holds the
-          seat.
+          <span class="term">Team palettes.</span> Every team member gets
+          a personal background + face color pair. The canonical product
+          mark uses stone-on-void (dark) and text-on-cream (light). Accent
+          variants in moss and clay work for branded contexts.
+          <a href="icon-explore.html" style="text-decoration:none;border-bottom:1px solid currentColor;opacity:0.7">See palette grid &rarr;</a>
         </p>
       </div>
 
@@ -1038,23 +1050,25 @@
       <div class="body">
         <p>
           <span class="term moss-text">Parametric color system.</span>
-          Implemented. Moss and clay now share saturation (28%) and
-          lightness (45% base, 33% dim) derived from three hue families:
+          Implemented. Moss and clay now share saturation (36%) and
+          lightness (48% base, 36% dim) derived from three hue families:
           warm (37°), moss (134°), clay (7°). The neutral stack derives
           from the warm hue with saturation that rises naturally with
           lightness. Adjusting <code style="font-size:0.82rem">--accent-sat</code>
           pulls both accents consistently.
         </p>
         <p>
-          <span class="term">Mascot.</span> Deferred. Not for early
-          release. The project's personality comes from how the compiler
-          communicates, not from a character. Revisit after the project
-          has a community.
+          <span class="term moss-text">Mark shape.</span> Resolved. The
+          Stoic Giant — a deadpan face in a squircle — replaces the
+          neutral placeholder. Evenodd cutouts keep it single-path and
+          infinitely recolorable. Reads at 16px. Each team member gets
+          a personal color pair.
         </p>
         <p>
-          <span class="term">Motion language.</span> Deferred. No motion
-          for the initial landing page beyond potential subtle tree growth
-          animation if the tree motif is adopted.
+          <span class="term">Mascot / motion.</span> The Stoic Giant
+          doubles as the mascot. Idle breathing + blink animations are
+          planned for the website (CSS/GSAP). Sleeping state available
+          for backgrounded tabs.
         </p>
       </div>
     </div>
@@ -1066,11 +1080,9 @@
       <h2>Decisions not yet made</h2>
       <div class="body">
         <p>
-          <span class="term">1. Mark shape.</span> The squircle holds its
-          seat as a neutral placeholder. It works at 16px and doesn't
-          commit to a direction prematurely. Explore gunbai fan silhouette,
-          bonsai, or graph-node in a dedicated session—the shape should
-          feel like it belongs to this project, not to every SaaS product.
+          <span class="term">1. Mark shape.</span>
+          <span class="moss-text" style="font-size:0.78rem">Resolved.</span>
+          The Stoic Giant. See mark section above.
         </p>
         <p>
           <span class="term">2. The tree / DAG motif.</span> The project's
@@ -1113,7 +1125,7 @@
         setMode(current === "dark" ? "light" : "dark");
       });
 
-      /* ── Mark grid (faceless only) ── */
+      /* ── Mark grid (Stoic Giant) ── */
       var grid = document.getElementById("mark-grid");
       if (!grid) return;
 
@@ -1125,24 +1137,15 @@
         { px: 16, label: "16px" }
       ];
 
-      function makeMark(size, fill) {
-        var pad = size * 0.1;
-        var r = size * 0.3;
+      function makeMark(size, color) {
         var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         svg.setAttribute("width", size);
         svg.setAttribute("height", size);
-        svg.setAttribute("viewBox", "0 0 " + size + " " + size);
-
-        var rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        rect.setAttribute("x", pad);
-        rect.setAttribute("y", pad);
-        rect.setAttribute("width", size - pad * 2);
-        rect.setAttribute("height", size - pad * 2);
-        rect.setAttribute("rx", r);
-        rect.setAttribute("ry", r);
-        rect.setAttribute("fill", fill);
-        svg.appendChild(rect);
-
+        svg.setAttribute("viewBox", "0 0 120 120");
+        svg.style.color = color;
+        var use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+        use.setAttribute("href", "#stoic-idle");
+        svg.appendChild(use);
         return svg;
       }
 
