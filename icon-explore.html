@@ -17,7 +17,6 @@
       --hue-clay: 7;
       --accent-sat: 28%;
       --accent-l: 45%;
-      --accent-l-dim: 33%;
 
       --moss: hsl(var(--hue-moss), var(--accent-sat), var(--accent-l));
       --clay: hsl(var(--hue-clay), var(--accent-sat), var(--accent-l));
@@ -51,7 +50,7 @@
     [data-mode="light"] body { background: var(--warm-white); color: var(--text-dark); }
     body { margin: 0; }
 
-    .page { max-width: 58rem; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+    .page { max-width: 62rem; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
 
     .back {
       display: inline-block; font-size: 0.68rem;
@@ -133,12 +132,66 @@
     .icon-hero { width: 160px; height: 160px; }
     .icon-mark { width: 64px; height: 64px; }
     .icon-sm { width: 32px; height: 32px; }
+    .icon-xs { width: 16px; height: 16px; }
 
     .ground.dark svg { color: var(--stone); }
     .ground.light svg { color: var(--text-dark); }
 
     .ground.dark svg.moss { color: var(--moss); }
     .ground.light svg.moss { color: var(--moss); }
+    .ground.dark svg.clay { color: var(--clay); }
+    .ground.light svg.clay { color: var(--clay); }
+
+    /* ── Palette grid ── */
+
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .palette-card {
+      border-radius: 4px;
+      padding: 1.25rem 0.75rem 0.75rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+      position: relative;
+      transition: transform 0.15s ease;
+    }
+    .palette-card:hover { transform: scale(1.03); }
+
+    .palette-card svg { width: 64px; height: 64px; }
+
+    .palette-name {
+      font-size: 0.6rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-align: center;
+    }
+    .palette-meta {
+      font-size: 0.48rem;
+      letter-spacing: 0.04em;
+      opacity: 0.55;
+      text-align: center;
+    }
+    .palette-card .palette-you {
+      position: absolute;
+      top: 0.4rem;
+      right: 0.5rem;
+      font-size: 0.45rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      opacity: 0.7;
+    }
+
+    .palette-row-sm {
+      display: flex;
+      gap: 0.35rem;
+      margin-top: 0.15rem;
+    }
+    .palette-row-sm svg { width: 24px; height: 24px; }
 
     .mode-toggle {
       position: fixed; bottom: 1.25rem; right: 1.25rem;
@@ -159,65 +212,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
 
   <!--
-    Paddle path (shared across all symbols):
-    Smooth double-lobe with vertical tangents at the waist for kink-free sides.
-    Upper widest y≈30 (68), waist y≈52 (60, 88%), lower y≈72 (64, 94%).
-    Height 84, handle y86–97. Ratio ≈ 1.24:1.
+    Stoic Giant face. Squircle body 100×80 rx30, circle eyes r8, pill mouth 16×6.
+    fill-rule evenodd → eyes + mouth are transparent cutouts.
   -->
-
-  <!-- Traditional: sun disc (upper-right) + crescent (lower-left) -->
-  <symbol id="gunbai-traditional" viewBox="0 0 100 100">
-    <path d="M50,4 C76,4 84,16 84,30 C84,40 80,48 80,52 C80,56 82,64 82,72 C82,80 68,88 50,88 C32,88 18,80 18,72 C18,64 20,56 20,52 C20,48 16,40 16,30 C16,16 24,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="2.5"/>
-    <line x1="50" y1="86" x2="50" y2="97" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
-    <circle cx="60" cy="24" r="6" fill="currentColor"/>
-    <path d="M40,56 A6,6 0 1,1 40,68 A3,6 0 1,0 40,56 Z" fill="currentColor"/>
+  <symbol id="stoic-idle" viewBox="0 0 120 120">
+    <path fill-rule="evenodd" fill="currentColor" d="
+      M40,20 H80 A30,30 0 0,1 110,50 V70 A30,30 0 0,1 80,100 H40 A30,30 0 0,1 10,70 V50 A30,30 0 0,1 40,20 Z
+      M35,40 A8,8 0 0,1 35,56 A8,8 0 0,1 35,40 Z
+      M85,40 A8,8 0 0,1 85,56 A8,8 0 0,1 85,40 Z
+      M54,54 H66 A2,2 0 0,1 68,56 V58 A2,2 0 0,1 66,60 H54 A2,2 0 0,1 52,58 V56 A2,2 0 0,1 54,54 Z
+    "/>
   </symbol>
 
-  <!-- Crescent moon only (dark mode) — upper-right -->
-  <symbol id="gunbai-moon" viewBox="0 0 100 100">
-    <path d="M50,4 C76,4 84,16 84,30 C84,40 80,48 80,52 C80,56 82,64 82,72 C82,80 68,88 50,88 C32,88 18,80 18,72 C18,64 20,56 20,52 C20,48 16,40 16,30 C16,16 24,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="2.5"/>
-    <line x1="50" y1="86" x2="50" y2="97" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
-    <path d="M61,18 A10,10 0 1,1 61,38 A5,10 0 1,0 61,18 Z" fill="currentColor"/>
+  <symbol id="stoic-body" viewBox="0 0 120 120">
+    <rect x="10" y="20" width="100" height="80" rx="30" fill="currentColor"/>
   </symbol>
 
-  <!-- Sun disc only (light mode) — upper-right -->
-  <symbol id="gunbai-sun" viewBox="0 0 100 100">
-    <path d="M50,4 C76,4 84,16 84,30 C84,40 80,48 80,52 C80,56 82,64 82,72 C82,80 68,88 50,88 C32,88 18,80 18,72 C18,64 20,56 20,52 C20,48 16,40 16,30 C16,16 24,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="2.5"/>
-    <line x1="50" y1="86" x2="50" y2="97" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
-    <circle cx="61" cy="28" r="8" fill="currentColor"/>
-  </symbol>
-
-  <!-- Solid silhouette -->
-  <symbol id="gunbai-solid" viewBox="0 0 100 100">
-    <path d="M50,4 C76,4 84,16 84,30 C84,40 80,48 80,52 C80,56 82,64 82,72 C82,80 68,88 50,88 C32,88 18,80 18,72 C18,64 20,56 20,52 C20,48 16,40 16,30 C16,16 24,4 50,4 Z" fill="currentColor"/>
-    <rect x="47" y="84" width="6" height="14" rx="3" fill="currentColor"/>
-  </symbol>
-
-  <!-- Outline only -->
-  <symbol id="gunbai-outline" viewBox="0 0 100 100">
-    <path d="M50,4 C76,4 84,16 84,30 C84,40 80,48 80,52 C80,56 82,64 82,72 C82,80 68,88 50,88 C32,88 18,80 18,72 C18,64 20,56 20,52 C20,48 16,40 16,30 C16,16 24,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="2.5"/>
-    <line x1="50" y1="86" x2="50" y2="97" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
-  </symbol>
-
-  <!-- ── Favicon-optimised bold variants ── -->
-
-  <symbol id="gunbai-traditional-bold" viewBox="0 0 100 100">
-    <path d="M50,4 C76,4 84,16 84,30 C84,40 80,48 80,52 C80,56 82,64 82,72 C82,80 68,88 50,88 C32,88 18,80 18,72 C18,64 20,56 20,52 C20,48 16,40 16,30 C16,16 24,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/>
-    <line x1="50" y1="86" x2="50" y2="97" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
-    <circle cx="60" cy="24" r="8" fill="currentColor"/>
-    <path d="M40,54 A8,8 0 1,1 40,70 A4,8 0 1,0 40,54 Z" fill="currentColor"/>
-  </symbol>
-
-  <symbol id="gunbai-moon-bold" viewBox="0 0 100 100">
-    <path d="M50,4 C76,4 84,16 84,30 C84,40 80,48 80,52 C80,56 82,64 82,72 C82,80 68,88 50,88 C32,88 18,80 18,72 C18,64 20,56 20,52 C20,48 16,40 16,30 C16,16 24,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/>
-    <line x1="50" y1="86" x2="50" y2="97" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
-    <path d="M61,15 A13,13 0 1,1 61,41 A6,13 0 1,0 61,15 Z" fill="currentColor"/>
-  </symbol>
-
-  <symbol id="gunbai-sun-bold" viewBox="0 0 100 100">
-    <path d="M50,4 C76,4 84,16 84,30 C84,40 80,48 80,52 C80,56 82,64 82,72 C82,80 68,88 50,88 C32,88 18,80 18,72 C18,64 20,56 20,52 C20,48 16,40 16,30 C16,16 24,4 50,4 Z" fill="none" stroke="currentColor" stroke-width="4"/>
-    <line x1="50" y1="86" x2="50" y2="97" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
-    <circle cx="61" cy="28" r="11" fill="currentColor"/>
+  <symbol id="stoic-outline" viewBox="0 0 120 120">
+    <rect x="10" y="20" width="100" height="80" rx="30" fill="none" stroke="currentColor" stroke-width="4"/>
   </symbol>
 
 </svg>
@@ -228,21 +240,22 @@
   <a href="moodboard.html" class="back">&larr; Back to moodboard</a>
 
   <span class="label">Icon explorations</span>
-  <h1>The gunbai</h1>
+  <h1>The Stoic Giant</h1>
   <p class="lead">
-    軍配 — the commander's war fan. The double-lobed paddle carries
-    sun and moon — day and night, held in one hand. The shape
-    itself is the name made literal: a tool for directing structure.
+    A deadpan face in a squircle. Two round eyes, one flat mouth.
+    The mark is high-contrast and reads at every size — from hero
+    banner to 16px favicon. Each team member gets their own
+    background + face color combination.
   </p>
 
-  <!-- ═══════ Traditional: both symbols ═══════ -->
+  <!-- ═══════ Standalone mark ═══════ -->
 
   <div class="concept">
-    <h2>Traditional mark</h2>
+    <h2>Standalone mark</h2>
     <p class="concept-note">
-      The authentic gunbai design: sun disc in the upper-right, crescent
-      moon in the lower-left. This dual mark works as a permanent logo —
-      the shape communicates duality without needing a theme swap.
+      The face on its own, testing readability from 160px down to
+      16px favicon. Eyes and mouth are transparent cutouts — the
+      background always shows through.
     </p>
 
     <div class="grounds">
@@ -250,16 +263,20 @@
         <div class="ground-label">Dark</div>
         <div class="icon-row">
           <div class="icon-cell">
-            <svg class="icon-hero"><use href="#gunbai-traditional"/></svg>
+            <svg class="icon-hero"><use href="#stoic-idle"/></svg>
             <span class="icon-dim">160</span>
           </div>
           <div class="icon-cell">
-            <svg class="icon-mark"><use href="#gunbai-traditional"/></svg>
+            <svg class="icon-mark"><use href="#stoic-idle"/></svg>
             <span class="icon-dim">64</span>
           </div>
           <div class="icon-cell">
-            <svg class="icon-sm"><use href="#gunbai-traditional-bold"/></svg>
+            <svg class="icon-sm"><use href="#stoic-idle"/></svg>
             <span class="icon-dim">32</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-xs"><use href="#stoic-idle"/></svg>
+            <span class="icon-dim">16</span>
           </div>
         </div>
       </div>
@@ -267,112 +284,211 @@
         <div class="ground-label">Light</div>
         <div class="icon-row">
           <div class="icon-cell">
-            <svg class="icon-hero"><use href="#gunbai-traditional"/></svg>
+            <svg class="icon-hero"><use href="#stoic-idle"/></svg>
             <span class="icon-dim">160</span>
           </div>
           <div class="icon-cell">
-            <svg class="icon-mark"><use href="#gunbai-traditional"/></svg>
+            <svg class="icon-mark"><use href="#stoic-idle"/></svg>
             <span class="icon-dim">64</span>
           </div>
           <div class="icon-cell">
-            <svg class="icon-sm"><use href="#gunbai-traditional-bold"/></svg>
+            <svg class="icon-sm"><use href="#stoic-idle"/></svg>
             <span class="icon-dim">32</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-xs"><use href="#stoic-idle"/></svg>
+            <span class="icon-dim">16</span>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ═══════ Theme-reactive: one symbol per mode ═══════ -->
+  <!-- ═══════ Team palettes ═══════ -->
 
   <div class="concept">
-    <h2>Theme-reactive mark</h2>
+    <h2>Team palettes</h2>
     <p class="concept-note">
-      Dark mode gets the crescent moon alone; light mode gets the sun disc.
-      Same paddle shape, one symbol at a time — the swap reinforces that
-      the tool adapts while the structure holds.
+      Every team member generates a background + face color pair.
+      The face stays the same, only the palette changes. Below
+      are starting combinations — the mark works across all of them.
     </p>
 
-    <div class="grounds">
-      <div class="ground dark">
-        <div class="ground-label">Dark — moon</div>
-        <div class="icon-row">
-          <div class="icon-cell">
-            <svg class="icon-hero"><use href="#gunbai-moon"/></svg>
-            <span class="icon-dim">160</span>
-          </div>
-          <div class="icon-cell">
-            <svg class="icon-mark"><use href="#gunbai-moon"/></svg>
-            <span class="icon-dim">64</span>
-          </div>
-          <div class="icon-cell">
-            <svg class="icon-sm"><use href="#gunbai-moon-bold"/></svg>
-            <span class="icon-dim">32</span>
-          </div>
+    <div class="palette-grid">
+
+      <div class="palette-card" style="background:#FFB5B0; color:#0A0A0A;">
+        <span class="palette-you">you</span>
+        <svg><use href="#stoic-idle"/></svg>
+        <span class="palette-name">Salmon &amp; Void</span>
+        <span class="palette-meta">#FFB5B0 / #0A0A0A</span>
+        <div class="palette-row-sm">
+          <svg><use href="#stoic-idle"/></svg>
+          <svg><use href="#stoic-idle"/></svg>
         </div>
       </div>
-      <div class="ground light">
-        <div class="ground-label">Light — sun</div>
-        <div class="icon-row">
-          <div class="icon-cell">
-            <svg class="icon-hero"><use href="#gunbai-sun"/></svg>
-            <span class="icon-dim">160</span>
-          </div>
-          <div class="icon-cell">
-            <svg class="icon-mark"><use href="#gunbai-sun"/></svg>
-            <span class="icon-dim">64</span>
-          </div>
-          <div class="icon-cell">
-            <svg class="icon-sm"><use href="#gunbai-sun-bold"/></svg>
-            <span class="icon-dim">32</span>
-          </div>
+
+      <div class="palette-card" style="background:#0D0D0D; color:#C4BDB0;">
+        <svg><use href="#stoic-idle"/></svg>
+        <span class="palette-name">Warm Stone</span>
+        <span class="palette-meta">void / stone</span>
+        <div class="palette-row-sm">
+          <svg><use href="#stoic-idle"/></svg>
+          <svg><use href="#stoic-idle"/></svg>
         </div>
       </div>
+
+      <div class="palette-card" style="background:#0D0D0D; color:#538B5E;">
+        <svg><use href="#stoic-idle"/></svg>
+        <span class="palette-name">Heavy Moss</span>
+        <span class="palette-meta">void / moss</span>
+        <div class="palette-row-sm">
+          <svg><use href="#stoic-idle"/></svg>
+          <svg><use href="#stoic-idle"/></svg>
+        </div>
+      </div>
+
+      <div class="palette-card" style="background:#0D0D0D; color:#934842;">
+        <svg><use href="#stoic-idle"/></svg>
+        <span class="palette-name">Heavy Clay</span>
+        <span class="palette-meta">void / clay</span>
+        <div class="palette-row-sm">
+          <svg><use href="#stoic-idle"/></svg>
+          <svg><use href="#stoic-idle"/></svg>
+        </div>
+      </div>
+
+      <div class="palette-card" style="background:#F4F1EB; color:#194025;">
+        <svg><use href="#stoic-idle"/></svg>
+        <span class="palette-name">Moss on Cream</span>
+        <span class="palette-meta">#F4F1EB / #194025</span>
+        <div class="palette-row-sm">
+          <svg><use href="#stoic-idle"/></svg>
+          <svg><use href="#stoic-idle"/></svg>
+        </div>
+      </div>
+
+      <div class="palette-card" style="background:#F4F1EB; color:#D34A2E;">
+        <svg><use href="#stoic-idle"/></svg>
+        <span class="palette-name">Clay on Cream</span>
+        <span class="palette-meta">#F4F1EB / #D34A2E</span>
+        <div class="palette-row-sm">
+          <svg><use href="#stoic-idle"/></svg>
+          <svg><use href="#stoic-idle"/></svg>
+        </div>
+      </div>
+
+      <div class="palette-card" style="background:#0A0A0A; color:#F9F6F0;">
+        <svg><use href="#stoic-idle"/></svg>
+        <span class="palette-name">Stark</span>
+        <span class="palette-meta">#0A0A0A / #F9F6F0</span>
+        <div class="palette-row-sm">
+          <svg><use href="#stoic-idle"/></svg>
+          <svg><use href="#stoic-idle"/></svg>
+        </div>
+      </div>
+
+      <div class="palette-card" style="background:#EBE9E0; color:#0A0A0A;">
+        <svg><use href="#stoic-idle"/></svg>
+        <span class="palette-name">Raw Linen</span>
+        <span class="palette-meta">#EBE9E0 / #0A0A0A</span>
+        <div class="palette-row-sm">
+          <svg><use href="#stoic-idle"/></svg>
+          <svg><use href="#stoic-idle"/></svg>
+        </div>
+      </div>
+
+      <div class="palette-card" style="background:#2C2C2C; color:#FFB5B0;">
+        <svg><use href="#stoic-idle"/></svg>
+        <span class="palette-name">Salmon Glow</span>
+        <span class="palette-meta">#2C2C2C / #FFB5B0</span>
+        <div class="palette-row-sm">
+          <svg><use href="#stoic-idle"/></svg>
+          <svg><use href="#stoic-idle"/></svg>
+        </div>
+      </div>
+
+      <div class="palette-card" style="background:#538B5E; color:#F4F1EB;">
+        <svg><use href="#stoic-idle"/></svg>
+        <span class="palette-name">Moss Block</span>
+        <span class="palette-meta">moss / cream</span>
+        <div class="palette-row-sm">
+          <svg><use href="#stoic-idle"/></svg>
+          <svg><use href="#stoic-idle"/></svg>
+        </div>
+      </div>
+
+      <div class="palette-card" style="background:#934842; color:#F9F6F0;">
+        <svg><use href="#stoic-idle"/></svg>
+        <span class="palette-name">Clay Block</span>
+        <span class="palette-meta">clay / off-white</span>
+        <div class="palette-row-sm">
+          <svg><use href="#stoic-idle"/></svg>
+          <svg><use href="#stoic-idle"/></svg>
+        </div>
+      </div>
+
+      <div class="palette-card" style="background:#1A1A2E; color:#E0D6C8;">
+        <svg><use href="#stoic-idle"/></svg>
+        <span class="palette-name">Night Ink</span>
+        <span class="palette-meta">#1A1A2E / #E0D6C8</span>
+        <div class="palette-row-sm">
+          <svg><use href="#stoic-idle"/></svg>
+          <svg><use href="#stoic-idle"/></svg>
+        </div>
+      </div>
+
     </div>
   </div>
 
-  <!-- ═══════ Moss accent ═══════ -->
+  <!-- ═══════ Accent tones at scale ═══════ -->
 
   <div class="concept">
-    <h2>Moss accent</h2>
+    <h2>Accent tones</h2>
     <p class="concept-note">
-      The traditional mark rendered in the moss accent color.
-      Tests whether the brand color works as the primary mark color
-      or should stay reserved for UI signals.
+      The face in moss and clay accent colors at larger sizes.
+      Both feel soft on the dark ground and punchy on light.
     </p>
 
     <div class="grounds">
       <div class="ground dark">
-        <div class="ground-label">Dark — moss</div>
+        <div class="ground-label">Dark — moss &amp; clay</div>
         <div class="icon-row">
           <div class="icon-cell">
-            <svg class="icon-hero moss"><use href="#gunbai-traditional"/></svg>
-            <span class="icon-dim">160</span>
+            <svg class="icon-hero moss"><use href="#stoic-idle"/></svg>
+            <span class="icon-dim">moss 160</span>
           </div>
           <div class="icon-cell">
-            <svg class="icon-mark moss"><use href="#gunbai-traditional"/></svg>
-            <span class="icon-dim">64</span>
+            <svg class="icon-mark moss"><use href="#stoic-idle"/></svg>
+            <span class="icon-dim">moss 64</span>
           </div>
           <div class="icon-cell">
-            <svg class="icon-sm moss"><use href="#gunbai-traditional-bold"/></svg>
-            <span class="icon-dim">32</span>
+            <svg class="icon-hero clay"><use href="#stoic-idle"/></svg>
+            <span class="icon-dim">clay 160</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-mark clay"><use href="#stoic-idle"/></svg>
+            <span class="icon-dim">clay 64</span>
           </div>
         </div>
       </div>
       <div class="ground light">
-        <div class="ground-label">Light — moss</div>
+        <div class="ground-label">Light — moss &amp; clay</div>
         <div class="icon-row">
           <div class="icon-cell">
-            <svg class="icon-hero moss"><use href="#gunbai-traditional"/></svg>
-            <span class="icon-dim">160</span>
+            <svg class="icon-hero moss"><use href="#stoic-idle"/></svg>
+            <span class="icon-dim">moss 160</span>
           </div>
           <div class="icon-cell">
-            <svg class="icon-mark moss"><use href="#gunbai-traditional"/></svg>
-            <span class="icon-dim">64</span>
+            <svg class="icon-mark moss"><use href="#stoic-idle"/></svg>
+            <span class="icon-dim">moss 64</span>
           </div>
           <div class="icon-cell">
-            <svg class="icon-sm moss"><use href="#gunbai-traditional-bold"/></svg>
-            <span class="icon-dim">32</span>
+            <svg class="icon-hero clay"><use href="#stoic-idle"/></svg>
+            <span class="icon-dim">clay 160</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-mark clay"><use href="#stoic-idle"/></svg>
+            <span class="icon-dim">clay 64</span>
           </div>
         </div>
       </div>
@@ -384,50 +500,49 @@
   <div class="concept">
     <h2>Reduced forms</h2>
     <p class="concept-note">
-      The paddle shape alone — filled silhouette and bare outline.
-      Tests whether the double-lobed gunbai reads without interior symbols.
-      Useful for watermarks, app chrome, or monochrome contexts.
+      The squircle body alone — no face. Useful for watermarks,
+      loading placeholders, or contexts where personality is too much.
     </p>
 
     <div class="grounds">
       <div class="ground dark">
-        <div class="ground-label">Dark — solid &amp; outline</div>
+        <div class="ground-label">Dark — body &amp; outline</div>
         <div class="icon-row">
           <div class="icon-cell">
-            <svg class="icon-mark"><use href="#gunbai-solid"/></svg>
-            <span class="icon-dim">solid</span>
+            <svg class="icon-mark"><use href="#stoic-body"/></svg>
+            <span class="icon-dim">body</span>
           </div>
           <div class="icon-cell">
-            <svg class="icon-mark"><use href="#gunbai-outline"/></svg>
+            <svg class="icon-mark"><use href="#stoic-outline"/></svg>
             <span class="icon-dim">outline</span>
           </div>
           <div class="icon-cell">
-            <svg class="icon-sm"><use href="#gunbai-solid"/></svg>
+            <svg class="icon-sm"><use href="#stoic-body"/></svg>
             <span class="icon-dim">32</span>
           </div>
           <div class="icon-cell">
-            <svg class="icon-sm"><use href="#gunbai-outline"/></svg>
+            <svg class="icon-sm"><use href="#stoic-outline"/></svg>
             <span class="icon-dim">32</span>
           </div>
         </div>
       </div>
       <div class="ground light">
-        <div class="ground-label">Light — solid &amp; outline</div>
+        <div class="ground-label">Light — body &amp; outline</div>
         <div class="icon-row">
           <div class="icon-cell">
-            <svg class="icon-mark"><use href="#gunbai-solid"/></svg>
-            <span class="icon-dim">solid</span>
+            <svg class="icon-mark"><use href="#stoic-body"/></svg>
+            <span class="icon-dim">body</span>
           </div>
           <div class="icon-cell">
-            <svg class="icon-mark"><use href="#gunbai-outline"/></svg>
+            <svg class="icon-mark"><use href="#stoic-outline"/></svg>
             <span class="icon-dim">outline</span>
           </div>
           <div class="icon-cell">
-            <svg class="icon-sm"><use href="#gunbai-solid"/></svg>
+            <svg class="icon-sm"><use href="#stoic-body"/></svg>
             <span class="icon-dim">32</span>
           </div>
           <div class="icon-cell">
-            <svg class="icon-sm"><use href="#gunbai-outline"/></svg>
+            <svg class="icon-sm"><use href="#stoic-outline"/></svg>
             <span class="icon-dim">32</span>
           </div>
         </div>
