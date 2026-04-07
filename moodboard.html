@@ -37,9 +37,9 @@
       --void-up: hsl(var(--hue-warm), 3%, 8%);
       --void-up2: hsl(var(--hue-warm), 4%, 11%);
 
-      --stone: hsl(var(--hue-warm), 15%, 73%);
-      --stone-dim: hsl(var(--hue-warm), 6%, 51%);
-      --stone-faint: hsl(var(--hue-warm), 6%, 34%);
+      --stone: hsl(var(--hue-warm), 20%, 76%);
+      --stone-dim: hsl(var(--hue-warm), 12%, 55%);
+      --stone-faint: hsl(var(--hue-warm), 10%, 38%);
 
       --warm-white: hsl(var(--hue-warm), 27%, 94%);
       --warm-white-dim: hsl(var(--hue-warm), 18%, 87%);
@@ -49,7 +49,7 @@
       --text-dark-dim: hsl(var(--hue-warm), 6%, 30%);
 
       /* ── Borders: neutrals at low opacity ── */
-      --border-dark: hsla(var(--hue-warm), 15%, 73%, 0.08);
+      --border-dark: hsla(var(--hue-warm), 20%, 76%, 0.08);
       --border-light: hsla(var(--hue-warm), 7%, 16%, 0.14);
 
       --font-mono: "JetBrains Mono", ui-monospace, monospace;
@@ -67,6 +67,7 @@
     }
 
     code, kbd { font-family: var(--font-mono); }
+    a { color: inherit; }
 
     /* ── Dark mode (default) ── */
 
@@ -134,6 +135,8 @@
     [data-mode="dark"] .proto-error { background: var(--clay-subtle); }
     [data-mode="dark"] .proto-error-title { color: var(--clay); }
     [data-mode="dark"] .proto-error p { color: var(--stone-dim); }
+    [data-mode="dark"] .link-row { border-color: var(--border-dark); }
+    [data-mode="dark"] .link-moss { color: var(--moss); }
     [data-mode="dark"] .foot {
       color: var(--stone-faint);
       border-color: var(--border-dark);
@@ -211,6 +214,8 @@
     }
     [data-mode="light"] .proto-error-title { color: var(--clay-on-light); }
     [data-mode="light"] .proto-error p { color: var(--text-dark-dim); }
+    [data-mode="light"] .link-row { border-color: var(--border-light); }
+    [data-mode="light"] .link-moss { color: var(--moss-on-light); }
     [data-mode="light"] .foot {
       color: var(--text-dark-dim);
       border-color: var(--border-light);
@@ -545,6 +550,63 @@
     .proto-error-title { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.2rem; }
     .proto-error p { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 500; margin: 0; }
 
+    /* ── Link styles ── */
+
+    .link-showcase { margin-top: 0.5rem; }
+
+    .link-row {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid;
+      font-size: 0.82rem;
+    }
+
+    .link-row:last-child { border-bottom: none; }
+
+    .link-label {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      flex-shrink: 0;
+      width: 10rem;
+      opacity: 0.5;
+    }
+
+    .link-inline {
+      text-decoration: none;
+      border-bottom: 1px solid currentColor;
+      padding-bottom: 0.05em;
+    }
+    .link-inline:hover { opacity: 0.7; }
+
+    .link-moss {
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.15s;
+    }
+    .link-moss:hover { border-bottom-color: currentColor; }
+
+    .link-mono {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      margin-right: 1rem;
+      transition: opacity 0.15s;
+      opacity: 0.6;
+    }
+    .link-mono:hover { opacity: 1; }
+
+    .link-hover {
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.15s;
+    }
+    .link-hover:hover { border-bottom-color: currentColor; }
+
     .foot {
       margin-top: 3.5rem;
       padding-top: 1.25rem;
@@ -857,7 +919,7 @@
         <div class="swatch">
           <div class="swatch-dot" style="background: var(--stone)"></div>
           <div class="swatch-name">Stone</div>
-          <div class="swatch-hex">hsl(37, 15%, 73%)</div>
+          <div class="swatch-hex">hsl(37, 20%, 76%)</div>
           <div class="swatch-role">
             Primary text on dark. Warm grey—not blue-tinted, not
             cool. Readable, recessive, patient.
@@ -1012,6 +1074,42 @@
             try to be charming—the charm comes from being utterly sincere
             about being a compiler.
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ LINKS ═══════════════════ -->
+
+    <div class="s-rule">
+      <span class="label">Links</span>
+      <h2>Hypertext defaults</h2>
+      <div class="body" style="margin-bottom: 1rem">
+        <p>
+          Browser-default blue links break the palette. All anchors inherit
+          <code style="font-size:0.82rem">color: inherit</code> by default.
+          Intentional links get explicit styling—never rely on the UA
+          stylesheet.
+        </p>
+      </div>
+
+      <div class="link-showcase">
+        <div class="link-row">
+          <span class="link-label">Inline (body text)</span>
+          <span>See the <a href="#" class="link-inline">design reference</a> for details.</span>
+        </div>
+        <div class="link-row">
+          <span class="link-label">Moss accent</span>
+          <a href="#" class="link-moss">Architecture docs →</a>
+        </div>
+        <div class="link-row">
+          <span class="link-label">Mono / nav</span>
+          <a href="#" class="link-mono">Docs</a>
+          <a href="#" class="link-mono">GitHub</a>
+          <a href="#" class="link-mono">Blog</a>
+        </div>
+        <div class="link-row">
+          <span class="link-label">Underline on hover</span>
+          <a href="#" class="link-hover">Hover to reveal underline</a>
         </div>
       </div>
     </div>
