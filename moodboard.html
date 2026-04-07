@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Recursive:CASL,MONO,wght@0..1,0..1,400..600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600&family=Recursive:CASL,MONO,wght@0..1,0..1,400..600&display=swap"
     rel="stylesheet"
   />
   <style>
@@ -30,7 +30,7 @@
       --clay: hsl(var(--hue-clay), var(--accent-sat), var(--accent-l));
       --clay-dim: hsl(var(--hue-clay), var(--accent-sat), var(--accent-l-dim));
       --clay-subtle: hsla(var(--hue-clay), var(--accent-sat), var(--accent-l), 0.14);
-      --clay-on-light: hsl(var(--hue-clay), var(--accent-sat), var(--accent-l-dim));
+      --clay-on-light: hsl(var(--hue-clay), 44%, 30%); /* perceptual correction: red reads muddier than green at matched sat/L */
 
       /* ── Neutrals: warm base hue, saturation rises with lightness ── */
       --void: hsl(var(--hue-warm), 0%, 5%);
@@ -53,17 +53,20 @@
       --border-light: hsla(var(--hue-warm), 7%, 16%, 0.14);
 
       --font-mono: "JetBrains Mono", ui-monospace, monospace;
+      --font-sans: "Noto Sans", system-ui, sans-serif;
       --font-display: "Recursive", ui-monospace, monospace;
     }
 
     *, *::before, *::after { box-sizing: border-box; }
 
     html {
-      font-family: var(--font-mono);
+      font-family: var(--font-sans);
       font-size: 16px;
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
     }
+
+    code, kbd { font-family: var(--font-mono); }
 
     /* ── Dark mode (default) ── */
 
@@ -102,7 +105,9 @@
       border-color: var(--border-dark);
     }
     [data-mode="dark"] .type-sample-serif { color: var(--stone); }
+    [data-mode="dark"] .type-sample-sans { color: var(--stone-dim); }
     [data-mode="dark"] .type-sample-mono { color: var(--stone-dim); }
+    [data-mode="dark"] .font-showcase-header { color: var(--stone-faint); border-color: var(--border-dark); }
     [data-mode="dark"] .type-note { color: var(--stone-faint); }
     [data-mode="dark"] .mark-cell.on-dark {
       background: var(--void-up);
@@ -173,7 +178,9 @@
       border-color: var(--border-light);
     }
     [data-mode="light"] .type-sample-serif { color: var(--text-dark); }
+    [data-mode="light"] .type-sample-sans { color: var(--text-dark-dim); }
     [data-mode="light"] .type-sample-mono { color: var(--text-dark-dim); }
+    [data-mode="light"] .font-showcase-header { color: var(--text-dark-dim); border-color: var(--border-light); }
     [data-mode="light"] .type-note { color: var(--text-dark-dim); }
     [data-mode="light"] .mark-cell.on-dark {
       background: var(--void-up);
@@ -246,6 +253,7 @@
 
     .label {
       display: block;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       letter-spacing: 0.13em;
       text-transform: uppercase;
@@ -253,9 +261,8 @@
     }
 
     h1 {
-      font-family: var(--font-display);
-      font-weight: 500;
-      font-variation-settings: "MONO" 0.45, "CASL" 0.3;
+      font-family: var(--font-sans);
+      font-weight: 600;
       font-size: clamp(1.6rem, 3.5vw, 2.1rem);
       line-height: 1.2;
       letter-spacing: -0.015em;
@@ -263,9 +270,8 @@
     }
 
     h2 {
-      font-family: var(--font-display);
-      font-weight: 450;
-      font-variation-settings: "MONO" 0.45, "CASL" 0.3;
+      font-family: var(--font-sans);
+      font-weight: 500;
       font-size: 1.15rem;
       line-height: 1.3;
       margin: 0 0 0.85rem;
@@ -288,8 +294,8 @@
     .body p:last-child { margin-bottom: 0; }
 
     .quote {
-      font-family: var(--font-display);
-      font-variation-settings: "MONO" 0.35, "CASL" 0.6;
+      font-family: var(--font-sans);
+      font-weight: 500;
       font-style: normal;
       font-size: 0.95rem;
       max-width: 36em;
@@ -329,6 +335,7 @@
     }
 
     .theme-card .poles {
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
@@ -336,9 +343,8 @@
     }
 
     .theme-card .resolution {
-      font-family: var(--font-display);
-      font-variation-settings: "MONO" 0.45, "CASL" 0.3;
-      font-weight: 500;
+      font-family: var(--font-sans);
+      font-weight: 600;
       font-size: 1rem;
       margin-bottom: 0.4rem;
     }
@@ -362,6 +368,7 @@
 
     .constraint-list .tag {
       display: inline-block;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
@@ -393,7 +400,7 @@
     .swatch-dot.bordered { border: 1px solid; }
 
     .swatch-name { font-size: 0.78rem; font-weight: 500; }
-    .swatch-hex { font-size: 0.68rem; }
+    .swatch-hex { font-family: var(--font-mono); font-size: 0.68rem; }
     .swatch-role { font-size: 0.68rem; margin-top: 0.15rem; line-height: 1.45; }
 
     .mode-row { display: grid; gap: 0.75rem; }
@@ -416,6 +423,7 @@
     }
 
     .mode-label {
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
@@ -426,10 +434,9 @@
     .mode-box.light .mode-label { color: var(--text-dark-dim); }
 
     .mode-heading {
-      font-family: var(--font-display);
-      font-variation-settings: "MONO" 0.45, "CASL" 0.3;
+      font-family: var(--font-sans);
       font-size: 1.05rem;
-      font-weight: 500;
+      font-weight: 600;
       margin-bottom: 0.5rem;
     }
 
@@ -437,11 +444,11 @@
     .mode-box.dark .mode-body { color: var(--stone-dim); }
     .mode-box.light .mode-body { color: var(--text-dark-dim); }
 
-    .mode-success { font-size: 0.78rem; padding: 0.45rem 0.6rem; border-radius: 2px; margin-bottom: 0.5rem; }
+    .mode-success { font-family: var(--font-mono); font-size: 0.78rem; padding: 0.45rem 0.6rem; border-radius: 2px; margin-bottom: 0.5rem; }
     .mode-box.dark .mode-success { color: var(--moss); background: var(--moss-subtle); }
     .mode-box.light .mode-success { color: var(--moss-on-light); background: hsla(var(--hue-moss), var(--accent-sat), var(--accent-l), 0.14); }
 
-    .mode-error { font-size: 0.78rem; font-weight: 500; padding: 0.45rem 0.6rem; border-radius: 2px; border-left: 2px solid; }
+    .mode-error { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 500; padding: 0.45rem 0.6rem; border-radius: 2px; border-left: 2px solid; }
     .mode-box.dark .mode-error { color: var(--clay); background: var(--clay-subtle); border-left-color: var(--clay); }
     .mode-box.light .mode-error { color: var(--clay-on-light); background: hsla(var(--hue-clay), var(--accent-sat), var(--accent-l), 0.14); border-left-color: var(--clay-on-light); }
 
@@ -460,8 +467,37 @@
       letter-spacing: -0.01em;
     }
 
-    .type-sample-mono { font-size: 0.92rem; }
-    .type-note { font-size: 0.68rem; margin-top: 0.4rem; }
+    .type-sample-sans { font-family: var(--font-sans); font-size: 0.95rem; line-height: 1.55; }
+    .type-sample-mono { font-family: var(--font-mono); font-size: 0.92rem; }
+
+    .font-showcase { margin-top: 1.25rem; }
+    .font-showcase + .font-showcase { margin-top: 1.5rem; }
+
+    .font-showcase-header {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding-bottom: 0.4rem;
+      margin-bottom: 0.75rem;
+      border-bottom: 1px solid;
+    }
+
+    .font-showcase-row {
+      display: grid;
+      gap: 0.25rem;
+      margin-bottom: 0.65rem;
+    }
+
+    .font-showcase-size {
+      font-family: var(--font-mono);
+      font-size: 0.55rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      opacity: 0.45;
+      margin-bottom: 0.1rem;
+    }
+    .type-note { font-family: var(--font-mono); font-size: 0.68rem; margin-top: 0.4rem; }
 
     .mark-grid {
       display: grid;
@@ -488,11 +524,12 @@
       padding: 1.5rem 1.35rem;
     }
 
-    .proto-domain { font-size: 0.65rem; letter-spacing: 0.08em; margin-bottom: 0.85rem; }
-    .proto-h { font-family: var(--font-display); font-weight: 500; font-variation-settings: "MONO" 0.45, "CASL" 0.3; font-size: 1.25rem; margin: 0 0 0.6rem; }
-    .proto-sub { font-size: 0.82rem; max-width: 36em; margin: 0 0 1rem; line-height: 1.6; }
+    .proto-domain { font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.08em; margin-bottom: 0.85rem; }
+    .proto-h { font-family: var(--font-sans); font-weight: 600; font-size: 1.25rem; margin: 0 0 0.6rem; }
+    .proto-sub { font-family: var(--font-mono); font-size: 0.82rem; max-width: 36em; margin: 0 0 1rem; line-height: 1.6; }
     .proto-install {
       display: inline-block;
+      font-family: var(--font-mono);
       padding: 0.4rem 0.6rem;
       border: 1px solid;
       border-radius: 2px;
@@ -505,13 +542,14 @@
       border-radius: 0 2px 2px 0;
       margin-top: 1rem;
     }
-    .proto-error-title { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.2rem; }
-    .proto-error p { font-size: 0.78rem; font-weight: 500; margin: 0; }
+    .proto-error-title { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.2rem; }
+    .proto-error p { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 500; margin: 0; }
 
     .foot {
       margin-top: 3.5rem;
       padding-top: 1.25rem;
       border-top: 1px solid;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
     }
 
@@ -876,34 +914,105 @@
 
     <div class="s-rule">
       <span class="label">Typography</span>
-      <h2>One voice, two registers</h2>
+      <h2>Two registers, one system</h2>
       <div class="body" style="margin-bottom: 0.85rem">
         <p>
-          <span class="term">Mono</span> is the native voice. CLI, pipeline
-          stages, code, labels, body text. This is a compiler—monospace is
-          not an affectation, it's the actual medium.
+          <span class="term">Noto Sans</span> is the readable voice.
+          Headlines, body prose, descriptions—anything meant to be read.
+          Neutral, warm, and high-legibility at every size.
         </p>
         <p>
-          <span class="term">Display</span> is the same voice, loosened.
-          Recursive at half-mono with a touch of casual—headlines, manifesto,
-          section titles. It shares DNA with the body mono so the page reads
-          as one system, not two bolted-together typefaces.
-        </p>
-        <p>
-          No serif. No display sans. One family of forms, dialed wider for
-          hierarchy.
+          <span class="term">JetBrains Mono</span> is the native voice.
+          CLI, pipeline stages, code, labels, compiler output. This is a
+          compiler—monospace is not an affectation, it's the actual medium.
         </p>
       </div>
 
-      <div class="type-spec">
-        <div class="type-sample-serif">Software drifts when intent is inconsistent.</div>
-        <div class="type-note">Recursive (MONO 0.45 · CASL 0.3) · headlines, manifesto, section titles</div>
-      </div>
-      <div class="type-spec">
-        <div class="type-sample-mono">
-          VerifiedDag&lt;LoweredOp&gt; · parse → resolve → typecheck → lower → emit
+      <!-- ── Noto Sans showcase ── -->
+      <div class="font-showcase">
+        <div class="font-showcase-header">Noto Sans — headlines, body, descriptions</div>
+        <div class="font-showcase-row">
+          <div class="font-showcase-size">Headline · 600 · 2rem</div>
+          <div style="font-family:var(--font-sans); font-weight:600; font-size:2rem; line-height:1.2; letter-spacing:-0.015em">
+            Design decisions, grounded
+          </div>
         </div>
-        <div class="type-note">JetBrains Mono · pipeline, CLI, labels, body</div>
+        <div class="font-showcase-row">
+          <div class="font-showcase-size">Section · 500 · 1.15rem</div>
+          <div style="font-family:var(--font-sans); font-weight:500; font-size:1.15rem; line-height:1.3">
+            Materials, not signals
+          </div>
+        </div>
+        <div class="font-showcase-row">
+          <div class="font-showcase-size">Body · 400 · 0.88rem</div>
+          <div style="font-family:var(--font-sans); font-size:0.88rem; line-height:1.65">
+            Every color has a material name and a reason. The reasoning
+            matters more than the hex—if a color drifts from its reason,
+            re-derive the hex from the reason, don't update the reason to
+            match the hex.
+          </div>
+        </div>
+        <div class="font-showcase-row">
+          <div class="font-showcase-size">Small · 400 · 0.75rem</div>
+          <div style="font-family:var(--font-sans); font-size:0.75rem; line-height:1.5">
+            Lowering failed: expression does not map to structural nodes.
+            Build halted. No interpreter fallback.
+          </div>
+        </div>
+      </div>
+
+      <!-- ── JetBrains Mono showcase ── -->
+      <div class="font-showcase">
+        <div class="font-showcase-header">JetBrains Mono — code, CLI, labels, compiler output</div>
+        <div class="font-showcase-row">
+          <div class="font-showcase-size">Code · 400 · 0.92rem</div>
+          <div style="font-family:var(--font-mono); font-size:0.92rem">
+            VerifiedDag&lt;LoweredOp&gt; · parse → resolve → typecheck → lower → emit
+          </div>
+        </div>
+        <div class="font-showcase-row">
+          <div class="font-showcase-size">CLI · 400 · 0.78rem</div>
+          <div style="font-family:var(--font-mono); font-size:0.78rem">
+            <kbd>git clone</kbd> &lt;repo&gt; <kbd>&&</kbd> cd gunbc <kbd>&&</kbd> make install
+          </div>
+        </div>
+        <div class="font-showcase-row">
+          <div class="font-showcase-size">Label · 400 · 0.65rem</div>
+          <div style="font-family:var(--font-mono); font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase">
+            Palette · Typography · Constraints · Prototype
+          </div>
+        </div>
+        <div class="font-showcase-row">
+          <div class="font-showcase-size">Error · 500 · 0.78rem</div>
+          <div style="font-family:var(--font-mono); font-size:0.78rem; font-weight:500; color:var(--clay)">
+            Invariant — Lowering failed: expression does not map to structural nodes.
+          </div>
+        </div>
+        <div class="font-showcase-row">
+          <div class="font-showcase-size">Success · 400 · 0.78rem</div>
+          <div style="font-family:var(--font-mono); font-size:0.78rem; color:var(--moss)">
+            &#x25B8; verified · 12 nodes · 0 warnings
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Recursive (kept as fallback/accent) ── -->
+      <div class="font-showcase">
+        <div class="font-showcase-header">Recursive — available as accent (MONO 0.45 · CASL 0.3)</div>
+        <div class="font-showcase-row">
+          <div class="font-showcase-size">Display · 500 · 1.3rem</div>
+          <div style="font-family:var(--font-display); font-variation-settings:'MONO' 0.45,'CASL' 0.3; font-weight:500; font-size:1.3rem; letter-spacing:-0.01em">
+            Software drifts when intent is inconsistent.
+          </div>
+        </div>
+        <div class="font-showcase-row">
+          <div class="font-showcase-size">Quote · 500 · 0.95rem (CASL 0.6)</div>
+          <div style="font-family:var(--font-display); font-variation-settings:'MONO' 0.35,'CASL' 0.6; font-weight:500; font-size:0.95rem; line-height:1.5">
+            A compiler with personality is inherently awkward. It doesn't
+            try to be charming—the charm comes from being utterly sincere
+            about being a compiler.
+          </div>
+        </div>
       </div>
     </div>
 
