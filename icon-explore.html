@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gunbai — Icon Explorations</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Recursive:CASL,MONO,wght@0..1,0..1,400..600&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --hue-warm: 37;
+      --hue-moss: 134;
+      --hue-clay: 7;
+      --accent-sat: 36%;
+      --accent-l: 48%;
+
+      --moss: hsl(var(--hue-moss), var(--accent-sat), var(--accent-l));
+      --clay: hsl(var(--hue-clay), var(--accent-sat), var(--accent-l));
+
+      --void: hsl(var(--hue-warm), 0%, 5%);
+      --void-up: hsl(var(--hue-warm), 3%, 8%);
+      --void-up2: hsl(var(--hue-warm), 4%, 11%);
+
+      --stone: hsl(var(--hue-warm), 20%, 76%);
+      --stone-dim: hsl(var(--hue-warm), 12%, 55%);
+      --stone-faint: hsl(var(--hue-warm), 10%, 38%);
+
+      --warm-white: hsl(var(--hue-warm), 27%, 94%);
+      --warm-white-dim: hsl(var(--hue-warm), 18%, 87%);
+      --warm-white-up: hsl(var(--hue-warm), 33%, 97%);
+
+      --text-dark: hsl(var(--hue-warm), 7%, 16%);
+      --text-dark-dim: hsl(var(--hue-warm), 5%, 40%);
+
+      --border-dark: hsla(var(--hue-warm), 20%, 76%, 0.08);
+      --border-light: hsla(var(--hue-warm), 7%, 16%, 0.10);
+
+      --font-mono: "JetBrains Mono", ui-monospace, monospace;
+      --font-display: "Recursive", ui-monospace, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { font-family: var(--font-mono); font-size: 15px; }
+
+    [data-mode="dark"] body { background: var(--void); color: var(--stone); }
+    [data-mode="light"] body { background: var(--warm-white); color: var(--text-dark); }
+    body { margin: 0; }
+    a { color: inherit; }
+
+    .page { max-width: 62rem; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+
+    .back {
+      display: inline-block; font-size: 0.68rem;
+      letter-spacing: 0.06em; text-decoration: none; margin-bottom: 1.5rem;
+    }
+    [data-mode="dark"] .back { color: var(--stone-faint); }
+    [data-mode="light"] .back { color: var(--text-dark-dim); }
+    .back:hover { color: var(--moss); }
+
+    .label {
+      display: block; font-size: 0.65rem; letter-spacing: 0.12em;
+      text-transform: uppercase; margin-bottom: 0.5rem;
+    }
+    [data-mode="dark"] .label { color: var(--stone-faint); }
+    [data-mode="light"] .label { color: var(--text-dark-dim); }
+
+    h1 {
+      font-family: var(--font-display);
+      font-variation-settings: "MONO" 0.45, "CASL" 0.3;
+      font-weight: 500; font-size: clamp(1.4rem, 3vw, 1.8rem);
+      line-height: 1.2; margin: 0 0 0.6rem;
+    }
+
+    .lead {
+      font-size: 0.82rem; line-height: 1.65; max-width: 48em;
+      margin: 0 0 3rem;
+    }
+    [data-mode="dark"] .lead { color: var(--stone-dim); }
+    [data-mode="light"] .lead { color: var(--text-dark-dim); }
+
+    .concept {
+      margin-bottom: 3.5rem; padding-bottom: 3.5rem;
+      border-bottom: 1px solid var(--border-dark);
+    }
+    [data-mode="light"] .concept { border-bottom-color: var(--border-light); }
+    .concept:last-child { border-bottom: none; }
+
+    .concept h2 {
+      font-family: var(--font-display);
+      font-variation-settings: "MONO" 0.45, "CASL" 0.3;
+      font-weight: 500; font-size: 1.05rem; margin: 0 0 0.3rem;
+    }
+    .concept-note {
+      font-size: 0.72rem; line-height: 1.6; max-width: 48em;
+      margin-bottom: 1.25rem;
+    }
+    [data-mode="dark"] .concept-note { color: var(--stone-dim); }
+    [data-mode="light"] .concept-note { color: var(--text-dark-dim); }
+
+    .grounds {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;
+    }
+    @media (max-width: 640px) { .grounds { grid-template-columns: 1fr; } }
+
+    .ground { border-radius: 3px; padding: 1.5rem 1rem; }
+    .ground.dark {
+      background: var(--void-up); border: 1px solid var(--border-dark);
+    }
+    .ground.light {
+      background: var(--warm-white); border: 1px solid var(--border-light);
+    }
+
+    .ground-label {
+      font-size: 0.58rem; letter-spacing: 0.1em;
+      text-transform: uppercase; margin-bottom: 1rem;
+    }
+    .ground.dark .ground-label { color: var(--stone-faint); }
+    .ground.light .ground-label { color: var(--text-dark-dim); }
+
+    .icon-row { display: flex; align-items: flex-end; gap: 1.5rem; }
+
+    .icon-cell {
+      display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+    }
+    .icon-dim { font-size: 0.5rem; letter-spacing: 0.04em; }
+    .ground.dark .icon-dim { color: var(--stone-faint); }
+    .ground.light .icon-dim { color: var(--text-dark-dim); }
+
+    .icon-hero { width: 160px; height: 160px; }
+    .icon-mark { width: 64px; height: 64px; }
+    .icon-sm { width: 32px; height: 32px; }
+    .icon-xs { width: 16px; height: 16px; }
+
+    .ground.dark svg { color: var(--stone); }
+    .ground.light svg { color: var(--text-dark); }
+
+    .ground.dark svg.moss { color: var(--moss); }
+    .ground.light svg.moss { color: var(--moss); }
+    .ground.dark svg.clay { color: var(--clay); }
+    .ground.light svg.clay { color: var(--clay); }
+
+    /* ── Palette grid ── */
+
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .palette-card {
+      border-radius: 4px;
+      padding: 1.25rem 0.75rem 0.75rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+      position: relative;
+      transition: transform 0.15s ease;
+    }
+    .palette-card:hover { transform: scale(1.03); }
+
+    .palette-card svg { width: 64px; height: 64px; }
+
+    .palette-name {
+      font-size: 0.6rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-align: center;
+    }
+    .palette-meta {
+      font-size: 0.48rem;
+      letter-spacing: 0.04em;
+      opacity: 0.55;
+      text-align: center;
+    }
+    .palette-card .palette-you {
+      position: absolute;
+      top: 0.4rem;
+      right: 0.5rem;
+      font-size: 0.45rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      opacity: 0.7;
+    }
+
+    .palette-row-sm {
+      display: flex;
+      gap: 0.35rem;
+      margin-top: 0.15rem;
+    }
+    .palette-row-sm svg { width: 24px; height: 24px; }
+
+    .mode-toggle {
+      position: fixed; bottom: 1.25rem; right: 1.25rem;
+      background: var(--void-up2); color: var(--stone-dim);
+      border: 1px solid var(--border-dark); border-radius: 3px;
+      font-family: var(--font-mono); font-size: 0.65rem;
+      letter-spacing: 0.08em; padding: 0.4rem 0.65rem; cursor: pointer;
+    }
+    [data-mode="light"] .mode-toggle {
+      background: var(--warm-white-up); color: var(--text-dark-dim);
+      border-color: var(--border-light);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════ SVG Symbols ═══════ -->
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
+
+  <!--
+    Stoic Giant face. Squircle body 100×80 rx30, circle eyes r8, pill mouth 16×6.
+    fill-rule evenodd → eyes + mouth are transparent cutouts.
+  -->
+  <symbol id="stoic-idle" viewBox="0 0 120 120">
+    <path fill-rule="evenodd" fill="currentColor" d="
+      M40,20 H80 A30,30 0 0,1 110,50 V70 A30,30 0 0,1 80,100 H40 A30,30 0 0,1 10,70 V50 A30,30 0 0,1 40,20 Z
+      M35,40 A8,8 0 0,1 35,56 A8,8 0 0,1 35,40 Z
+      M85,40 A8,8 0 0,1 85,56 A8,8 0 0,1 85,40 Z
+      M54,54 H66 A2,2 0 0,1 68,56 V58 A2,2 0 0,1 66,60 H54 A2,2 0 0,1 52,58 V56 A2,2 0 0,1 54,54 Z
+    "/>
+  </symbol>
+
+  <symbol id="stoic-body" viewBox="0 0 120 120">
+    <rect x="10" y="20" width="100" height="80" rx="30" fill="currentColor"/>
+  </symbol>
+
+  <symbol id="stoic-outline" viewBox="0 0 120 120">
+    <rect x="10" y="20" width="100" height="80" rx="30" fill="none" stroke="currentColor" stroke-width="4"/>
+  </symbol>
+
+</svg>
+
+<!-- ═══════ Page ═══════ -->
+<div class="page">
+
+  <a href="moodboard.html" class="back">&larr; Back to moodboard</a>
+
+  <span class="label">Icon explorations</span>
+  <h1>The Stoic Giant</h1>
+  <p class="lead">
+    A deadpan face in a squircle. Two round eyes, one flat mouth.
+    The mark is high-contrast and reads at every size — from hero
+    banner to 16px favicon. Each team member gets their own
+    background + face color combination.
+  </p>
+
+  <!-- ═══════ Standalone mark ═══════ -->
+
+  <div class="concept">
+    <h2>Standalone mark</h2>
+    <p class="concept-note">
+      The face on its own, testing readability from 160px down to
+      16px favicon. Eyes and mouth are transparent cutouts — the
+      background always shows through.
+    </p>
+
+    <div class="grounds">
+      <div class="ground dark">
+        <div class="ground-label">Dark</div>
+        <div class="icon-row">
+          <div class="icon-cell">
+            <svg class="icon-hero"><use href="#stoic-idle"/></svg>
+            <span class="icon-dim">160</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-mark"><use href="#stoic-idle"/></svg>
+            <span class="icon-dim">64</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-sm"><use href="#stoic-idle"/></svg>
+            <span class="icon-dim">32</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-xs"><use href="#stoic-idle"/></svg>
+            <span class="icon-dim">16</span>
+          </div>
+        </div>
+      </div>
+      <div class="ground light">
+        <div class="ground-label">Light</div>
+        <div class="icon-row">
+          <div class="icon-cell">
+            <svg class="icon-hero"><use href="#stoic-idle"/></svg>
+            <span class="icon-dim">160</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-mark"><use href="#stoic-idle"/></svg>
+            <span class="icon-dim">64</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-sm"><use href="#stoic-idle"/></svg>
+            <span class="icon-dim">32</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-xs"><use href="#stoic-idle"/></svg>
+            <span class="icon-dim">16</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ Team palettes ═══════ -->
+
+  <div class="concept">
+    <h2>Team palettes</h2>
+    <p class="concept-note">
+      Every team member generates a background + face color pair.
+      The face stays the same, only the palette changes. Below
+      are starting combinations — the mark works across all of them.
+    </p>
+
+    <div class="palette-grid">
+
+      <div class="palette-card" style="background:#FFB5B0; color:#0A0A0A;">
+        <span class="palette-you">you</span>
+        <svg><use href="#stoic-idle"/></svg>
+        <span class="palette-name">Salmon &amp; Void</span>
+        <span class="palette-meta">#FFB5B0 / #0A0A0A</span>
+        <div class="palette-row-sm">
+          <svg><use href="#stoic-idle"/></svg>
+          <svg><use href="#stoic-idle"/></svg>
+        </div>
+      </div>
+
+      <div class="palette-card" style="background:#0D0D0D; color:#C4BDB0;">
+        <svg><use href="#stoic-idle"/></svg>
+        <span class="palette-name">Warm Stone</span>
+        <span class="palette-meta">void / stone</span>
+        <div class="palette-row-sm">
+          <svg><use href="#stoic-idle"/></svg>
+          <svg><use href="#stoic-idle"/></svg>
+        </div>
+      </div>
+
+      <div class="palette-card" style="background:#0D0D0D; color:#538B5E;">
+        <svg><use href="#stoic-idle"/></svg>
+        <span class="palette-name">Heavy Moss</span>
+        <span class="palette-meta">void / moss</span>
+        <div class="palette-row-sm">
+          <svg><use href="#stoic-idle"/></svg>
+          <svg><use href="#stoic-idle"/></svg>
+        </div>
+      </div>
+
+      <div class="palette-card" style="background:#0D0D0D; color:#934842;">
+        <svg><use href="#stoic-idle"/></svg>
+        <span class="palette-name">Heavy Clay</span>
+        <span class="palette-meta">void / clay</span>
+        <div class="palette-row-sm">
+          <svg><use href="#stoic-idle"/></svg>
+          <svg><use href="#stoic-idle"/></svg>
+        </div>
+      </div>
+
+      <div class="palette-card" style="background:#F4F1EB; color:#194025;">
+        <svg><use href="#stoic-idle"/></svg>
+        <span class="palette-name">Moss on Cream</span>
+        <span class="palette-meta">#F4F1EB / #194025</span>
+        <div class="palette-row-sm">
+          <svg><use href="#stoic-idle"/></svg>
+          <svg><use href="#stoic-idle"/></svg>
+        </div>
+      </div>
+
+      <div class="palette-card" style="background:#F4F1EB; color:#D34A2E;">
+        <svg><use href="#stoic-idle"/></svg>
+        <span class="palette-name">Clay on Cream</span>
+        <span class="palette-meta">#F4F1EB / #D34A2E</span>
+        <div class="palette-row-sm">
+          <svg><use href="#stoic-idle"/></svg>
+          <svg><use href="#stoic-idle"/></svg>
+        </div>
+      </div>
+
+      <div class="palette-card" style="background:#0A0A0A; color:#F9F6F0;">
+        <svg><use href="#stoic-idle"/></svg>
+        <span class="palette-name">Stark</span>
+        <span class="palette-meta">#0A0A0A / #F9F6F0</span>
+        <div class="palette-row-sm">
+          <svg><use href="#stoic-idle"/></svg>
+          <svg><use href="#stoic-idle"/></svg>
+        </div>
+      </div>
+
+      <div class="palette-card" style="background:#EBE9E0; color:#0A0A0A;">
+        <svg><use href="#stoic-idle"/></svg>
+        <span class="palette-name">Raw Linen</span>
+        <span class="palette-meta">#EBE9E0 / #0A0A0A</span>
+        <div class="palette-row-sm">
+          <svg><use href="#stoic-idle"/></svg>
+          <svg><use href="#stoic-idle"/></svg>
+        </div>
+      </div>
+
+      <div class="palette-card" style="background:#2C2C2C; color:#FFB5B0;">
+        <svg><use href="#stoic-idle"/></svg>
+        <span class="palette-name">Salmon Glow</span>
+        <span class="palette-meta">#2C2C2C / #FFB5B0</span>
+        <div class="palette-row-sm">
+          <svg><use href="#stoic-idle"/></svg>
+          <svg><use href="#stoic-idle"/></svg>
+        </div>
+      </div>
+
+      <div class="palette-card" style="background:#538B5E; color:#F4F1EB;">
+        <svg><use href="#stoic-idle"/></svg>
+        <span class="palette-name">Moss Block</span>
+        <span class="palette-meta">moss / cream</span>
+        <div class="palette-row-sm">
+          <svg><use href="#stoic-idle"/></svg>
+          <svg><use href="#stoic-idle"/></svg>
+        </div>
+      </div>
+
+      <div class="palette-card" style="background:#934842; color:#F9F6F0;">
+        <svg><use href="#stoic-idle"/></svg>
+        <span class="palette-name">Clay Block</span>
+        <span class="palette-meta">clay / off-white</span>
+        <div class="palette-row-sm">
+          <svg><use href="#stoic-idle"/></svg>
+          <svg><use href="#stoic-idle"/></svg>
+        </div>
+      </div>
+
+      <div class="palette-card" style="background:#1A1A2E; color:#E0D6C8;">
+        <svg><use href="#stoic-idle"/></svg>
+        <span class="palette-name">Night Ink</span>
+        <span class="palette-meta">#1A1A2E / #E0D6C8</span>
+        <div class="palette-row-sm">
+          <svg><use href="#stoic-idle"/></svg>
+          <svg><use href="#stoic-idle"/></svg>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════ Accent tones at scale ═══════ -->
+
+  <div class="concept">
+    <h2>Accent tones</h2>
+    <p class="concept-note">
+      The face in moss and clay accent colors at larger sizes.
+      Both feel soft on the dark ground and punchy on light.
+    </p>
+
+    <div class="grounds">
+      <div class="ground dark">
+        <div class="ground-label">Dark — moss &amp; clay</div>
+        <div class="icon-row">
+          <div class="icon-cell">
+            <svg class="icon-hero moss"><use href="#stoic-idle"/></svg>
+            <span class="icon-dim">moss 160</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-mark moss"><use href="#stoic-idle"/></svg>
+            <span class="icon-dim">moss 64</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-hero clay"><use href="#stoic-idle"/></svg>
+            <span class="icon-dim">clay 160</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-mark clay"><use href="#stoic-idle"/></svg>
+            <span class="icon-dim">clay 64</span>
+          </div>
+        </div>
+      </div>
+      <div class="ground light">
+        <div class="ground-label">Light — moss &amp; clay</div>
+        <div class="icon-row">
+          <div class="icon-cell">
+            <svg class="icon-hero moss"><use href="#stoic-idle"/></svg>
+            <span class="icon-dim">moss 160</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-mark moss"><use href="#stoic-idle"/></svg>
+            <span class="icon-dim">moss 64</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-hero clay"><use href="#stoic-idle"/></svg>
+            <span class="icon-dim">clay 160</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-mark clay"><use href="#stoic-idle"/></svg>
+            <span class="icon-dim">clay 64</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ Reduced forms ═══════ -->
+
+  <div class="concept">
+    <h2>Reduced forms</h2>
+    <p class="concept-note">
+      The squircle body alone — no face. Useful for watermarks,
+      loading placeholders, or contexts where personality is too much.
+    </p>
+
+    <div class="grounds">
+      <div class="ground dark">
+        <div class="ground-label">Dark — body &amp; outline</div>
+        <div class="icon-row">
+          <div class="icon-cell">
+            <svg class="icon-mark"><use href="#stoic-body"/></svg>
+            <span class="icon-dim">body</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-mark"><use href="#stoic-outline"/></svg>
+            <span class="icon-dim">outline</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-sm"><use href="#stoic-body"/></svg>
+            <span class="icon-dim">32</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-sm"><use href="#stoic-outline"/></svg>
+            <span class="icon-dim">32</span>
+          </div>
+        </div>
+      </div>
+      <div class="ground light">
+        <div class="ground-label">Light — body &amp; outline</div>
+        <div class="icon-row">
+          <div class="icon-cell">
+            <svg class="icon-mark"><use href="#stoic-body"/></svg>
+            <span class="icon-dim">body</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-mark"><use href="#stoic-outline"/></svg>
+            <span class="icon-dim">outline</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-sm"><use href="#stoic-body"/></svg>
+            <span class="icon-dim">32</span>
+          </div>
+          <div class="icon-cell">
+            <svg class="icon-sm"><use href="#stoic-outline"/></svg>
+            <span class="icon-dim">32</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<button id="mode-toggle" class="mode-toggle">
+  <span id="mode-label-text">Dark</span>
+</button>
+
+<script>
+  (function () {
+    var html = document.documentElement;
+    var toggle = document.getElementById("mode-toggle");
+    var label = document.getElementById("mode-label-text");
+
+    function setMode(m) {
+      html.setAttribute("data-mode", m);
+      label.textContent = m === "dark" ? "Dark" : "Light";
+    }
+
+    toggle.addEventListener("click", function () {
+      var cur = html.getAttribute("data-mode") || "dark";
+      setMode(cur === "dark" ? "light" : "dark");
+    });
+  })();
+</script>
+
+</body>
+</html>

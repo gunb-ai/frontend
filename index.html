@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gunbai — A structural compiler for composable systems</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --hue-warm: 37;
+      --hue-moss: 134;
+      --hue-clay: 7;
+
+      --accent-sat: 36%;
+      --accent-l: 48%;
+      --accent-l-dim: 36%;
+
+      --moss: hsl(var(--hue-moss), var(--accent-sat), var(--accent-l));
+      --moss-dim: hsl(var(--hue-moss), var(--accent-sat), var(--accent-l-dim));
+      --moss-subtle: hsla(var(--hue-moss), var(--accent-sat), var(--accent-l), 0.14);
+      --moss-on-light: hsl(var(--hue-moss), var(--accent-sat), var(--accent-l-dim));
+
+      --clay: hsl(var(--hue-clay), var(--accent-sat), var(--accent-l));
+      --clay-dim: hsl(var(--hue-clay), var(--accent-sat), var(--accent-l-dim));
+      --clay-subtle: hsla(var(--hue-clay), var(--accent-sat), var(--accent-l), 0.14);
+      --clay-on-light: hsl(var(--hue-clay), 44%, 30%);
+
+      --void: hsl(var(--hue-warm), 0%, 5%);
+      --void-up: hsl(var(--hue-warm), 3%, 8%);
+      --void-up2: hsl(var(--hue-warm), 4%, 11%);
+
+      --stone: hsl(var(--hue-warm), 20%, 76%);
+      --stone-dim: hsl(var(--hue-warm), 12%, 55%);
+      --stone-faint: hsl(var(--hue-warm), 10%, 38%);
+
+      --warm-white: hsl(var(--hue-warm), 27%, 94%);
+      --warm-white-dim: hsl(var(--hue-warm), 18%, 87%);
+      --warm-white-up: hsl(var(--hue-warm), 33%, 97%);
+
+      --text-dark: hsl(var(--hue-warm), 7%, 16%);
+      --text-dark-dim: hsl(var(--hue-warm), 6%, 30%);
+
+      --border-dark: hsla(var(--hue-warm), 20%, 76%, 0.08);
+      --border-light: hsla(var(--hue-warm), 7%, 16%, 0.14);
+
+      --font-mono: "JetBrains Mono", ui-monospace, monospace;
+      --font-sans: "Noto Sans", system-ui, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html {
+      font-family: var(--font-sans);
+      font-size: 16px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body { margin: 0; }
+    code, kbd { font-family: var(--font-mono); }
+    a { color: inherit; }
+
+    /* ── Dark mode ── */
+
+    [data-mode="dark"] body { background: var(--void); color: var(--stone); }
+    [data-mode="dark"] .nav { border-color: var(--border-dark); }
+    [data-mode="dark"] .nav-link { color: var(--stone-dim); }
+    [data-mode="dark"] .nav-link:hover { color: var(--stone); }
+    [data-mode="dark"] .wordmark { color: var(--stone); }
+    [data-mode="dark"] .hero-headline { color: var(--stone); }
+    [data-mode="dark"] .hero-sub { color: var(--stone-dim); }
+    [data-mode="dark"] .hero-cta {
+      background: var(--stone);
+      color: var(--void);
+    }
+    [data-mode="dark"] .hero-cta:hover { background: var(--warm-white-dim); }
+    [data-mode="dark"] .hero-cta-secondary {
+      color: var(--stone-dim);
+      border-color: var(--stone-faint);
+    }
+    [data-mode="dark"] .hero-cta-secondary:hover {
+      color: var(--stone);
+      border-color: var(--stone);
+    }
+    [data-mode="dark"] .hero-install {
+      background: var(--void-up);
+      border-color: var(--border-dark);
+      color: var(--stone-dim);
+    }
+    [data-mode="dark"] .hero-install kbd { color: var(--moss); }
+    [data-mode="dark"] .hero-pipe { color: var(--stone-faint); }
+    [data-mode="dark"] .mode-toggle {
+      background: var(--void-up);
+      color: var(--stone-faint);
+      border: 1px solid var(--border-dark);
+    }
+    [data-mode="dark"] .mode-toggle:hover {
+      color: var(--stone);
+      border-color: var(--stone-faint);
+    }
+    [data-mode="dark"] .mode-toggle .indicator { background: var(--stone-faint); }
+
+    /* ── Light mode ── */
+
+    [data-mode="light"] body { background: var(--warm-white); color: var(--text-dark); }
+    [data-mode="light"] .nav { border-color: var(--border-light); }
+    [data-mode="light"] .nav-link { color: var(--text-dark-dim); }
+    [data-mode="light"] .nav-link:hover { color: var(--text-dark); }
+    [data-mode="light"] .wordmark { color: var(--text-dark); }
+    [data-mode="light"] .hero-headline { color: var(--text-dark); }
+    [data-mode="light"] .hero-sub { color: var(--text-dark-dim); }
+    [data-mode="light"] .hero-cta {
+      background: var(--text-dark);
+      color: var(--warm-white);
+    }
+    [data-mode="light"] .hero-cta:hover { background: var(--text-dark-dim); }
+    [data-mode="light"] .hero-cta-secondary {
+      color: var(--text-dark-dim);
+      border-color: var(--text-dark-dim);
+    }
+    [data-mode="light"] .hero-cta-secondary:hover {
+      color: var(--text-dark);
+      border-color: var(--text-dark);
+    }
+    [data-mode="light"] .hero-install {
+      background: var(--warm-white-up);
+      border-color: var(--border-light);
+      color: var(--text-dark-dim);
+    }
+    [data-mode="light"] .hero-install kbd { color: var(--moss-on-light); }
+    [data-mode="light"] .hero-pipe { color: var(--text-dark-dim); }
+    [data-mode="light"] .mode-toggle {
+      background: var(--warm-white-up);
+      color: var(--text-dark-dim);
+      border: 1px solid var(--border-light);
+    }
+    [data-mode="light"] .mode-toggle:hover {
+      color: var(--text-dark);
+      border-color: var(--text-dark-dim);
+    }
+    [data-mode="light"] .mode-toggle .indicator { background: var(--text-dark-dim); }
+
+    /* ── Nav ── */
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.5rem;
+      height: 3.5rem;
+      border-bottom: 1px solid;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    [data-mode="dark"] .nav { background: hsla(var(--hue-warm), 0%, 5%, 0.85); }
+    [data-mode="light"] .nav { background: hsla(var(--hue-warm), 27%, 94%, 0.85); }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .nav-logo {
+      width: 28px;
+      height: 28px;
+      display: block;
+      flex-shrink: 0;
+    }
+
+    .wordmark {
+      font-family: var(--font-sans);
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: -0.01em;
+      text-decoration: none;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .nav-link {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .mode-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.3rem 0.6rem;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .mode-toggle .indicator {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      transition: background 0.2s;
+    }
+
+    /* ── Hero ── */
+
+    .hero {
+      max-width: 54rem;
+      margin: 0 auto;
+      padding: 6rem 1.5rem 4rem;
+    }
+
+    .hero-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 2.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .hero-logo {
+      width: 96px;
+      height: 96px;
+      flex-shrink: 0;
+    }
+
+    .hero-headline {
+      font-family: var(--font-sans);
+      font-weight: 700;
+      font-size: clamp(2rem, 4.5vw, 3rem);
+      line-height: 1.12;
+      letter-spacing: -0.025em;
+      margin: 0 0 1rem;
+      max-width: 18ch;
+    }
+
+    .hero-sub {
+      font-size: 1.05rem;
+      line-height: 1.65;
+      max-width: 42em;
+      margin: 0 0 2rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      flex-wrap: wrap;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 500;
+      padding: 0.6rem 1.25rem;
+      border-radius: 3px;
+      text-decoration: none;
+      transition: background 0.15s;
+      border: none;
+      cursor: pointer;
+    }
+
+    .hero-cta-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      padding: 0.55rem 1.15rem;
+      border-radius: 3px;
+      text-decoration: none;
+      border: 1px solid;
+      background: transparent;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .hero-install {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      padding: 0.55rem 0.85rem;
+      border: 1px solid;
+      border-radius: 3px;
+    }
+
+    .hero-pipe {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.02em;
+      margin-top: 0.25rem;
+      line-height: 1.7;
+    }
+
+    .hero-pipe span { opacity: 0.5; }
+
+    @media (max-width: 640px) {
+      .hero { padding: 3.5rem 1rem 3rem; }
+      .hero-top { flex-direction: column; gap: 1.5rem; }
+      .hero-logo { width: 64px; height: 64px; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
+  <symbol id="stoic-idle" viewBox="0 0 120 120">
+    <path fill-rule="evenodd" fill="currentColor" d="
+      M40,20 H80 A30,30 0 0,1 110,50 V70 A30,30 0 0,1 80,100 H40 A30,30 0 0,1 10,70 V50 A30,30 0 0,1 40,20 Z
+      M35,40 A8,8 0 0,1 35,56 A8,8 0 0,1 35,40 Z
+      M85,40 A8,8 0 0,1 85,56 A8,8 0 0,1 85,40 Z
+      M54,54 H66 A2,2 0 0,1 68,56 V58 A2,2 0 0,1 66,60 H54 A2,2 0 0,1 52,58 V56 A2,2 0 0,1 54,54 Z
+    "/>
+  </symbol>
+</svg>
+
+<!-- ═══════════════════ NAVBAR ═══════════════════ -->
+
+<nav class="nav">
+  <a href="/" class="nav-left" style="text-decoration:none">
+    <svg class="nav-logo" viewBox="0 0 120 120" style="color:currentColor">
+      <use href="#stoic-idle"/>
+    </svg>
+    <span class="wordmark">Gunbai</span>
+  </a>
+
+  <div class="nav-right">
+    <div class="nav-links">
+      <a href="#" class="nav-link">Docs</a>
+      <a href="#" class="nav-link">GitHub</a>
+      <a href="#" class="nav-link">Blog</a>
+    </div>
+
+    <button class="mode-toggle" id="mode-toggle" type="button" aria-label="Toggle light/dark mode">
+      <span class="indicator"></span>
+      <span id="mode-label-text">Dark</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+
+<section class="hero">
+  <div class="hero-top">
+    <svg class="hero-logo" viewBox="0 0 120 120" style="color:currentColor">
+      <use href="#stoic-idle"/>
+    </svg>
+    <div>
+      <h1 class="hero-headline">A structural compiler for composable systems.</h1>
+      <p class="hero-sub">
+        DSL-first workflows where everything is a DAG. Correctness by
+        construction—invariants live in types and graph shape, not late
+        scans. Claims kept small, enforced by the graph.
+      </p>
+
+      <div class="hero-actions">
+        <a href="#" class="hero-cta">Get started</a>
+        <a href="#" class="hero-cta-secondary">Read the docs</a>
+      </div>
+
+      <div class="hero-install">
+        <kbd>git clone</kbd> &lt;repo&gt; <kbd>&&</kbd> cd gunbc <kbd>&&</kbd> make install
+      </div>
+
+      <div class="hero-pipe">
+        <span>pipeline</span> &ensp;parse → resolve → typecheck → lower → emit
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var html = document.documentElement;
+    var btn = document.getElementById("mode-toggle");
+    var label = document.getElementById("mode-label-text");
+
+    function current() {
+      return html.getAttribute("data-mode") || "dark";
+    }
+
+    btn.addEventListener("click", function () {
+      var next = current() === "dark" ? "light" : "dark";
+      html.setAttribute("data-mode", next);
+      label.textContent = next.charAt(0).toUpperCase() + next.slice(1);
+    });
+  })();
+</script>
+
+</body>
+</html>
