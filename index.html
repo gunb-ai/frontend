@@ -49,12 +49,13 @@
         <h1 class="hero-headline">A compiler for systems that can’t drift.</h1>
         <p class="hero-sub muted">
           Declare your program as a typed graph. <strong>gunbc</strong> runs structural lenses over that graph,
-          then emits target artifacts from the same source — one graph, many artifacts, structural checks before code ships.
+          then emits <strong>supported</strong> target artifacts from the same source.
+          The long-term goal: one graph, many artifacts, structural checks before code ships.
         </p>
         <div class="status-chip">
           <span class="badge badge-alpha">v0.1.0 alpha — documented subset</span>
-          <span class="badge badge-alpha">Rust / Go / Python verified surface</span>
-          <span class="badge badge-preview">v4 + TypeScript — preview</span>
+          <span class="badge badge-alpha">Rust / Go / Python verified surfaces</span>
+          <span class="badge badge-preview">v4 + TypeScript + omni-emission — preview</span>
         </div>
         <div class="hero-actions">
           <a href="https://github.com/gunb-ai/daglang" class="hero-cta">Get started</a>
@@ -82,11 +83,11 @@
     <div class="cards">
       <article class="card">
         <h3>Catch cost drift before runtime</h3>
-        <p>Lenses are structural queries over the graph, not grep or late scans. A complexity lens reports composed cost of a change before you ship. <em>Concept demo — preview.</em></p>
+        <p>Lenses are structural queries over the graph, not grep or late scans. v2 already classifies per-function cost during compile (<code>function_classes</code>); public CI receipts for lens gates are still roadmap.</p>
       </article>
       <article class="card">
         <h3>Generate targets from one source</h3>
-        <p>Emit Rust, Go, and Python from the same <code>.dag</code> declarations. Change a field once — every derived artifact updates or the build fails.</p>
+        <p>Emit Rust, Go, and Python for the documented <code>.dag</code> subset. For verified examples, a changed declaration propagates through derived artifacts or fails the build.</p>
       </article>
       <article class="card">
         <h3>Fail closed, don’t fake it</h3>
@@ -117,9 +118,9 @@ type Condition
   | Rainy { mm_per_hour: Float }
   | Snowy { cm_per_hour: Float }</pre>
       <div class="demo-out muted">
-        <span class="diag-ok">→</span> Rust enum + struct emission<br />
-        <span class="diag-ok">→</span> Go / Python on supported v0.1.0 surface<br />
-        <span class="diag-fail">→</span> Add <code>Refunded</code> to <code>Condition</code> without updating consumers → build fails closed
+        <span class="diag-ok">→</span> Rust — verified (see examples for commands)<br />
+        <span class="diag-ok">→</span> Go / Python — supported surfaces; example receipts pending<br />
+        <span class="diag-fail">→</span> Within the verified subset, stale derived artifacts fail closed instead of silently drifting
       </div>
     </div>
     <p style="margin-top:1rem"><a href="examples.html#contract" class="hero-cta-secondary">Full example →</a></p>
@@ -129,20 +130,15 @@ type Condition
     <h2>Where this is going</h2>
     <div class="vision">
       <p class="muted" style="margin-top:0">
-        One graph should produce the backend, client, schema, docs, tests, and CI gates.
-        No schema drift. No duplicate target logic. No late scans pretending to be guarantees.
+        <strong>Roadmap, not v0.1.0.</strong> One graph should produce the backend, client, schema, docs, tests, and CI gates —
+        without schema drift, duplicate target logic, or late scans pretending to be guarantees.
       </p>
-      <pre style="margin:1rem 0 0;padding:1rem;border-radius:3px;font-size:0.72rem">One .dag data model
-  → Rust type
-  → Go type
-  → Python dataclass
-  → generated tests / docs   <span class="muted">(v0.1.0 verified subset)</span>
+      <pre style="margin:1rem 0 0;padding:1rem;border-radius:3px;font-size:0.72rem">v0.1.0 verified subset (Shape A):
+  .dag declarations → Rust / Go / Python
 
-One .dag service  <span class="badge badge-preview">preview / roadmap</span>
-  → Rust backend
-  → TypeScript client
-  → OpenAPI schema
-  → database migration</pre>
+Preview (Shape B + full-stack):
+  .dag programs → OpenAPI, SQL DDL, docs, tests
+  .dag services → Rust backend, TypeScript client, DB migration</pre>
     </div>
   </section>
 </main>

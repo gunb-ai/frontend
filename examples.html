@@ -52,7 +52,7 @@
     <button class="tab" role="tab" data-tab="contract" aria-selected="true">Contract drift</button>
     <button class="tab" role="tab" data-tab="complexity" aria-selected="false">Complexity lens</button>
     <button class="tab" role="tab" data-tab="failclosed" aria-selected="false">Fail closed</button>
-    <button class="tab" role="tab" data-tab="omni" aria-selected="false">Omni-emission</button>
+    <button class="tab" role="tab" data-tab="omni" aria-selected="false">Preview: omni-emission</button>
   </div>
 
   <!-- Contract drift — weather.dag -->
@@ -86,12 +86,11 @@ fn describe_condition(cond: Condition) -> String {
       <div class="demo-panel">
         <header><span>Emitted artifacts (same graph)</span><span class="badge badge-alpha">Shape A</span></header>
         <div class="demo-out">
-          <span class="diag-ok">Rust</span> — enum <code>Condition</code> + struct fields<br />
-          <span class="diag-ok">Go</span> — matching sum type / structs on v0.1.0 surface<br />
-          <span class="diag-ok">Python</span> — dataclass / enum emission on v0.1.0 surface<br /><br />
-          <strong>Change once:</strong> add variant <code>Refunded</code> to <code>Condition</code><br />
-          <span class="diag-fail">→</span> exhaustive <code>match</code> sites fail until updated<br />
-          <span class="diag-fail">→</span> stale wire shapes cannot silently survive derivation
+          <span class="diag-ok">Rust</span> — verified: <code>gunbc compile --target rust</code> + <code>cargo check</code><br />
+          <span class="diag-ok">Go</span> — supported surface; public example uses <code>go build</code> / <code>go vet</code> when receipt lands<br />
+          <span class="diag-ok">Python</span> — supported surface; <code>python -m py_compile</code> when receipt lands<br /><br />
+          <strong>Within verified examples:</strong> add <code>Refunded</code> to <code>Condition</code> → exhaustive <code>match</code> fails or derived artifacts update<br />
+          <span class="diag-fail">→</span> stale derived artifacts fail closed instead of silently drifting
         </div>
       </div>
     </div>
@@ -105,41 +104,69 @@ fn describe_condition(cond: Condition) -> String {
     </div>
   </section>
 
-  <!-- Complexity lens — conceptual -->
+  <!-- Complexity lens — real v2 analyzer output -->
   <section class="tab-panel" id="panel-complexity" role="tabpanel" hidden>
-    <h2>Complexity lens — composed cost drift</h2>
+    <h2>Complexity lens — structural cost classes</h2>
     <p class="section-lead muted">
-      Illustrative pattern for the flagship lens story. Full complexity-lens CI receipts are
-      <strong>not</strong> claimed as v0.1.0-shipped; this shows the shape of the report.
+      The v2 compiler runs <code>complexity.dag</code> during compile and attaches
+      <code>function_classes</code> to every analyzed function. Output below is from
+      <code>gunbc</code> / <code>build_complexity_report</code> on real sources (May 2026 dev build) —
+      not mocked. A public CI gate for lens receipts is still roadmap; this is the in-compiler analyzer today.
     </p>
     <div class="demo-grid">
       <div class="demo-panel">
-        <header><span>.dag (simplified)</span><span class="badge badge-preview">concept</span></header>
-        <pre>fn processOrders(orders: List&lt;Order&gt;) -> List&lt;Receipt&gt; {
-  orders |> map(o => enrich(o))
+        <header>
+          <span><code>dsl/examples/weather/weather.dag</code></span>
+          <span class="badge badge-alpha">v0.1.0 · real .dag</span>
+        </header>
+        <pre>fn freezing_locations(forecasts: List&lt;Forecast&gt;) -> List&lt;String&gt; {
+  forecasts
+    |> filter(f => is_freezing(temp: f.low))
+    |> map(f => f.location)
 }
 
-fn enrich(order: Order) -> Receipt {
-  let customer = lookupCustomer(id: order.customer_id)
-  ...
-}
-
-fn lookupCustomer(id: UserId) -> Customer {
-  customers |> find(c => c.id == id)   // was O(1) index; now linear scan
+fn daily_summary(forecast: Forecast) -> String {
+  let high_f = to_fahrenheit(temp: forecast.high)
+  let desc = describe_condition(cond: forecast.condition)
+  concat(forecast.location, ": ", desc, ", high ",
+         to_string(value: high_f), "°F")
 }</pre>
       </div>
       <div class="demo-panel">
-        <header><span>Lens output (illustrative)</span><span class="badge badge-preview">preview</span></header>
+        <header><span>function_classes (analyzer)</span><span class="badge badge-alpha">measured</span></header>
         <div class="demo-out">
-          <span class="diag-fail">complexity(processOrders) = O(n²)</span><br />
-          required bound = O(n log n)<br />
-          result = <strong>FAIL</strong><br /><br />
-          affected: checkout, nightlyReconcile, customerReport<br /><br />
-          suggested shape: index customers by id before enrich
+          <span class="diag-ok">freezing_locations</span> &nbsp; O(n)<br />
+          <span class="diag-ok">daily_summary</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; O(1)<br />
+          <span class="diag-ok">describe_condition</span> &nbsp; O(1)<br />
+          <span class="diag-ok">is_freezing</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; O(1)<br />
+          <span class="diag-ok">to_fahrenheit</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; O(1)<br /><br />
+          violations: 0
         </div>
       </div>
     </div>
-    <p class="muted">Lenses read the whole dependency graph structurally — not a linter grep of one file.</p>
+    <div class="demo-grid" style="margin-top:1.25rem">
+      <div class="demo-panel">
+        <header><span>Fail closed on unknown cost</span><span class="badge badge-alpha">soundness</span></header>
+        <pre>fn count_up(n: Int) -> Int {
+  if n > 100 { n }
+  else { count_up(n: n + 1) }  // same-arg recursion
+}</pre>
+      </div>
+      <div class="demo-panel">
+        <header><span>function_classes + violations</span><span class="badge badge-alpha">measured</span></header>
+        <div class="demo-out diag-fail">
+          count_up &nbsp; O(?)<br /><br />
+          violation: same-argument recursion in count_up<br />
+          (no silent O(1) guess)
+        </div>
+      </div>
+    </div>
+    <p class="muted">
+      Parser-style SCC descent is also analyzed (e.g. <code>parse_items</code> → O(n), <code>advance</code> → O(1)).
+      Composed multi-file drift stories (e.g. changing a lookup from index to scan) are the lens direction;
+      nested folds on the <em>same</em> collection may classify as O(n) when identity is tracked.
+      See <a href="https://github.com/gunb-ai/daglang/blob/main/src/v2/complexity.dag">complexity.dag</a> in the repo.
+    </p>
   </section>
 
   <!-- Fail closed -->
@@ -170,12 +197,13 @@ fn lookupCustomer(id: UserId) -> Customer {
 
   <!-- Omni-emission -->
   <section class="tab-panel" id="panel-omni" role="tabpanel" hidden>
-    <h2>Omni-emission — one graph, many layers</h2>
+    <h2>Preview: omni-emission — one graph, many layers</h2>
     <p class="section-lead muted">
-      Shape A = language targets (Rust, Go, Python). Shape B = artifacts (OpenAPI, SQL, docs).
-      Todo service demo exists in-repo for integration tests;
-      <a href="https://github.com/gunb-ai/daglang/blob/main/dsl/demos/todo_service.dag">dsl/demos/todo_service.dag</a>
-      — preview / v4 path, not v0.1.0 contract.
+      <strong>This is architectural direction, not a v0.1.0 feature.</strong>
+      Architecture target: Shape A = language targets the compiler emits (Rust, Go, Python).
+      Shape B = artifacts produced by <code>.dag</code> programs (OpenAPI, SQL, docs) — not compiler render targets.
+      v0.1.0 verifies only the documented Rust / Go / Python subset.
+      Todo demo: <a href="https://github.com/gunb-ai/daglang/blob/main/dsl/demos/todo_service.dag">dsl/demos/todo_service.dag</a> (preview / v4).
     </p>
     <div class="demo-panel">
       <header><span>Shared domain (excerpt)</span><span class="badge badge-preview">roadmap</span></header>
@@ -192,8 +220,8 @@ data todo_service_operations: List&lt;TodoServiceOperation&gt; = [
   ...
 ]</pre>
       <div class="demo-out muted">
-        <span class="diag-ok">v0.1.0 today</span> — Rust / Go / Python types from shared declarations<br />
-        <span class="badge badge-preview">preview</span> — OpenAPI YAML, SQL DDL, TS client, DB migration from same graph<br /><br />
+        <span class="diag-ok">v0.1.0 verified subset</span> — Rust / Go / Python types from shared declarations<br />
+        <span class="badge badge-preview">preview</span> — TypeScript client, OpenAPI YAML, SQL DDL, DB migration from same graph<br /><br />
         Do not treat the full-stack column as shipped until end-to-end tests say so.
       </div>
     </div>
