@@ -1,0 +1,11 @@
+# function_classes from build_complexity_report(weather.dag)
+# Source: dsl/examples/weather/weather.dag (module examples.weather)
+# Captured: 2026-05-30, v2-compiler dev build (gunbc worktree)
+
+freezing_locations     O(n)
+daily_summary          O(1)
+describe_condition     O(1)
+is_freezing            O(1)
+to_fahrenheit          O(1)
+
+violations: 0

@@ -1,0 +1,7 @@
+# function_classes + violations from build_complexity_report (minimal module)
+# Captured: 2026-05-30, v2-compiler dev build
+
+count_up               O(?)
+
+violations: 1
+  recursion has no structural decreasing argument (analyzer reports unproven bound; no silent O(1) guess)
