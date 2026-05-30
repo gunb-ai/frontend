@@ -54,7 +54,8 @@
         </p>
         <div class="status-chip">
           <span class="badge badge-alpha">v0.1.0 alpha — documented subset</span>
-          <span class="badge badge-alpha">Rust / Go / Python verified surfaces</span>
+          <span class="badge badge-alpha">Rust verified</span>
+          <span class="badge badge-preview">Go / Python — planned verified surfaces</span>
           <span class="badge badge-preview">v4 + TypeScript + omni-emission — preview</span>
         </div>
         <div class="hero-actions">
@@ -83,11 +84,15 @@
     <div class="cards">
       <article class="card">
         <h3>Catch cost drift before runtime</h3>
-        <p>Lenses are structural queries over the graph, not grep or late scans. v2 already classifies per-function cost during compile (<code>function_classes</code>); public CI receipts for lens gates are still roadmap.</p>
+        <p>
+          <strong>gunbc</strong> v2 already classifies per-function complexity during compile
+          (<code>function_classes</code>). The current analyzer reports structural cost classes like
+          <code>O(1)</code>, <code>O(n)</code>, and <code>O(?)</code>; CI-gated lens receipts are the next step.
+        </p>
       </article>
       <article class="card">
         <h3>Generate targets from one source</h3>
-        <p>Emit Rust, Go, and Python for the documented <code>.dag</code> subset. For verified examples, a changed declaration propagates through derived artifacts or fails the build.</p>
+        <p>Emit Rust today; Go and Python are planned verified surfaces on the documented <code>.dag</code> subset. For verified examples, a changed declaration propagates through derived artifacts or fails the build.</p>
       </article>
       <article class="card">
         <h3>Fail closed, don’t fake it</h3>
@@ -119,7 +124,7 @@ type Condition
   | Snowy { cm_per_hour: Float }</pre>
       <div class="demo-out muted">
         <span class="diag-ok">→</span> Rust — verified (see examples for commands)<br />
-        <span class="diag-ok">→</span> Go / Python — supported surfaces; example receipts pending<br />
+        <span class="diag-ok">→</span> Go / Python — planned verified surfaces<br />
         <span class="diag-fail">→</span> Within the verified subset, stale derived artifacts fail closed instead of silently drifting
       </div>
     </div>

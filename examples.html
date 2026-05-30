@@ -50,7 +50,7 @@
 
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" data-tab="contract" aria-selected="true">Contract drift</button>
-    <button class="tab" role="tab" data-tab="complexity" aria-selected="false">Complexity lens</button>
+    <button class="tab" role="tab" data-tab="complexity" aria-selected="false">Complexity analyzer</button>
     <button class="tab" role="tab" data-tab="failclosed" aria-selected="false">Fail closed</button>
     <button class="tab" role="tab" data-tab="omni" aria-selected="false">Preview: omni-emission</button>
   </div>
@@ -87,8 +87,8 @@ fn describe_condition(cond: Condition) -> String {
         <header><span>Emitted artifacts (same graph)</span><span class="badge badge-alpha">Shape A</span></header>
         <div class="demo-out">
           <span class="diag-ok">Rust</span> — verified: <code>gunbc compile --target rust</code> + <code>cargo check</code><br />
-          <span class="diag-ok">Go</span> — supported surface; public example uses <code>go build</code> / <code>go vet</code> when receipt lands<br />
-          <span class="diag-ok">Python</span> — supported surface; <code>python -m py_compile</code> when receipt lands<br /><br />
+          <span class="diag-ok">Go</span> — planned verified surface (v0.1.0 target)<br />
+          <span class="diag-ok">Python</span> — planned verified surface (v0.1.0 target)<br /><br />
           <strong>Within verified examples:</strong> add <code>Refunded</code> to <code>Condition</code> → exhaustive <code>match</code> fails or derived artifacts update<br />
           <span class="diag-fail">→</span> stale derived artifacts fail closed instead of silently drifting
         </div>
@@ -104,15 +104,16 @@ fn describe_condition(cond: Condition) -> String {
     </div>
   </section>
 
-  <!-- Complexity lens — real v2 analyzer output -->
+  <!-- Complexity analyzer — real v2 output -->
   <section class="tab-panel" id="panel-complexity" role="tabpanel" hidden>
-    <h2>Complexity lens — structural cost classes</h2>
+    <h2>Complexity analyzer — current output</h2>
     <p class="section-lead muted">
-      The v2 compiler runs <code>complexity.dag</code> during compile and attaches
-      <code>function_classes</code> to every analyzed function. Output below is from
-      <code>gunbc</code> / <code>build_complexity_report</code> on real sources (May 2026 dev build) —
-      not mocked. A public CI gate for lens receipts is still roadmap; this is the in-compiler analyzer today.
+      This is the current v2 in-compiler complexity analyzer. The broader lens-gated CI receipt path is roadmap.
+      The compiler runs <code>complexity.dag</code> during compile and attaches
+      <code>function_classes</code> to analyzed functions. Output below is from real daglang sources, not mocked.
     </p>
+
+    <h3 style="font-size:1rem;margin:2rem 0 0.75rem">Current: per-function cost classes</h3>
     <div class="demo-grid">
       <div class="demo-panel">
         <header>
@@ -144,28 +145,89 @@ fn daily_summary(forecast: Forecast) -> String {
         </div>
       </div>
     </div>
-    <div class="demo-grid" style="margin-top:1.25rem">
+    <p class="muted" style="margin-top:0.75rem">
+      The analyzer reports the cost of the <code>.dag</code> graph, not the runtime profile of one execution.
+      Checked-in fixture:
+      <a href="fixtures/weather.complexity.txt">fixtures/weather.complexity.txt</a>.
+    </p>
+    <div class="install-block" style="margin-top:0.75rem">
+      <span class="muted" style="font-size:0.75rem;display:block;margin-bottom:0.5rem">
+        Reproduce (daglang repo): <code>function_classes</code> is attached on every compile
+        (<code>PipelineResult.complexity</code>). Match the fixture with
+        <code>build_complexity_report</code> or pipeline tests on <code>weather.dag</code>.
+      </span>
+      <kbd>cargo build -p v2-compiler --bin gunbc</kbd><br />
+      <kbd>cargo test -p v2-compiler-tests cx_forever_bound_produces_violation -- --exact --nocapture</kbd>
+      <span class="muted" style="font-size:0.7rem;display:block;margin-top:0.35rem">
+        (weather classes: same pipeline path as
+        <a href="https://github.com/gunb-ai/daglang/blob/main/dsl/examples/weather/weather.dag">weather.dag</a>
+        — see fixture for expected output.)
+      </span>
+    </div>
+
+    <h3 style="font-size:1rem;margin:2rem 0 0.75rem">Fail closed when the bound is unproven</h3>
+    <p class="muted" style="margin:0 0 1rem">
+      When the analyzer cannot prove a safe structural bound, it reports <code>O(?)</code>
+      and emits a violation instead of guessing.
+    </p>
+    <div class="demo-grid">
       <div class="demo-panel">
-        <header><span>Fail closed on unknown cost</span><span class="badge badge-alpha">soundness</span></header>
+        <header><span>Minimal module (soundness)</span><span class="badge badge-alpha">measured</span></header>
         <pre>fn count_up(n: Int) -> Int {
   if n > 100 { n }
-  else { count_up(n: n + 1) }  // same-arg recursion
+  else { count_up(n: n + 1) }  // no proven descent
 }</pre>
       </div>
       <div class="demo-panel">
         <header><span>function_classes + violations</span><span class="badge badge-alpha">measured</span></header>
         <div class="demo-out diag-fail">
           count_up &nbsp; O(?)<br /><br />
-          violation: same-argument recursion in count_up<br />
+          violation: recursion has no structural decreasing argument<br />
           (no silent O(1) guess)
         </div>
       </div>
     </div>
-    <p class="muted">
-      Parser-style SCC descent is also analyzed (e.g. <code>parse_items</code> → O(n), <code>advance</code> → O(1)).
-      Composed multi-file drift stories (e.g. changing a lookup from index to scan) are the lens direction;
-      nested folds on the <em>same</em> collection may classify as O(n) when identity is tracked.
-      See <a href="https://github.com/gunb-ai/daglang/blob/main/src/v2/complexity.dag">complexity.dag</a> in the repo.
+    <p class="muted" style="margin-top:0.75rem">
+      Fixture:
+      <a href="fixtures/count_up.complexity.txt">fixtures/count_up.complexity.txt</a>.
+    </p>
+
+    <h3 style="font-size:1rem;margin:2rem 0 0.75rem">Preview: composed cost drift across the dependency graph</h3>
+    <p class="muted" style="margin:0 0 1rem">
+      Roadmap lens story: a local change (e.g. lookup from index to linear scan) composes through callers.
+      Not a shipped CI receipt in v0.1.0.
+    </p>
+    <div class="demo-grid">
+      <div class="demo-panel">
+        <header><span>.dag (illustrative)</span><span class="badge badge-preview">preview</span></header>
+        <pre>fn processOrders(orders: List&lt;Order&gt;) -> List&lt;Receipt&gt; {
+  orders |> map(o => enrich(o))
+}
+
+fn enrich(order: Order) -> Receipt {
+  let customer = lookupCustomer(id: order.customer_id)
+  ...
+}
+
+fn lookupCustomer(id: UserId) -> Customer {
+  customers |> find(c => c.id == id)   // was O(1) index; now linear scan
+}</pre>
+      </div>
+      <div class="demo-panel">
+        <header><span>Lens output (illustrative)</span><span class="badge badge-preview">preview</span></header>
+        <div class="demo-out">
+          <span class="diag-fail">complexity(processOrders) = O(n²)</span><br />
+          required bound = O(n log n)<br />
+          result = <strong>FAIL</strong><br /><br />
+          affected: checkout, nightlyReconcile, customerReport<br /><br />
+          suggested shape: index customers by id before enrich
+        </div>
+      </div>
+    </div>
+    <p class="muted" style="margin-top:0.75rem">
+      Parser-style SCC descent is analyzed today (e.g. <code>parse_items</code> → O(n)).
+      Nested folds on the <em>same</em> collection may classify as O(n) when identity is tracked.
+      See <a href="https://github.com/gunb-ai/daglang/blob/main/src/v2/complexity.dag">complexity.dag</a>.
     </p>
   </section>
 
@@ -202,7 +264,7 @@ fn daily_summary(forecast: Forecast) -> String {
       <strong>This is architectural direction, not a v0.1.0 feature.</strong>
       Architecture target: Shape A = language targets the compiler emits (Rust, Go, Python).
       Shape B = artifacts produced by <code>.dag</code> programs (OpenAPI, SQL, docs) — not compiler render targets.
-      v0.1.0 verifies only the documented Rust / Go / Python subset.
+      v0.1.0 verifies Rust today; Go / Python are planned verified surfaces.
       Todo demo: <a href="https://github.com/gunb-ai/daglang/blob/main/dsl/demos/todo_service.dag">dsl/demos/todo_service.dag</a> (preview / v4).
     </p>
     <div class="demo-panel">
@@ -220,7 +282,7 @@ data todo_service_operations: List&lt;TodoServiceOperation&gt; = [
   ...
 ]</pre>
       <div class="demo-out muted">
-        <span class="diag-ok">v0.1.0 verified subset</span> — Rust / Go / Python types from shared declarations<br />
+        <span class="diag-ok">v0.1.0 verified subset</span> — Rust types from shared declarations; Go / Python planned<br />
         <span class="badge badge-preview">preview</span> — TypeScript client, OpenAPI YAML, SQL DDL, DB migration from same graph<br /><br />
         Do not treat the full-stack column as shipped until end-to-end tests say so.
       </div>
