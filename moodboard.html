@@ -15,7 +15,7 @@
       /* ── Parametric base ── */
       --hue-warm: 37;
       --hue-moss: 134;
-      --hue-clay: 7;
+      --hue-clay: 3;
 
       --accent-sat: 36%;
       --accent-l: 48%;
@@ -73,13 +73,13 @@
 
     [data-mode="dark"] body {
       background: var(--void);
-      color: var(--stone);
+      color: var(--warm-white);
     }
     [data-mode="dark"] .label { color: var(--stone-faint); }
-    [data-mode="dark"] h1, [data-mode="dark"] h2 { color: var(--stone); }
-    [data-mode="dark"] .lead, [data-mode="dark"] .body { color: var(--stone-dim); }
-    [data-mode="dark"] .term { color: var(--stone); }
-    [data-mode="dark"] .quote { color: var(--stone); }
+    [data-mode="dark"] h1, [data-mode="dark"] h2 { color: var(--warm-white); }
+    [data-mode="dark"] .lead, [data-mode="dark"] .body { color: var(--warm-white-dim); }
+    [data-mode="dark"] .term { color: var(--warm-white); }
+    [data-mode="dark"] .quote { color: var(--warm-white); }
     [data-mode="dark"] .source { color: var(--stone-faint); }
     [data-mode="dark"] .panel {
       background: var(--void-up);
@@ -90,24 +90,24 @@
       border-color: var(--border-dark);
     }
     [data-mode="dark"] .theme-card .poles { color: var(--stone-faint); }
-    [data-mode="dark"] .theme-card .resolution { color: var(--stone); }
+    [data-mode="dark"] .theme-card .resolution { color: var(--warm-white); }
     [data-mode="dark"] .constraint-list li { border-color: var(--border-dark); }
     [data-mode="dark"] .constraint-list .tag {
       color: var(--stone-faint);
       border-color: var(--border-dark);
     }
     [data-mode="dark"] .s-rule { border-color: var(--border-dark); }
-    [data-mode="dark"] .swatch-name { color: var(--stone); }
+    [data-mode="dark"] .swatch-name { color: var(--warm-white); }
     [data-mode="dark"] .swatch-hex { color: var(--stone-faint); }
-    [data-mode="dark"] .swatch-role { color: var(--stone-dim); }
+    [data-mode="dark"] .swatch-role { color: var(--warm-white-dim); }
     [data-mode="dark"] .swatch-dot.bordered { border-color: var(--border-dark); }
     [data-mode="dark"] .type-spec {
       background: var(--void-up);
       border-color: var(--border-dark);
     }
-    [data-mode="dark"] .type-sample-serif { color: var(--stone); }
-    [data-mode="dark"] .type-sample-sans { color: var(--stone-dim); }
-    [data-mode="dark"] .type-sample-mono { color: var(--stone-dim); }
+    [data-mode="dark"] .type-sample-serif { color: var(--warm-white); }
+    [data-mode="dark"] .type-sample-sans { color: var(--warm-white-dim); }
+    [data-mode="dark"] .type-sample-mono { color: var(--warm-white-dim); }
     [data-mode="dark"] .font-showcase-header { color: var(--stone-faint); border-color: var(--border-dark); }
     [data-mode="dark"] .type-note { color: var(--stone-faint); }
     [data-mode="dark"] .mark-cell.on-dark {
@@ -125,16 +125,16 @@
       border-color: var(--border-dark);
     }
     [data-mode="dark"] .proto-domain { color: var(--stone-faint); }
-    [data-mode="dark"] .proto-h { color: var(--stone); }
-    [data-mode="dark"] .proto-sub { color: var(--stone-dim); }
+    [data-mode="dark"] .proto-h { color: var(--warm-white); }
+    [data-mode="dark"] .proto-sub { color: var(--warm-white-dim); }
     [data-mode="dark"] .proto-install {
-      color: var(--stone);
+      color: var(--warm-white);
       background: var(--void);
       border-color: var(--border-dark);
     }
     [data-mode="dark"] .proto-error { background: var(--clay-subtle); }
     [data-mode="dark"] .proto-error-title { color: var(--clay); }
-    [data-mode="dark"] .proto-error p { color: var(--stone-dim); }
+    [data-mode="dark"] .proto-error p { color: var(--warm-white-dim); }
     [data-mode="dark"] .link-row { border-color: var(--border-dark); }
     [data-mode="dark"] .link-moss { color: var(--moss); }
     [data-mode="dark"] .foot {
@@ -146,13 +146,13 @@
 
     [data-mode="light"] body {
       background: var(--warm-white);
-      color: var(--text-dark);
+      color: var(--void);
     }
     [data-mode="light"] .label { color: var(--text-dark-dim); }
-    [data-mode="light"] h1, [data-mode="light"] h2 { color: var(--text-dark); }
+    [data-mode="light"] h1, [data-mode="light"] h2 { color: var(--void); }
     [data-mode="light"] .lead, [data-mode="light"] .body { color: var(--text-dark-dim); }
-    [data-mode="light"] .term { color: var(--text-dark); }
-    [data-mode="light"] .quote { color: var(--text-dark); }
+    [data-mode="light"] .term { color: var(--void); }
+    [data-mode="light"] .quote { color: var(--void); }
     [data-mode="light"] .source { color: var(--text-dark-dim); }
     [data-mode="light"] .moss-text { color: var(--moss-on-light); }
     [data-mode="light"] .clay-text { color: var(--clay-on-light); }
@@ -165,14 +165,14 @@
       border-color: var(--border-light);
     }
     [data-mode="light"] .theme-card .poles { color: var(--text-dark-dim); }
-    [data-mode="light"] .theme-card .resolution { color: var(--text-dark); }
+    [data-mode="light"] .theme-card .resolution { color: var(--void); }
     [data-mode="light"] .constraint-list li { border-color: var(--border-light); }
     [data-mode="light"] .constraint-list .tag {
       color: var(--text-dark-dim);
       border-color: var(--border-light);
     }
     [data-mode="light"] .s-rule { border-color: var(--border-light); }
-    [data-mode="light"] .swatch-name { color: var(--text-dark); }
+    [data-mode="light"] .swatch-name { color: var(--void); }
     [data-mode="light"] .swatch-hex { color: var(--text-dark-dim); }
     [data-mode="light"] .swatch-role { color: var(--text-dark-dim); }
     [data-mode="light"] .swatch-dot.bordered { border-color: var(--border-light); }
@@ -180,7 +180,7 @@
       background: var(--warm-white-up);
       border-color: var(--border-light);
     }
-    [data-mode="light"] .type-sample-serif { color: var(--text-dark); }
+    [data-mode="light"] .type-sample-serif { color: var(--void); }
     [data-mode="light"] .type-sample-sans { color: var(--text-dark-dim); }
     [data-mode="light"] .type-sample-mono { color: var(--text-dark-dim); }
     [data-mode="light"] .font-showcase-header { color: var(--text-dark-dim); border-color: var(--border-light); }
@@ -200,10 +200,10 @@
       border-color: var(--border-light);
     }
     [data-mode="light"] .proto-domain { color: var(--text-dark-dim); }
-    [data-mode="light"] .proto-h { color: var(--text-dark); }
+    [data-mode="light"] .proto-h { color: var(--void); }
     [data-mode="light"] .proto-sub { color: var(--text-dark-dim); }
     [data-mode="light"] .proto-install {
-      color: var(--text-dark);
+      color: var(--void);
       background: var(--warm-white);
       border-color: var(--border-light);
     }
@@ -223,10 +223,10 @@
     [data-mode="light"] .mode-box.dark {
       background: var(--void-up);
       border-color: var(--border-dark);
-      color: var(--stone);
+      color: var(--warm-white);
     }
     [data-mode="light"] .mode-box.dark .mode-label { color: var(--stone-faint); }
-    [data-mode="light"] .mode-box.dark .mode-body { color: var(--stone-dim); }
+    [data-mode="light"] .mode-box.dark .mode-body { color: var(--warm-white-dim); }
     [data-mode="light"] .mode-box.dark .mode-success {
       color: var(--moss);
       background: var(--moss-subtle);
@@ -418,13 +418,13 @@
     .mode-box.dark {
       background: var(--void-up);
       border: 1px solid var(--border-dark);
-      color: var(--stone);
+      color: var(--warm-white);
     }
 
     .mode-box.light {
       background: var(--warm-white);
       border: 1px solid var(--border-light);
-      color: var(--text-dark);
+      color: var(--void);
     }
 
     .mode-label {
@@ -446,7 +446,7 @@
     }
 
     .mode-body { font-size: 0.82rem; line-height: 1.6; margin-bottom: 0.75rem; }
-    .mode-box.dark .mode-body { color: var(--stone-dim); }
+    .mode-box.dark .mode-body { color: var(--warm-white-dim); }
     .mode-box.light .mode-body { color: var(--text-dark-dim); }
 
     .mode-success { font-family: var(--font-mono); font-size: 0.78rem; padding: 0.45rem 0.6rem; border-radius: 2px; margin-bottom: 0.5rem; }
@@ -642,11 +642,11 @@
 
     [data-mode="dark"] .mode-toggle {
       background: var(--void-up2);
-      color: var(--stone-dim);
+      color: var(--warm-white-dim);
       border: 1px solid var(--border-dark);
     }
     [data-mode="dark"] .mode-toggle:hover {
-      color: var(--stone);
+      color: var(--warm-white);
       border-color: var(--stone-faint);
     }
 
@@ -656,7 +656,7 @@
       border: 1px solid var(--border-light);
     }
     [data-mode="light"] .mode-toggle:hover {
-      color: var(--text-dark);
+      color: var(--void);
       border-color: var(--text-dark-dim);
     }
 
@@ -887,48 +887,48 @@
       </div>
 
       <div class="swatch-row">
-        <div class="swatch">
+        <div class="swatch" data-color="void">
           <div class="swatch-dot bordered" style="background: var(--void)"></div>
           <div class="swatch-name">Void</div>
-          <div class="swatch-hex">hsl(37, 0%, 5%)</div>
+          <div class="swatch-hex"></div>
           <div class="swatch-role">
             The ground. Near-black, very slightly warm. Product
             surfaces, the compiler's natural habitat.
           </div>
         </div>
-        <div class="swatch">
+        <div class="swatch" data-color="moss">
           <div class="swatch-dot" style="background: var(--moss)"></div>
           <div class="swatch-name">Moss</div>
-          <div class="swatch-hex">hsl(134, 36%, 48%)</div>
+          <div class="swatch-hex"></div>
           <div class="swatch-role">
             Quiet confidence. Correctness held. Things grew here
             slowly. Links, active paths, success that doesn't
             celebrate.
           </div>
         </div>
-        <div class="swatch">
+        <div class="swatch" data-color="clay">
           <div class="swatch-dot" style="background: var(--clay)"></div>
           <div class="swatch-name">Clay</div>
-          <div class="swatch-hex">hsl(7, 36%, 48%)</div>
+          <div class="swatch-hex"></div>
           <div class="swatch-role">
             Calm boundary. Something cracked, but nothing exploded.
             The compiler reports, it doesn't react. Errors, warnings,
             invariant violations.
           </div>
         </div>
-        <div class="swatch">
+        <div class="swatch" data-color="stone">
           <div class="swatch-dot" style="background: var(--stone)"></div>
           <div class="swatch-name">Stone</div>
-          <div class="swatch-hex">hsl(37, 20%, 76%)</div>
+          <div class="swatch-hex"></div>
           <div class="swatch-role">
             Primary text on dark. Warm grey—not blue-tinted, not
             cool. Readable, recessive, patient.
           </div>
         </div>
-        <div class="swatch">
+        <div class="swatch" data-color="warm-white">
           <div class="swatch-dot" style="background: var(--warm-white)"></div>
           <div class="swatch-name">Warm White</div>
-          <div class="swatch-hex">hsl(37, 27%, 94%)</div>
+          <div class="swatch-hex"></div>
           <div class="swatch-role">
             Light mode surface. Off-white with a warm cast. Not
             clinical, not paper—somewhere between.
@@ -950,7 +950,7 @@
           <div class="mode-heading">Build complete</div>
           <div class="mode-body">
             Pipeline completed in 340ms. Artifact written to
-            <code style="color:var(--stone); font-size:0.82rem">./out/dag.rs</code>
+            <code style="color:var(--warm-white); font-size:0.82rem">./out/dag.rs</code>
           </div>
           <div class="mode-success">&#x25B8; verified · 12 nodes · 0 warnings</div>
           <div class="mode-error" style="margin-top: 0.45rem">
@@ -962,7 +962,7 @@
           <div class="mode-heading">Build complete</div>
           <div class="mode-body">
             Pipeline completed in 340ms. Artifact written to
-            <code style="color:var(--text-dark); font-size:0.82rem">./out/dag.rs</code>
+            <code style="color:var(--void); font-size:0.82rem">./out/dag.rs</code>
           </div>
           <div class="mode-success">&#x25B8; verified · 12 nodes · 0 warnings</div>
           <div class="mode-error" style="margin-top: 0.45rem">
@@ -1330,6 +1330,23 @@
       toggle.addEventListener("click", function () {
         var current = html.getAttribute("data-mode") || "dark";
         setMode(current === "dark" ? "light" : "dark");
+      });
+
+      /* ── Swatch labels — derived from CSS custom properties ── */
+      var rootStyles = getComputedStyle(document.documentElement);
+      function cssVar(name) { return rootStyles.getPropertyValue(name).trim(); }
+
+      var swatchFormulas = {
+        'void':       [cssVar('--hue-warm'), '0%', '5%'],
+        'moss':       [cssVar('--hue-moss'), cssVar('--accent-sat'), cssVar('--accent-l')],
+        'clay':       [cssVar('--hue-clay'), cssVar('--accent-sat'), cssVar('--accent-l')],
+        'stone':      [cssVar('--hue-warm'), '20%', '76%'],
+        'warm-white': [cssVar('--hue-warm'), '27%', '94%']
+      };
+
+      document.querySelectorAll('.swatch[data-color]').forEach(function (el) {
+        var f = swatchFormulas[el.getAttribute('data-color')];
+        if (f) el.querySelector('.swatch-hex').textContent = 'hsl(' + f.join(', ') + ')';
       });
 
       /* ── Mark grid (Stoic Giant) ── */
