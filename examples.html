@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>daglang examples — verified surface &amp; previews</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="site.css" />
+</head>
+<body>
+
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
+  <symbol id="stoic-idle" viewBox="0 0 120 120">
+    <path fill-rule="evenodd" fill="currentColor" d="
+      M40,20 H80 A30,30 0 0,1 110,50 V70 A30,30 0 0,1 80,100 H40 A30,30 0 0,1 10,70 V50 A30,30 0 0,1 40,20 Z
+      M35,40 A8,8 0 0,1 35,56 A8,8 0 0,1 35,40 Z
+      M85,40 A8,8 0 0,1 85,56 A8,8 0 0,1 85,40 Z
+      M54,54 H66 A2,2 0 0,1 68,56 V58 A2,2 0 0,1 66,60 H54 A2,2 0 0,1 52,58 V56 A2,2 0 0,1 54,54 Z
+    "/>
+  </symbol>
+</svg>
+
+<nav class="nav">
+  <a href="/" class="nav-left">
+    <svg class="nav-logo" viewBox="0 0 120 120"><use href="#stoic-idle"/></svg>
+    <span class="wordmark">daglang</span>
+  </a>
+  <div class="nav-right">
+    <div class="nav-links">
+      <a href="examples.html" class="nav-link active">Examples</a>
+      <a href="https://github.com/gunb-ai/daglang/blob/main/THESIS.md" class="nav-link">Docs</a>
+      <a href="https://github.com/gunb-ai/daglang" class="nav-link">GitHub</a>
+    </div>
+    <button class="mode-toggle" id="mode-toggle" type="button" aria-label="Toggle light/dark mode">
+      <span class="indicator"></span>
+      <span id="mode-label-text">Dark</span>
+    </button>
+  </div>
+</nav>
+
+<main class="wrap" style="padding:3rem 0 4rem">
+  <h1 style="font-size:1.75rem;margin:0 0 0.5rem">Examples</h1>
+  <p class="muted" style="max-width:40em;margin:0 0 2rem">
+    Each tab shows <code>.dag</code> source, what gunbc reports, and honest status:
+    <span class="badge badge-alpha">v0.1.0</span> means on the verified public surface;
+    <span class="badge badge-preview">preview</span> is illustrative or in active development.
+  </p>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="contract" aria-selected="true">Contract drift</button>
+    <button class="tab" role="tab" data-tab="complexity" aria-selected="false">Complexity lens</button>
+    <button class="tab" role="tab" data-tab="failclosed" aria-selected="false">Fail closed</button>
+    <button class="tab" role="tab" data-tab="omni" aria-selected="false">Omni-emission</button>
+  </div>
+
+  <!-- Contract drift — weather.dag -->
+  <section class="tab-panel" id="panel-contract" role="tabpanel">
+    <h2>Contract drift from one declaration</h2>
+    <p class="section-lead muted">
+      Real source: <a href="https://github.com/gunb-ai/daglang/blob/main/dsl/examples/weather/weather.dag">dsl/examples/weather/weather.dag</a>.
+      Verified gate (Rust): compile with <code>gunbc compile --target rust</code> then <code>cargo check</code> on emitted output.
+    </p>
+    <div class="demo-grid">
+      <div class="demo-panel">
+        <header><span>.dag source</span><span class="badge badge-alpha">v0.1.0</span></header>
+        <pre>module examples.weather
+
+type Condition
+  = Sunny
+  | Cloudy
+  | Rainy { mm_per_hour: Float }
+  | Snowy { cm_per_hour: Float }
+
+fn describe_condition(cond: Condition) -> String {
+  match cond {
+    Sunny => "clear skies"
+    Cloudy => "overcast"
+    Rainy { mm_per_hour: rate } =>
+      if rate > 10.0 { "heavy rain" } else { "light rain" }
+    Snowy { cm_per_hour: _ } => "snowfall"
+  }
+}</pre>
+      </div>
+      <div class="demo-panel">
+        <header><span>Emitted artifacts (same graph)</span><span class="badge badge-alpha">Shape A</span></header>
+        <div class="demo-out">
+          <span class="diag-ok">Rust</span> — enum <code>Condition</code> + struct fields<br />
+          <span class="diag-ok">Go</span> — matching sum type / structs on v0.1.0 surface<br />
+          <span class="diag-ok">Python</span> — dataclass / enum emission on v0.1.0 surface<br /><br />
+          <strong>Change once:</strong> add variant <code>Refunded</code> to <code>Condition</code><br />
+          <span class="diag-fail">→</span> exhaustive <code>match</code> sites fail until updated<br />
+          <span class="diag-fail">→</span> stale wire shapes cannot silently survive derivation
+        </div>
+      </div>
+    </div>
+    <div class="install-block" style="margin-top:1.25rem">
+      <kbd>./target/release/gunbc compile \
+  --source-root dsl/examples/weather \
+  --source-root dsl/std \
+  --output-dir /tmp/weather-out \
+  --target rust</kbd><br />
+      <kbd>cargo check --manifest-path /tmp/weather-out/Cargo.toml</kbd>
+    </div>
+  </section>
+
+  <!-- Complexity lens — conceptual -->
+  <section class="tab-panel" id="panel-complexity" role="tabpanel" hidden>
+    <h2>Complexity lens — composed cost drift</h2>
+    <p class="section-lead muted">
+      Illustrative pattern for the flagship lens story. Full complexity-lens CI receipts are
+      <strong>not</strong> claimed as v0.1.0-shipped; this shows the shape of the report.
+    </p>
+    <div class="demo-grid">
+      <div class="demo-panel">
+        <header><span>.dag (simplified)</span><span class="badge badge-preview">concept</span></header>
+        <pre>fn processOrders(orders: List&lt;Order&gt;) -> List&lt;Receipt&gt; {
+  orders |> map(o => enrich(o))
+}
+
+fn enrich(order: Order) -> Receipt {
+  let customer = lookupCustomer(id: order.customer_id)
+  ...
+}
+
+fn lookupCustomer(id: UserId) -> Customer {
+  customers |> find(c => c.id == id)   // was O(1) index; now linear scan
+}</pre>
+      </div>
+      <div class="demo-panel">
+        <header><span>Lens output (illustrative)</span><span class="badge badge-preview">preview</span></header>
+        <div class="demo-out">
+          <span class="diag-fail">complexity(processOrders) = O(n²)</span><br />
+          required bound = O(n log n)<br />
+          result = <strong>FAIL</strong><br /><br />
+          affected: checkout, nightlyReconcile, customerReport<br /><br />
+          suggested shape: index customers by id before enrich
+        </div>
+      </div>
+    </div>
+    <p class="muted">Lenses read the whole dependency graph structurally — not a linter grep of one file.</p>
+  </section>
+
+  <!-- Fail closed -->
+  <section class="tab-panel" id="panel-failclosed" role="tabpanel" hidden>
+    <h2>Unsupported path — fail closed</h2>
+    <p class="section-lead muted">
+      Release gate: public examples that use unsupported features must fail with named diagnostics,
+      not plausible emitted junk.
+    </p>
+    <div class="demo-grid">
+      <div class="demo-panel">
+        <header><span>.dag (unsupported boundary)</span><span class="badge badge-preview">illustrative</span></header>
+        <pre>service PaymentGateway {
+  fn charge(card: Card) -> Receipt
+    via unknown_runtime(...)
+}</pre>
+      </div>
+      <div class="demo-panel">
+        <header><span>gunbc diagnostic</span><span class="badge badge-alpha">policy</span></header>
+        <div class="demo-out diag-fail">
+          error: unsupported runtime boundary<br />
+          at: service PaymentGateway.charge<br /><br />
+          suggested: model the effect source in the graph, or choose a supported target surface
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Omni-emission -->
+  <section class="tab-panel" id="panel-omni" role="tabpanel" hidden>
+    <h2>Omni-emission — one graph, many layers</h2>
+    <p class="section-lead muted">
+      Shape A = language targets (Rust, Go, Python). Shape B = artifacts (OpenAPI, SQL, docs).
+      Todo service demo exists in-repo for integration tests;
+      <a href="https://github.com/gunb-ai/daglang/blob/main/dsl/demos/todo_service.dag">dsl/demos/todo_service.dag</a>
+      — preview / v4 path, not v0.1.0 contract.
+    </p>
+    <div class="demo-panel">
+      <header><span>Shared domain (excerpt)</span><span class="badge badge-preview">roadmap</span></header>
+      <pre>type TodoItem {
+  id:        String
+  list_id:   String
+  title:     String
+  completed: Bool
+}
+
+data todo_service_operations: List&lt;TodoServiceOperation&gt; = [
+  { endpoint: { method: GET,  path: ... "users" ... } },
+  { endpoint: { method: POST, path: ... "users" ... } },
+  ...
+]</pre>
+      <div class="demo-out muted">
+        <span class="diag-ok">v0.1.0 today</span> — Rust / Go / Python types from shared declarations<br />
+        <span class="badge badge-preview">preview</span> — OpenAPI YAML, SQL DDL, TS client, DB migration from same graph<br /><br />
+        Do not treat the full-stack column as shipped until end-to-end tests say so.
+      </div>
+    </div>
+  </section>
+
+  <p style="margin-top:2.5rem">
+    <a href="/" class="hero-cta-secondary">← Back to home</a>
+  </p>
+</main>
+
+<footer class="footer">
+  <p>Built by <a href="https://gunb.ai">Gunb.ai</a> · <a href="https://github.com/gunb-ai/daglang">gunb-ai/daglang</a></p>
+</footer>
+
+<script src="site.js"></script>
+</body>
+</html>
