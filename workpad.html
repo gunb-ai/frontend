@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>gunb.ai · workpad · index concepts</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Palette tokens (lifted from legacy/moodboard.html) ── */
+    :root {
+      --hue-warm: 37;
+      --hue-moss: 134;
+      --hue-clay: 3;
+      --accent-sat: 36%;
+      --accent-l: 48%;
+      --accent-l-dim: 36%;
+
+      --moss: hsl(var(--hue-moss), var(--accent-sat), var(--accent-l));
+      --moss-dim: hsl(var(--hue-moss), var(--accent-sat), var(--accent-l-dim));
+      --moss-subtle: hsla(var(--hue-moss), var(--accent-sat), var(--accent-l), 0.14);
+
+      --clay: hsl(var(--hue-clay), var(--accent-sat), var(--accent-l));
+      --clay-dim: hsl(var(--hue-clay), var(--accent-sat), var(--accent-l-dim));
+      --clay-subtle: hsla(var(--hue-clay), var(--accent-sat), var(--accent-l), 0.14);
+
+      --void: hsl(var(--hue-warm), 0%, 5%);
+      --void-up: hsl(var(--hue-warm), 3%, 8%);
+      --void-up2: hsl(var(--hue-warm), 4%, 11%);
+
+      --stone: hsl(var(--hue-warm), 20%, 76%);
+      --stone-dim: hsl(var(--hue-warm), 12%, 55%);
+      --stone-faint: hsl(var(--hue-warm), 10%, 38%);
+
+      --warm-white: hsl(var(--hue-warm), 27%, 94%);
+      --warm-white-dim: hsl(var(--hue-warm), 18%, 87%);
+
+      --border-dark: hsla(var(--hue-warm), 20%, 76%, 0.08);
+      --border-dark-strong: hsla(var(--hue-warm), 20%, 76%, 0.16);
+
+      --font-mono: "JetBrains Mono", ui-monospace, monospace;
+      --font-sans: "Noto Sans", system-ui, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html {
+      background: hsl(var(--hue-warm), 0%, 3%);
+      color: var(--warm-white);
+      font-family: var(--font-sans);
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    body { margin: 0; min-height: 100vh; }
+
+    /* ── Workpad chrome (the "Figma" surface around the concept frames) ── */
+
+    .workpad-header {
+      position: sticky; top: 0; z-index: 10;
+      backdrop-filter: blur(8px);
+      background: hsla(var(--hue-warm), 0%, 3%, 0.85);
+      border-bottom: 1px solid var(--border-dark);
+      padding: 1rem 1.5rem;
+      display: flex; align-items: baseline; gap: 1.5rem; flex-wrap: wrap;
+    }
+    .workpad-title {
+      font-family: var(--font-mono); font-size: 0.7rem;
+      letter-spacing: 0.13em; text-transform: uppercase;
+      color: var(--stone-faint);
+    }
+    .workpad-title strong { color: var(--warm-white); font-weight: 500; }
+    .workpad-meta {
+      font-family: var(--font-mono); font-size: 0.65rem;
+      color: var(--stone-faint);
+    }
+    .workpad-meta a { color: var(--moss); text-decoration: none; border-bottom: 1px solid transparent; }
+    .workpad-meta a:hover { border-bottom-color: currentColor; }
+
+    .workpad-canvas {
+      padding: 2.5rem 1.5rem 5rem;
+      display: grid; gap: 3rem;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 1400px) {
+      .workpad-canvas { grid-template-columns: 1fr 1fr; gap: 2.5rem 3rem; }
+    }
+
+    .frame {
+      display: flex; flex-direction: column;
+      gap: 0.75rem;
+    }
+    .frame-label {
+      display: flex; align-items: baseline; gap: 0.75rem;
+      font-family: var(--font-mono); font-size: 0.62rem;
+      letter-spacing: 0.13em; text-transform: uppercase;
+      color: var(--stone-faint);
+    }
+    .frame-label .tag {
+      color: var(--moss);
+      border: 1px solid var(--moss-subtle);
+      background: var(--moss-subtle);
+      border-radius: 2px;
+      padding: 0.1rem 0.4rem;
+      font-size: 0.55rem;
+    }
+    .frame-label .name { color: var(--warm-white); font-weight: 500; }
+    .frame-note {
+      font-family: var(--font-mono); font-size: 0.65rem;
+      color: var(--stone-dim); max-width: 44em;
+      line-height: 1.55;
+    }
+    .frame-stage {
+      background: var(--void);
+      border: 1px solid var(--border-dark-strong);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+    .frame-stage::before {
+      content: "viewport · ~960×640"; position: absolute;
+      top: 0.4rem; left: 0.65rem;
+      font-family: var(--font-mono); font-size: 0.52rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--stone-faint); opacity: 0.45;
+      pointer-events: none;
+    }
+    .frame-stage .inner {
+      min-height: 38rem;
+      padding: 3rem 2rem 3rem;
+    }
+
+    /* ── Shared concept primitives ── */
+
+    .label-eyebrow {
+      display: block;
+      font-family: var(--font-mono); font-size: 0.62rem;
+      letter-spacing: 0.13em; text-transform: uppercase;
+      color: var(--stone-faint);
+      margin-bottom: 0.65rem;
+    }
+
+    .identity {
+      font-family: var(--font-sans); font-weight: 600;
+      font-size: clamp(1.4rem, 2.8vw, 1.85rem);
+      line-height: 1.2;
+      letter-spacing: -0.015em;
+      color: var(--warm-white);
+      margin: 0 0 1rem;
+    }
+
+    .prose {
+      font-size: 0.85rem;
+      line-height: 1.7;
+      color: var(--warm-white-dim);
+      max-width: 36em;
+      margin: 0 0 1.25rem;
+    }
+    .prose strong { color: var(--warm-white); font-weight: 500; }
+
+    .panel-fact {
+      border: 1px solid var(--border-dark);
+      border-radius: 3px;
+      padding: 1.1rem 1.25rem;
+      background: var(--void-up);
+    }
+
+    .panel-command {
+      font-family: var(--font-mono); font-size: 0.78rem;
+      line-height: 1.7;
+      background: var(--void);
+      border: 1px solid var(--border-dark);
+      border-radius: 3px;
+      padding: 0.95rem 1.1rem;
+      color: var(--warm-white-dim);
+      white-space: pre;
+      overflow-x: auto;
+    }
+    .panel-command .kbd { color: var(--moss); }
+
+    .panel-invariant {
+      font-family: var(--font-mono); font-size: 0.78rem;
+      line-height: 1.7;
+      background: var(--void-up);
+      border: 1px solid var(--border-dark);
+      border-left: 2px solid var(--clay);
+      border-radius: 0 3px 3px 0;
+      padding: 0.95rem 1.15rem;
+      color: var(--warm-white-dim);
+      white-space: pre;
+      overflow-x: auto;
+    }
+    .panel-invariant .title {
+      color: var(--clay);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    .footer-links {
+      margin-top: 1.5rem;
+      font-family: var(--font-mono); font-size: 0.72rem;
+      color: var(--stone-faint);
+    }
+    .footer-links a {
+      color: var(--warm-white-dim);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .footer-links a:hover { color: var(--moss); border-bottom-color: currentColor; }
+    .footer-links .sep { margin: 0 0.55rem; opacity: 0.45; }
+
+    /* ── Mark ── */
+
+    .mark-row { display: flex; align-items: center; gap: 0.85rem; margin-bottom: 2rem; }
+    .mark {
+      width: 32px; height: 32px;
+      color: var(--stone);
+    }
+    .wordmark {
+      font-family: var(--font-mono); font-size: 0.85rem;
+      letter-spacing: 0.04em;
+      color: var(--warm-white);
+    }
+
+    /* ── Concept A — Manual ── */
+
+    .c-manual { max-width: 44rem; margin: 0 auto; }
+
+    /* ── Concept B — Receipt ── */
+
+    .c-receipt { max-width: 50rem; margin: 0 auto; font-family: var(--font-mono); }
+    .c-receipt .ledger { display: grid; grid-template-columns: 9rem 1fr; gap: 0.4rem 1.5rem; font-size: 0.78rem; }
+    .c-receipt .ledger dt {
+      color: var(--stone-faint); font-size: 0.62rem;
+      letter-spacing: 0.13em; text-transform: uppercase;
+      padding-top: 0.15rem;
+    }
+    .c-receipt .ledger dd { margin: 0; color: var(--warm-white-dim); line-height: 1.65; }
+    .c-receipt .ledger dd strong { color: var(--warm-white); font-weight: 500; }
+    .c-receipt .ledger .row { display: contents; }
+    .c-receipt .ledger .rule {
+      grid-column: 1 / -1;
+      border-top: 1px dashed var(--border-dark);
+      margin: 0.4rem 0;
+      height: 0;
+    }
+    .c-receipt .identity { font-family: var(--font-mono); font-weight: 500; font-size: 1.05rem; letter-spacing: -0.005em; }
+
+    /* ── Concept C — Triptych ── */
+
+    .c-triptych { max-width: 44rem; margin: 0 auto; }
+    .c-triptych .section { margin-bottom: 1.5rem; }
+    .c-triptych .section-tag {
+      font-family: var(--font-mono); font-size: 0.55rem;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--stone-faint);
+      margin-bottom: 0.45rem;
+    }
+    .c-triptych .section-tag .dot {
+      display: inline-block; width: 4px; height: 4px;
+      background: var(--stone-faint); border-radius: 50%;
+      vertical-align: 2px; margin-right: 0.45rem;
+    }
+
+    /* ── Concept D — Field note ── */
+
+    .c-field { max-width: 50rem; margin: 0 auto; }
+    .c-field .spine {
+      display: grid; gap: 1.75rem;
+      grid-template-columns: 13rem 1fr;
+      align-items: start;
+    }
+    .c-field .spine .lhs .label-eyebrow { margin-bottom: 1rem; }
+    .c-field .spine .lhs .identity { font-size: 1.4rem; line-height: 1.25; }
+    .c-field .spine .lhs .micro { font-family: var(--font-mono); font-size: 0.62rem; color: var(--stone-faint); margin-top: 0.55rem; line-height: 1.5; }
+    .c-field .spine .rhs .prose { max-width: 32em; margin-bottom: 1rem; }
+    .c-field .install-row { margin-top: 0.8rem; }
+    @media (max-width: 760px) {
+      .c-field .spine { grid-template-columns: 1fr; }
+    }
+
+  </style>
+</head>
+<body>
+
+<!-- Shared Stoic Giant SVG symbol -->
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
+  <symbol id="stoic-idle" viewBox="0 0 120 120">
+    <g transform="translate(-12 -12) scale(1.2)">
+      <path fill-rule="evenodd" fill="currentColor" d="
+        M40,20 H80 A30,30 0 0,1 110,50 V70 A30,30 0 0,1 80,100 H40 A30,30 0 0,1 10,70 V50 A30,30 0 0,1 40,20 Z
+        M35,40 A8,8 0 0,1 35,56 A8,8 0 0,1 35,40 Z
+        M85,40 A8,8 0 0,1 85,56 A8,8 0 0,1 85,40 Z
+        M54,54 H66 A2,2 0 0,1 68,56 V58 A2,2 0 0,1 66,60 H54 A2,2 0 0,1 52,58 V56 A2,2 0 0,1 54,54 Z
+      "/>
+    </g>
+  </symbol>
+</svg>
+
+<header class="workpad-header">
+  <div class="workpad-title"><strong>gunb.ai workpad</strong> · index.html concepts</div>
+  <div class="workpad-meta">4 frames · moodboard palette · v0 sketches · <a href="legacy/moodboard.html">moodboard ↗</a></div>
+</header>
+
+<main class="workpad-canvas">
+
+  <!-- ═════════════════ CONCEPT A — Manual ═════════════════ -->
+  <section class="frame">
+    <div class="frame-label">
+      <span class="tag">A</span>
+      <span class="name">Manual</span>
+      <span>compiler manual · prose-led · most restrained</span>
+    </div>
+    <p class="frame-note">
+      Closest read of the moodboard's <code>.proto-dark</code> block. Reads like the first page of a technical reference — identity, problem, install, one diagnostic, two links. No diagram. The argument is carried entirely by the text and the typography.
+    </p>
+    <div class="frame-stage">
+      <div class="inner c-manual">
+        <div class="mark-row">
+          <svg class="mark" viewBox="0 0 120 120" aria-hidden="true"><use href="#stoic-idle"/></svg>
+          <span class="wordmark">gunb.ai</span>
+        </div>
+
+        <span class="label-eyebrow">gunbc · structural compiler</span>
+        <h1 class="identity">A structural compiler for composable systems.</h1>
+
+        <p class="prose">
+          Software drifts when the same fact lives in too many places: code, schemas, clients, tests, docs, workflows, and runtime boundaries. <strong>gunbc</strong> models the program as a typed graph, checks the graph, and emits from that structure.
+        </p>
+
+        <pre class="panel-command"><span class="kbd">git clone</span> https://github.com/gunb-ai/daglang
+<span class="kbd">cd</span> daglang
+<span class="kbd">cargo build --release</span></pre>
+
+        <div style="margin-top:1.5rem">
+          <pre class="panel-invariant"><span class="title">Invariant —</span>
+  match on Condition is not exhaustive
+
+  missing:
+    Rainy
+    Snowy
+
+  at:
+    examples/weather.dag:14
+
+  result:
+    no artifact emitted</pre>
+        </div>
+
+        <div class="footer-links">
+          <a href="#">GitHub</a><span class="sep">·</span><a href="#">Architecture</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════════════ CONCEPT B — Receipt ═════════════════ -->
+  <section class="frame">
+    <div class="frame-label">
+      <span class="tag">B</span>
+      <span class="name">Receipt</span>
+      <span>compiler output · ledger layout · feels like <code>gunbc --info</code></span>
+    </div>
+    <p class="frame-note">
+      Same content as A, formatted as a compiler-output ledger. Mono throughout, left column is field names in small caps, right column is values. The page reads as if the compiler printed itself. Maximum monospace rhythm; minimum visual variety on purpose.
+    </p>
+    <div class="frame-stage">
+      <div class="inner c-receipt">
+        <div class="mark-row">
+          <svg class="mark" viewBox="0 0 120 120" aria-hidden="true"><use href="#stoic-idle"/></svg>
+          <span class="wordmark">gunb.ai</span>
+        </div>
+
+        <dl class="ledger">
+          <div class="row">
+            <dt>identity</dt>
+            <dd><strong>gunbc</strong> — a structural compiler for composable systems.</dd>
+          </div>
+          <div class="rule"></div>
+          <div class="row">
+            <dt>problem</dt>
+            <dd>The same fact lives in code, schemas, clients, tests, docs, workflows, and runtime boundaries. Drift is the default.</dd>
+          </div>
+          <div class="row">
+            <dt>proposal</dt>
+            <dd>Model the program as a typed graph. Check the graph. Emit artifacts from that structure.</dd>
+          </div>
+          <div class="rule"></div>
+          <div class="row">
+            <dt>install</dt>
+            <dd style="white-space:pre; color:var(--warm-white)"><span style="color:var(--moss)">git clone</span> https://github.com/gunb-ai/daglang
+<span style="color:var(--moss)">cd</span> daglang
+<span style="color:var(--moss)">cargo build --release</span></dd>
+          </div>
+          <div class="rule"></div>
+          <div class="row">
+            <dt>diagnostic</dt>
+            <dd style="white-space:pre"><span style="color:var(--clay); font-weight:500">Invariant —</span>
+  match on Condition is not exhaustive
+  missing:  Rainy, Snowy
+  at:       examples/weather.dag:14
+  result:   no artifact emitted</dd>
+          </div>
+          <div class="rule"></div>
+          <div class="row">
+            <dt>see also</dt>
+            <dd><a href="#" style="color:var(--moss); text-decoration:none; border-bottom:1px solid currentColor">github.com/gunb-ai/daglang</a>  ·  <a href="#" style="color:var(--moss); text-decoration:none; border-bottom:1px solid currentColor">architecture</a></dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════════════ CONCEPT C — Triptych ═════════════════ -->
+  <section class="frame">
+    <div class="frame-label">
+      <span class="tag">C</span>
+      <span class="name">Triptych</span>
+      <span>fact · command · invariant — labeled by panel type</span>
+    </div>
+    <p class="frame-note">
+      Makes the design-system grammar visible. Each section is tagged with the canonical panel type (Fact / Command / Invariant). Slightly more pedagogical — the visitor reads not just "what gunbc does" but also "what kind of object each panel is." Useful while the design language is new; possibly too explicit later.
+    </p>
+    <div class="frame-stage">
+      <div class="inner c-triptych">
+        <div class="mark-row">
+          <svg class="mark" viewBox="0 0 120 120" aria-hidden="true"><use href="#stoic-idle"/></svg>
+          <span class="wordmark">gunb.ai</span>
+        </div>
+
+        <div class="section">
+          <div class="section-tag"><span class="dot"></span>fact</div>
+          <div class="panel-fact">
+            <h1 class="identity" style="margin-bottom:0.55rem; font-size:1.4rem">A structural compiler for composable systems.</h1>
+            <p class="prose" style="margin:0; font-size:0.82rem">
+              Software drifts when the same fact lives in too many places. <strong>gunbc</strong> models the program as a typed graph, checks the graph, and emits from that structure.
+            </p>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-tag"><span class="dot"></span>command</div>
+          <pre class="panel-command"><span class="kbd">git clone</span> https://github.com/gunb-ai/daglang
+<span class="kbd">cd</span> daglang
+<span class="kbd">cargo build --release</span></pre>
+        </div>
+
+        <div class="section">
+          <div class="section-tag"><span class="dot"></span>invariant</div>
+          <pre class="panel-invariant"><span class="title">Invariant —</span>
+  match on Condition is not exhaustive
+
+  missing:
+    Rainy
+    Snowy
+
+  at:
+    examples/weather.dag:14
+
+  result:
+    no artifact emitted</pre>
+        </div>
+
+        <div class="footer-links">
+          <a href="#">GitHub</a><span class="sep">·</span><a href="#">Architecture</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════════════ CONCEPT D — Field note ═════════════════ -->
+  <section class="frame">
+    <div class="frame-label">
+      <span class="tag">D</span>
+      <span class="name">Field note</span>
+      <span>asymmetric · identity rail + content spine</span>
+    </div>
+    <p class="frame-note">
+      Left rail carries identity (mark, wordmark, headline, version line). Right spine carries the argument and the artifacts (prose, command, invariant) flowing top-to-bottom. Reads like a lab notebook page — less "manifesto", more "instrument label." Risk: more layout work for less density gain.
+    </p>
+    <div class="frame-stage">
+      <div class="inner c-field">
+        <div class="spine">
+          <div class="lhs">
+            <div class="mark-row" style="margin-bottom:1.5rem">
+              <svg class="mark" viewBox="0 0 120 120" aria-hidden="true"><use href="#stoic-idle"/></svg>
+              <span class="wordmark">gunb.ai</span>
+            </div>
+            <span class="label-eyebrow">gunbc · v0.x</span>
+            <h1 class="identity">A structural compiler for composable systems.</h1>
+            <div class="micro">structural · typed · fails closed</div>
+          </div>
+          <div class="rhs">
+            <span class="label-eyebrow">problem</span>
+            <p class="prose">
+              Software drifts when the same fact lives in too many places: code, schemas, clients, tests, docs, workflows, and runtime boundaries.
+            </p>
+
+            <span class="label-eyebrow">proposal</span>
+            <p class="prose">
+              <strong>gunbc</strong> models the program as a typed graph, checks the graph, and emits from that structure. Unsupported paths fail closed instead of producing plausible output.
+            </p>
+
+            <div class="install-row">
+              <span class="label-eyebrow">try it</span>
+              <pre class="panel-command"><span class="kbd">git clone</span> https://github.com/gunb-ai/daglang
+<span class="kbd">cd</span> daglang
+<span class="kbd">cargo build --release</span></pre>
+            </div>
+
+            <div style="margin-top:1.25rem">
+              <span class="label-eyebrow">a diagnostic</span>
+              <pre class="panel-invariant"><span class="title">Invariant —</span>
+  match on Condition is not exhaustive
+  missing:  Rainy, Snowy
+  at:       examples/weather.dag:14
+  result:   no artifact emitted</pre>
+            </div>
+
+            <div class="footer-links">
+              <a href="#">GitHub</a><span class="sep">·</span><a href="#">Architecture</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+</body>
+</html>
