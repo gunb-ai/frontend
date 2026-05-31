@@ -1174,8 +1174,8 @@
 
       <div class="mark-grid" id="mark-grid"></div>
       <div class="dl-row">
-        <button class="dl-btn" data-dl-symbol="#stoic-idle" data-dl-mode="light" data-dl-name="gunb-mark-idle">&darr; PNG (on cream)</button>
-        <button class="dl-btn" data-dl-symbol="#stoic-idle" data-dl-mode="dark" data-dl-name="gunb-mark-idle">&darr; PNG (on void)</button>
+        <button class="dl-btn" data-dl-symbol="#stoic-idle" data-dl-mode="light" data-dl-name="gunb-mark-idle">&darr; PNG (ink)</button>
+        <button class="dl-btn" data-dl-symbol="#stoic-idle" data-dl-mode="dark" data-dl-name="gunb-mark-idle">&darr; PNG (stone)</button>
       </div>
 
       <div class="body" style="margin: 1.75rem 0 1rem">
@@ -1191,10 +1191,10 @@
 
       <div class="mark-grid" id="mark-grid-robot"></div>
       <div class="dl-row">
-        <button class="dl-btn" data-dl-symbol="#stoic-robot" data-dl-mode="light" data-dl-name="gunb-mark-robot">&darr; PNG (on cream)</button>
-        <button class="dl-btn" data-dl-symbol="#stoic-robot" data-dl-mode="dark" data-dl-name="gunb-mark-robot">&darr; PNG (on void)</button>
+        <button class="dl-btn" data-dl-symbol="#stoic-robot" data-dl-mode="light" data-dl-name="gunb-mark-robot">&darr; PNG (ink)</button>
+        <button class="dl-btn" data-dl-symbol="#stoic-robot" data-dl-mode="dark" data-dl-name="gunb-mark-robot">&darr; PNG (stone)</button>
       </div>
-      <p class="dl-note">Tip: click any tile above to download that mark as a 512&times;512 PNG with its background baked in. Need vector? Hold &#8997;&nbsp;Option (Alt) while clicking for an SVG.</p>
+      <p class="dl-note">Tip: click any tile above to download that mark as a 1024&times;1024 transparent PNG (ink on the light tiles, stone on the dark). Need vector? Hold &#8997;&nbsp;Option (Alt) while clicking for an SVG.</p>
     </div>
 
     <!-- ═══════════════════ VOICE ═══════════════════ -->
@@ -1458,8 +1458,8 @@
         triggerDownload(new Blob([svg], { type: "image/svg+xml" }), name + ".svg");
       }
 
-      var PNG_SIZE = 512;
-      function downloadPNG(symbol, markColor, bgColor, name) {
+      var PNG_SIZE = 1024;
+      function downloadPNG(symbol, markColor, name) {
         var svg = buildStandaloneSVG(symbol, markColor);
         var img = new Image();
         img.onload = function () {
@@ -1467,8 +1467,6 @@
           canvas.width = PNG_SIZE;
           canvas.height = PNG_SIZE;
           var ctx = canvas.getContext("2d");
-          ctx.fillStyle = bgColor;
-          ctx.fillRect(0, 0, PNG_SIZE, PNG_SIZE);
           ctx.drawImage(img, 0, 0, PNG_SIZE, PNG_SIZE);
           canvas.toBlob(function (blob) {
             triggerDownload(blob, name + ".png");
@@ -1480,8 +1478,8 @@
       /* Resolve the actual on-screen tile backgrounds (mode-dependent CSS vars)
          so the baked PNG background matches exactly what the tile shows. */
       var MODE = {
-        dark:  { mark: "#C4BDB0", bg: cssVar("--void-up")    || "#15140f" },
-        light: { mark: "#0D0D0D", bg: cssVar("--warm-white") || "#EFEAE0" }
+        dark:  { mark: "#C4BDB0" },  // stone, for dark backgrounds
+        light: { mark: "#0D0D0D" }   // ink, for light backgrounds
       };
 
       function renderMarks(target, symbol, name) {
@@ -1501,10 +1499,8 @@
           lbl.textContent = s.label;
           cell.appendChild(lbl);
           cell.addEventListener("click", function (e) {
-            // resolve background live, in case the page mode changed since render
-            var bg = getComputedStyle(cell).backgroundColor || m.bg;
             if (e.altKey) downloadSVG(symbol, m.mark, name + "-" + mode);
-            else downloadPNG(symbol, m.mark, bg, name + "-" + mode);
+            else downloadPNG(symbol, m.mark, name + "-" + mode);
           });
           target.appendChild(cell);
         }
@@ -1525,7 +1521,7 @@
           var name = btn.getAttribute("data-dl-name") + "-" + mode;
           var symbol = btn.getAttribute("data-dl-symbol");
           if (e.altKey) downloadSVG(symbol, m.mark, name);
-          else downloadPNG(symbol, m.mark, m.bg, name);
+          else downloadPNG(symbol, m.mark, name);
         });
       });
     })();
