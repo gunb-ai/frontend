@@ -539,6 +539,151 @@
       overflow: visible;
     }
 
+    /* ── Aged / durable primitives ──
+       Civic stone, ironwork, patina. Each one identifies structure: a
+       fact, a relation, a boundary, or a receipt. Never decorative for
+       its own sake. Reuse before adding. */
+
+    .aged-grid {
+      display: grid; gap: 1rem;
+      grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    }
+    .aged-cell {
+      display: flex; flex-direction: column;
+      background: var(--void);
+      border: 1px solid var(--border-dark);
+      border-radius: 4px;
+      padding: 1rem 1.1rem 1rem;
+      gap: 0.65rem;
+    }
+    .aged-cell-head {
+      display: flex; align-items: baseline; justify-content: space-between;
+      font-family: var(--font-mono); font-size: 0.58rem;
+      letter-spacing: 0.16em; text-transform: uppercase;
+    }
+    .aged-cell-name { color: var(--warm-white); font-weight: 500; }
+    .aged-cell-kind { color: var(--stone-faint); font-size: 0.55rem; }
+    .aged-cell-body {
+      flex: 1; min-height: 6rem;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0.6rem 0;
+    }
+    .aged-cell-note {
+      font-family: var(--font-mono); font-size: 0.65rem;
+      line-height: 1.55; color: var(--warm-white-dim);
+      margin: 0;
+    }
+
+    /* 1. Carved rule — divider with center diamond notch */
+    .carved-rule {
+      display: flex; align-items: center; gap: 0.7rem;
+      width: 100%;
+      color: var(--stone-faint);
+    }
+    .carved-rule::before, .carved-rule::after {
+      content: ""; flex: 1; height: 0;
+      border-top: 1px solid var(--border-dark-strong);
+    }
+    .carved-rule .notch {
+      width: 6px; height: 6px;
+      background: var(--moss-dim);
+      transform: rotate(45deg);
+    }
+
+    /* 2. Stone seam — masonry-course horizontal lines, felt more than seen */
+    .stone-seam {
+      width: 100%; height: 5rem;
+      background-image: linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 23px,
+        hsla(var(--hue-warm), 20%, 76%, 0.06) 24px,
+        transparent 25px
+      );
+      background-size: 100% 24px;
+      background-color: var(--void-up);
+      border: 1px solid var(--border-dark);
+      border-radius: 3px;
+    }
+
+    /* 3. Lintel — heavy top border, light bottom: section banner */
+    .lintel {
+      width: 100%;
+      border-top: 2px solid var(--border-dark-strong);
+      border-bottom: 1px solid var(--border-dark);
+      padding: 0.65rem 0.5rem;
+      font-family: var(--font-mono); font-size: 0.6rem;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--stone); text-align: center;
+      background: var(--void-up);
+    }
+
+    /* 4. Plaque — engraved panel with subtle inset shadow */
+    .plaque {
+      width: 100%;
+      background: linear-gradient(180deg, var(--void-up2), var(--void-up));
+      border: 1px solid var(--border-dark-strong);
+      border-radius: 3px;
+      box-shadow:
+        inset 0 1px 0 hsla(var(--hue-warm), 20%, 76%, 0.045),
+        inset 0 -1px 0 hsla(0, 0%, 0%, 0.45);
+      padding: 0.85rem 1rem 0.95rem;
+    }
+    .plaque-label {
+      font-family: var(--font-mono); font-size: 0.52rem;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--stone-faint); margin-bottom: 0.4rem;
+    }
+    .plaque-body {
+      font-family: var(--font-sans); font-weight: 500;
+      font-size: 0.92rem; color: var(--warm-white);
+      letter-spacing: -0.005em;
+    }
+
+    /* 5. Cut corners — clipped 9px corners on opposite ends */
+    .cut-corners {
+      width: 100%;
+      background: var(--void-up);
+      border: 1px solid var(--border-dark-strong);
+      padding: 0.85rem 1rem;
+      clip-path: polygon(
+        9px 0, 100% 0,
+        100% calc(100% - 9px),
+        calc(100% - 9px) 100%,
+        0 100%, 0 9px
+      );
+      font-family: var(--font-mono); font-size: 0.74rem;
+      color: var(--warm-white-dim);
+      line-height: 1.55;
+    }
+
+    /* 6. Trellis graph — small ASCII DAG with moss joint dots */
+    .trellis {
+      font-family: var(--font-mono); font-size: 0.78rem;
+      line-height: 1.75;
+      color: var(--warm-white-dim);
+      white-space: pre; margin: 0;
+    }
+    .trellis .node   { color: var(--warm-white); }
+    .trellis .branch { color: var(--stone-faint); }
+    .trellis .joint  { color: var(--moss); }
+
+    /* 7. Keystone marker — diamond bullet for section anchors */
+    .keystone {
+      display: inline-block;
+      width: 8px; height: 8px;
+      background: var(--stone);
+      transform: rotate(45deg);
+      vertical-align: 1px;
+    }
+    .keystone-row {
+      display: flex; align-items: center; gap: 0.55rem;
+      font-family: var(--font-mono); font-size: 0.7rem;
+      letter-spacing: 0.13em; text-transform: uppercase;
+      color: var(--stone);
+    }
+    .keystone-row .keystone { background: var(--moss); }
+
     /* ── Lessons — large cards: SVG (intuition) + collapsible source (truth) ── */
 
     .tut-story {
@@ -855,8 +1000,9 @@
   <div class="workpad-title"><strong>gunb.ai workpad</strong> · v0.2 · primitives + concepts</div>
   <div class="workpad-meta">moodboard palette · thesis: hand translation → structural description → derived artifacts</div>
   <nav class="workpad-nav">
-    <a href="#primitives">primitives (13)</a>
-    <a href="#example">example</a>
+    <a href="#primitives">primitives (14)</a>
+    <a href="#aged">aged</a>
+    <a href="#example">lessons</a>
     <a href="#concepts">concepts</a>
     <a href="legacy/moodboard.html">moodboard ↗</a>
   </nav>
@@ -1392,10 +1538,128 @@ diagnostics: 0</div></div>
     </div>
   </section>
 
+  <!-- ═══════════════════════ AGED / DURABLE PRIMITIVES ═══════════════════════ -->
+
+  <section class="pad-section" id="aged">
+    <span class="pad-section-label">primitives · 14</span>
+    <h2 class="pad-section-title">Aged / durable primitives</h2>
+    <p class="pad-section-note">
+      Civic stone, ironwork, patina. Seven accent primitives that make the page feel built-to-last without going antique. <em>Ornament is allowed only when it identifies structure</em> — every one of these corresponds to a fact, relation, boundary, or receipt. No literal vines, no parchment, no fake skeuomorphism.
+    </p>
+
+    <div class="aged-grid">
+
+      <!-- 1. Carved rule -->
+      <div class="aged-cell">
+        <div class="aged-cell-head"><span class="aged-cell-name">Carved rule</span><span class="aged-cell-kind">divider</span></div>
+        <div class="aged-cell-body">
+          <div class="carved-rule"><span class="notch"></span></div>
+        </div>
+        <p class="aged-cell-note">Section divider with a center diamond notch. The hairline is denser at the edges; the notch is the anchor.</p>
+      </div>
+
+      <!-- 2. Stone seam -->
+      <div class="aged-cell">
+        <div class="aged-cell-head"><span class="aged-cell-name">Stone seam</span><span class="aged-cell-kind">background</span></div>
+        <div class="aged-cell-body">
+          <div class="stone-seam"></div>
+        </div>
+        <p class="aged-cell-note">Masonry courses, 24 px apart. Felt more than seen. Use behind a section to give a quiet vertical rhythm.</p>
+      </div>
+
+      <!-- 3. Lintel -->
+      <div class="aged-cell">
+        <div class="aged-cell-head"><span class="aged-cell-name">Lintel</span><span class="aged-cell-kind">section banner</span></div>
+        <div class="aged-cell-body">
+          <div class="lintel">structural compiler</div>
+        </div>
+        <p class="aged-cell-note">Heavier top border, lighter bottom. The visual weight of a stone above a doorway. Use above major sections.</p>
+      </div>
+
+      <!-- 4. Plaque -->
+      <div class="aged-cell">
+        <div class="aged-cell-head"><span class="aged-cell-name">Plaque</span><span class="aged-cell-kind">engraved panel</span></div>
+        <div class="aged-cell-body">
+          <div class="plaque">
+            <div class="plaque-label">gunbc · structural compiler</div>
+            <div class="plaque-body">A structural compiler for composable systems.</div>
+          </div>
+        </div>
+        <p class="aged-cell-note">Subtle inset top + inset bottom shadow give a slight engraved feel. Use for identity, install, or command blocks.</p>
+      </div>
+
+      <!-- 5. Cut corners -->
+      <div class="aged-cell">
+        <div class="aged-cell-head"><span class="aged-cell-name">Cut corners</span><span class="aged-cell-kind">carved block</span></div>
+        <div class="aged-cell-body">
+          <div class="cut-corners">
+            <span style="color:var(--moss)">$</span> cargo build --release
+          </div>
+        </div>
+        <p class="aged-cell-note">9 px clips on opposite corners — the panel reads as if cut from a block. Reserve for one or two surfaces per page or it becomes a gimmick.</p>
+      </div>
+
+      <!-- 6. Trellis graph -->
+      <div class="aged-cell">
+        <div class="aged-cell-head"><span class="aged-cell-name">Trellis graph</span><span class="aged-cell-kind">structure</span></div>
+        <div class="aged-cell-body">
+<pre class="trellis"><span class="node">system.dag</span>
+   <span class="branch">│</span>
+   <span class="branch">▼</span>
+<span class="node">graph</span> <span class="joint">●</span>
+   <span class="branch">├─</span> <span class="node">rust</span>
+   <span class="branch">├─</span> <span class="node">schema</span>
+   <span class="branch">└─</span> <span class="node">tests</span></pre>
+        </div>
+        <p class="aged-cell-note">ASCII DAG; moss dot marks the joint where the graph forks. The mono equivalent of an SVG trellis.</p>
+      </div>
+
+      <!-- 7. Keystone marker -->
+      <div class="aged-cell">
+        <div class="aged-cell-head"><span class="aged-cell-name">Keystone</span><span class="aged-cell-kind">anchor</span></div>
+        <div class="aged-cell-body">
+          <div style="display:flex; flex-direction:column; gap:0.65rem; align-items:flex-start">
+            <div class="keystone-row"><span class="keystone"></span>identity</div>
+            <div class="keystone-row"><span class="keystone"></span>install</div>
+            <div class="keystone-row"><span class="keystone"></span>diagnostic</div>
+          </div>
+        </div>
+        <p class="aged-cell-note">Small rotated square. Used once per section as the anchor mark. Moss variant for load-bearing anchors only.</p>
+      </div>
+
+    </div>
+
+    <p class="pad-section-note" style="margin-top:1.75rem; max-width:46em">
+      The combination test: identity, install, diagnostic in their aged forms.
+    </p>
+
+    <div style="display:grid; gap:1rem; grid-template-columns:1fr; max-width:42rem; margin-top:0.5rem">
+      <div class="lintel">identity</div>
+      <div class="plaque">
+        <div class="plaque-label">gunbc</div>
+        <div class="plaque-body">A structural compiler for composable systems.</div>
+      </div>
+      <div class="carved-rule"><span class="notch"></span></div>
+      <div class="cut-corners">
+        <span style="color:var(--moss)">$</span> git clone https://github.com/gunb-ai/daglang
+        <br/><span style="color:var(--moss)">$</span> cd daglang
+        <br/><span style="color:var(--moss)">$</span> cargo build --release
+      </div>
+      <div class="carved-rule"><span class="notch"></span></div>
+<pre class="trellis" style="margin:0 auto"><span class="node">system.dag</span>
+   <span class="branch">│</span>
+   <span class="branch">▼</span>
+<span class="node">graph</span> <span class="joint">●</span>
+   <span class="branch">├─</span> <span class="node">rust</span>
+   <span class="branch">├─</span> <span class="node">schema</span>
+   <span class="branch">└─</span> <span class="node">tests</span></pre>
+    </div>
+  </section>
+
   <!-- ═══════════════════════ LESSONS ═══════════════════════ -->
 
   <section class="pad-section" id="example">
-    <span class="pad-section-label">lessons · 14</span>
+    <span class="pad-section-label">lessons · 15</span>
     <h2 class="pad-section-title">From primitive concept to composition of rules</h2>
     <p class="pad-section-note">
       Six lessons. The <strong>source</strong> is canonical — real <code>.dag</code> code, expandable per card. The <strong>visualization</strong> is downstream — the SVG shows what the code produces in the graph. SVG carries intuition; code carries truth. Each lesson builds on the previous one, ending where rules (constraints) start to compose.
@@ -1659,7 +1923,7 @@ diagnostics: 0</div></div>
   <!-- ═══════════════════════ CONCEPTS ═══════════════════════ -->
 
   <section class="pad-section" id="concepts">
-    <span class="pad-section-label">applications · 15</span>
+    <span class="pad-section-label">applications · 16</span>
     <h2 class="pad-section-title">Concepts — V1 index assembled from the primitives</h2>
     <p class="pad-section-note">
       Same six-section argument in four registers. All four use the updated thesis copy (hand translation → structural description → derived artifacts). Pick a register, or specify which elements to combine across frames.
