@@ -190,7 +190,7 @@ a { color: inherit; }
 
 /* ─── Hero diagram (LangGraph-style) ──────────────── */
 .hero-diagram {
-  width: 100%; aspect-ratio: 1 / 0.95;
+  width: 100%; aspect-ratio: 340 / 320;
   display: block;
 }
 .hero-diagram .edge {

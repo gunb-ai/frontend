@@ -79,53 +79,78 @@
         <p class="hero-foot muted"><span>flow</span> &ensp; source → graph → lenses → artifacts</p>
       </div>
 
-      <!-- LangGraph-style target diagram -->
-      <svg class="hero-diagram" viewBox="0 0 320 305" aria-hidden="true">
-        <!-- Edges fan out from the central .dag node to each target -->
-        <path class="edge e-now"    d="M160,150 C 80,150 60,80 60,55" />
-        <path class="edge e-stable" d="M160,150 C 95,150 60,180 60,240" />
-        <path class="edge e-stable" d="M160,150 C 95,150 95,230 130,260" />
-        <path class="edge e-next"   d="M160,150 C 230,150 230,80 230,55" />
-        <path class="edge e-next"   d="M160,150 C 230,150 250,150 270,100" />
-        <path class="edge e-vision" d="M160,150 C 230,150 250,200 270,225" />
-        <path class="edge e-vision" d="M160,150 C 220,150 230,250 200,275" />
+      <!-- Pipeline diagram — source → gunbc → fan of artifacts. Flowchart shape
+           (trunk + branches) so it reads as "one input, many outputs" rather
+           than as a radial creature with tentacles. -->
+      <svg class="hero-diagram" viewBox="0 0 340 320" aria-hidden="true">
+        <defs>
+          <marker id="hero-arrow-now"    viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,1 L7,4 L0,7 z" fill="var(--tier-now)"/></marker>
+          <marker id="hero-arrow-stable" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,1 L7,4 L0,7 z" fill="var(--tier-stable)"/></marker>
+          <marker id="hero-arrow-next"   viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,1 L7,4 L0,7 z" fill="var(--tier-next)"/></marker>
+          <marker id="hero-arrow-vision" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,1 L7,4 L0,7 z" fill="var(--tier-vision)"/></marker>
+        </defs>
 
-        <!-- Central node -->
-        <rect class="node-core" x="115" y="130" width="90" height="40" rx="6" />
-        <text class="t-core" x="160" y="151">.dag</text>
-        <text class="t-core" x="160" y="163" style="font-size:7px;opacity:0.6">typed graph</text>
+        <!-- Column captions -->
+        <text x="42"  y="14" text-anchor="middle" style="font-family:var(--font-mono);font-size:7px;letter-spacing:0.18em;fill:currentColor;opacity:0.55">SOURCE</text>
+        <text x="138" y="14" text-anchor="middle" style="font-family:var(--font-mono);font-size:7px;letter-spacing:0.18em;fill:currentColor;opacity:0.55">COMPILER</text>
+        <text x="268" y="14" text-anchor="middle" style="font-family:var(--font-mono);font-size:7px;letter-spacing:0.18em;fill:currentColor;opacity:0.55">ARTIFACTS</text>
 
-        <!-- Targets: NOW -->
-        <rect class="node n-now"    x="30"  y="35"  width="60" height="32" rx="4" />
-        <text class="t-now" x="60"  y="48">Rust</text>
-        <text class="t-now" x="60"  y="59" style="font-size:6px;letter-spacing:0.1em">SHIPPED</text>
+        <!-- LEFT: .dag source -->
+        <rect class="node-core" x="12" y="134" width="62" height="52" rx="6" />
+        <text class="t-core" x="43" y="158">.dag</text>
+        <text x="43" y="172" text-anchor="middle" style="font-family:var(--font-mono);font-size:7px;fill:currentColor;opacity:0.6">typed graph</text>
 
-        <!-- STABILIZING -->
-        <rect class="node n-stable" x="30"  y="222" width="60" height="32" rx="4" />
-        <text class="t-stable" x="60" y="235">Go</text>
-        <text class="t-stable" x="60" y="246" style="font-size:6px;letter-spacing:0.1em">STABILIZING</text>
+        <!-- ARROW source → compiler -->
+        <path class="edge e-now" d="M74,160 L100,160" marker-end="url(#hero-arrow-now)" />
 
-        <rect class="node n-stable" x="100" y="248" width="60" height="32" rx="4" />
-        <text class="t-stable" x="130" y="261">Python</text>
-        <text class="t-stable" x="130" y="272" style="font-size:6px;letter-spacing:0.1em">STABILIZING</text>
+        <!-- MIDDLE: gunbc compiler -->
+        <rect class="node-core" x="106" y="134" width="64" height="52" rx="6" />
+        <text class="t-core" x="138" y="158">gunbc</text>
+        <text x="138" y="172" text-anchor="middle" style="font-family:var(--font-mono);font-size:7px;fill:currentColor;opacity:0.6">compile · emit</text>
 
-        <!-- BUILDING NEXT -->
-        <rect class="node n-next"   x="200" y="35"  width="60" height="32" rx="4" />
-        <text class="t-next" x="230" y="48">TypeScript</text>
-        <text class="t-next" x="230" y="59" style="font-size:6px;letter-spacing:0.1em">NEXT</text>
+        <!-- JOIN: compiler → trunk -->
+        <line class="edge e-now" x1="170" y1="160" x2="194" y2="160" />
+        <!-- Trunk: vertical line spanning all 7 target Ys -->
+        <line class="edge e-now" x1="194" y1="42" x2="194" y2="278" />
 
-        <rect class="node n-next"   x="240" y="85"  width="60" height="32" rx="4" />
-        <text class="t-next" x="270" y="98">OpenAPI</text>
-        <text class="t-next" x="270" y="109" style="font-size:6px;letter-spacing:0.1em">NEXT</text>
+        <!-- Branches: trunk → tile, one per target, with tier-colored arrowhead -->
+        <path class="edge e-now"    d="M194,42  L208,42"  marker-end="url(#hero-arrow-now)"    />
+        <path class="edge e-stable" d="M194,82  L208,82"  marker-end="url(#hero-arrow-stable)" />
+        <path class="edge e-stable" d="M194,122 L208,122" marker-end="url(#hero-arrow-stable)" />
+        <path class="edge e-next"   d="M194,162 L208,162" marker-end="url(#hero-arrow-next)"   />
+        <path class="edge e-next"   d="M194,202 L208,202" marker-end="url(#hero-arrow-next)"   />
+        <path class="edge e-vision" d="M194,242 L208,242" marker-end="url(#hero-arrow-vision)" />
+        <path class="edge e-vision" d="M194,278 L208,278" marker-end="url(#hero-arrow-vision)" />
 
-        <!-- VISION -->
-        <rect class="node n-vision" x="240" y="210" width="60" height="32" rx="4" />
-        <text class="t-vision" x="270" y="223">Verilog</text>
-        <text class="t-vision" x="270" y="234" style="font-size:6px;letter-spacing:0.1em">PLANNED</text>
+        <!-- RIGHT: 7 target tiles, stacked, each with marker + name -->
+        <rect class="node n-now"    x="208" y="30"  width="120" height="24" rx="4" />
+        <text class="t-now"    x="216" y="46" text-anchor="start">● Rust</text>
 
-        <rect class="node n-vision" x="170" y="258" width="60" height="32" rx="4" />
-        <text class="t-vision" x="200" y="271">PSpice</text>
-        <text class="t-vision" x="200" y="282" style="font-size:6px;letter-spacing:0.1em">PLANNED</text>
+        <rect class="node n-stable" x="208" y="70"  width="120" height="24" rx="4" />
+        <text class="t-stable" x="216" y="86" text-anchor="start">◐ Go</text>
+
+        <rect class="node n-stable" x="208" y="110" width="120" height="24" rx="4" />
+        <text class="t-stable" x="216" y="126" text-anchor="start">◐ Python</text>
+
+        <rect class="node n-next"   x="208" y="150" width="120" height="24" rx="4" />
+        <text class="t-next"   x="216" y="166" text-anchor="start">○ TypeScript</text>
+
+        <rect class="node n-next"   x="208" y="190" width="120" height="24" rx="4" />
+        <text class="t-next"   x="216" y="206" text-anchor="start">○ OpenAPI</text>
+
+        <rect class="node n-vision" x="208" y="230" width="120" height="24" rx="4" />
+        <text class="t-vision" x="216" y="246" text-anchor="start">◇ Verilog</text>
+
+        <rect class="node n-vision" x="208" y="266" width="120" height="24" rx="4" />
+        <text class="t-vision" x="216" y="282" text-anchor="start">◇ PSpice</text>
+
+        <!-- Bottom legend: marker → tier-name mapping -->
+        <g transform="translate(12, 310)" style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.04em">
+          <text class="t-now"    x="0"   y="0">●</text><text x="9"   y="0" style="fill:currentColor;opacity:0.65">shipped</text>
+          <text class="t-stable" x="64"  y="0">◐</text><text x="73"  y="0" style="fill:currentColor;opacity:0.65">stabilizing</text>
+          <text class="t-next"   x="164" y="0">○</text><text x="173" y="0" style="fill:currentColor;opacity:0.65">next</text>
+          <text class="t-vision" x="216" y="0">◇</text><text x="225" y="0" style="fill:currentColor;opacity:0.65">planned</text>
+        </g>
       </svg>
     </div>
 
@@ -153,7 +178,7 @@
         <span class="roadmap-items">full-stack omni-emission · Verilog · PSpice · protocols · v4 self-host</span>
       </div>
       <p class="muted" style="font-family:var(--font-mono);font-size:0.72rem;margin:1rem 0 0;letter-spacing:0.01em">
-        <span class="faint">planned <span class="faint">vision &nbsp;nbsp;·&nbsp;</span> one graph, <em>every</em> target.
+        <span class="faint">planned &nbsp;·&nbsp;</span> one graph, <em>every</em> target.
       </p>
     </div>
   </section>
