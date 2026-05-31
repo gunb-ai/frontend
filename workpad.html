@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>gunb.ai · workpad · index concepts</title>
+  <title>gunb.ai · workpad · primitives + concepts</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -41,6 +41,8 @@
 
       --font-mono: "JetBrains Mono", ui-monospace, monospace;
       --font-sans: "Noto Sans", system-ui, sans-serif;
+
+      --stroke: 1.5px;
     }
 
     *, *::before, *::after { box-sizing: border-box; }
@@ -55,7 +57,7 @@
     }
     body { margin: 0; min-height: 100vh; }
 
-    /* ── Workpad chrome (the "Figma" surface around the concept frames) ── */
+    /* ── Workpad chrome ── */
 
     .workpad-header {
       position: sticky; top: 0; z-index: 10;
@@ -77,19 +79,228 @@
     }
     .workpad-meta a { color: var(--moss); text-decoration: none; border-bottom: 1px solid transparent; }
     .workpad-meta a:hover { border-bottom-color: currentColor; }
+    .workpad-nav {
+      margin-left: auto;
+      font-family: var(--font-mono); font-size: 0.65rem;
+      display: flex; gap: 1rem;
+    }
+    .workpad-nav a { color: var(--stone-dim); text-decoration: none; }
+    .workpad-nav a:hover { color: var(--warm-white); }
 
     .workpad-canvas {
-      padding: 2.5rem 1.5rem 5rem;
-      display: grid; gap: 3rem;
-      grid-template-columns: 1fr;
+      padding: 2rem 1.5rem 5rem;
+      max-width: 96rem;
+      margin: 0 auto;
     }
-    @media (min-width: 1400px) {
-      .workpad-canvas { grid-template-columns: 1fr 1fr; gap: 2.5rem 3rem; }
+
+    .pad-section {
+      margin-top: 4.5rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-dark);
     }
+    .pad-section:first-child { margin-top: 0; border-top: none; padding-top: 0; }
+    .pad-section-label {
+      display: block;
+      font-family: var(--font-mono); font-size: 0.62rem;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--stone-faint);
+      margin-bottom: 0.5rem;
+    }
+    .pad-section-title {
+      font-family: var(--font-sans); font-weight: 500;
+      font-size: 1.4rem;
+      letter-spacing: -0.01em;
+      margin: 0 0 0.5rem;
+      color: var(--warm-white);
+    }
+    .pad-section-note {
+      font-family: var(--font-mono); font-size: 0.7rem;
+      color: var(--stone-dim); max-width: 44em;
+      line-height: 1.6; margin: 0 0 2rem;
+    }
+
+    /* ── Primitive grid: each primitive in a labelled cell ── */
+
+    .prim-grid {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+      margin-bottom: 2.5rem;
+    }
+    .prim-cell {
+      background: var(--void);
+      border: 1px solid var(--border-dark);
+      border-radius: 4px;
+      padding: 1rem 1.1rem 0.85rem;
+      display: flex; flex-direction: column;
+      gap: 0.55rem;
+    }
+    .prim-cell-head {
+      display: flex; align-items: baseline; justify-content: space-between;
+      font-family: var(--font-mono); font-size: 0.6rem;
+      letter-spacing: 0.13em; text-transform: uppercase;
+    }
+    .prim-cell-name { color: var(--warm-white); font-weight: 500; }
+    .prim-cell-kind { color: var(--stone-faint); font-size: 0.55rem; }
+    .prim-cell-body {
+      flex: 1;
+      min-height: 4.5rem;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0.5rem 0;
+    }
+    .prim-cell-note {
+      font-family: var(--font-mono); font-size: 0.62rem;
+      color: var(--stone-dim);
+      line-height: 1.5;
+    }
+
+    /* ── Materials swatches ── */
+
+    .material-swatch {
+      width: 100%; height: 3.25rem;
+      border-radius: 3px;
+      border: 1px solid var(--border-dark);
+    }
+    .swatch-void        { background: var(--void); border-color: var(--border-dark-strong); }
+    .swatch-stone       { background: var(--stone); }
+    .swatch-warm-white  { background: var(--warm-white); }
+    .swatch-moss        { background: var(--moss); border-color: transparent; }
+    .swatch-clay        { background: var(--clay); border-color: transparent; }
+
+    /* ── Type roles ── */
+
+    .type-sample {
+      padding: 0.5rem 0;
+      width: 100%;
+    }
+    .type-statement { font-family: var(--font-sans); font-weight: 600; font-size: 1rem; line-height: 1.3; letter-spacing: -0.01em; color: var(--warm-white); }
+    .type-specifier { font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--stone-faint); }
+    .type-code      { font-family: var(--font-mono); font-size: 0.78rem; color: var(--warm-white-dim); }
+    .type-receipt   { font-family: var(--font-mono); font-size: 0.72rem; color: var(--warm-white-dim); white-space: pre; line-height: 1.55; }
+    .type-diagnostic{ font-family: var(--font-mono); font-size: 0.72rem; color: var(--clay); font-weight: 500; }
+
+    /* ── Panel proofs ── */
+
+    .panel-row {
+      display: grid; gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+      margin-bottom: 2.5rem;
+    }
+    .panel-proof {
+      display: flex; flex-direction: column; gap: 0.55rem;
+    }
+    .panel-proof-tag {
+      font-family: var(--font-mono); font-size: 0.58rem;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--stone-faint);
+    }
+    .panel-proof-tag .dot {
+      display: inline-block; width: 4px; height: 4px;
+      background: var(--stone-faint); border-radius: 50%;
+      vertical-align: 2px; margin-right: 0.45rem;
+    }
+
+    .panel-fact {
+      border: 1px solid var(--border-dark);
+      border-radius: 3px;
+      padding: 1rem 1.15rem;
+      background: var(--void-up);
+    }
+    .panel-fact .head {
+      font-family: var(--font-sans); font-weight: 600;
+      font-size: 0.95rem; line-height: 1.3;
+      color: var(--warm-white); margin: 0 0 0.4rem;
+    }
+    .panel-fact .body {
+      font-family: var(--font-sans); font-size: 0.78rem;
+      line-height: 1.6; color: var(--warm-white-dim); margin: 0;
+    }
+
+    .panel-command {
+      font-family: var(--font-mono); font-size: 0.76rem;
+      line-height: 1.7;
+      background: var(--void);
+      border: 1px solid var(--border-dark);
+      border-radius: 3px;
+      padding: 0.9rem 1.05rem;
+      color: var(--warm-white-dim);
+      white-space: pre;
+      overflow-x: auto;
+    }
+    .panel-command .kbd { color: var(--moss); }
+
+    .panel-invariant {
+      font-family: var(--font-mono); font-size: 0.74rem;
+      line-height: 1.7;
+      background: var(--void-up);
+      border: 1px solid var(--border-dark);
+      border-left: 2px solid var(--clay);
+      border-radius: 0 3px 3px 0;
+      padding: 0.9rem 1.1rem;
+      color: var(--warm-white-dim);
+      white-space: pre;
+      overflow-x: auto;
+    }
+    .panel-invariant .title {
+      color: var(--clay); font-weight: 600; letter-spacing: 0.04em;
+    }
+
+    .panel-receipt {
+      font-family: var(--font-mono); font-size: 0.74rem;
+      line-height: 1.7;
+      background: var(--void-up);
+      border: 1px solid var(--border-dark);
+      border-left: 2px solid var(--moss-dim);
+      border-radius: 0 3px 3px 0;
+      padding: 0.9rem 1.1rem;
+      color: var(--warm-white-dim);
+    }
+    .panel-receipt dl { margin: 0; display: grid; grid-template-columns: 7rem 1fr; gap: 0.25rem 1rem; }
+    .panel-receipt dt { color: var(--stone-faint); font-size: 0.6rem; letter-spacing: 0.13em; text-transform: uppercase; padding-top: 0.18rem; }
+    .panel-receipt dd { margin: 0; color: var(--warm-white-dim); }
+    .panel-receipt dd strong { color: var(--warm-white); font-weight: 500; }
+
+    /* ── SVG primitive cells ── */
+
+    .svg-cell svg {
+      display: block;
+      width: 8rem; height: 5rem;
+      color: var(--stone);
+    }
+
+    /* ── Composed micro example ── */
+
+    .micro-example {
+      background: var(--void);
+      border: 1px solid var(--border-dark);
+      border-radius: 4px;
+      padding: 1.75rem 1.5rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      align-items: center;
+    }
+    .micro-mono {
+      font-family: var(--font-mono); font-size: 0.78rem;
+      color: var(--warm-white-dim); white-space: pre;
+      line-height: 1.7;
+    }
+    .micro-mono .arr  { color: var(--stone-faint); }
+    .micro-mono .node { color: var(--warm-white); }
+    .micro-mono .proj { color: var(--moss); }
+    .micro-svg {
+      display: block; width: 100%; height: auto;
+      color: var(--stone);
+    }
+    @media (max-width: 760px) {
+      .micro-example { grid-template-columns: 1fr; }
+    }
+
+    /* ── Concept frames ── */
 
     .frame {
       display: flex; flex-direction: column;
-      gap: 0.75rem;
+      gap: 0.75rem; margin-bottom: 3rem;
     }
     .frame-label {
       display: flex; align-items: baseline; gap: 0.75rem;
@@ -131,7 +342,15 @@
       padding: 3rem 2rem 3rem;
     }
 
-    /* ── Shared concept primitives ── */
+    .concept-grid {
+      display: grid; gap: 3rem;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 1400px) {
+      .concept-grid { grid-template-columns: 1fr 1fr; gap: 2.5rem 3rem; }
+    }
+
+    /* ── Concept-shared primitives ── */
 
     .label-eyebrow {
       display: block;
@@ -147,7 +366,12 @@
       line-height: 1.2;
       letter-spacing: -0.015em;
       color: var(--warm-white);
-      margin: 0 0 1rem;
+      margin: 0 0 0.4rem;
+    }
+    .identity-second {
+      font-family: var(--font-sans); font-weight: 400;
+      font-size: 0.95rem; line-height: 1.4;
+      color: var(--stone); margin: 0 0 1.25rem;
     }
 
     .prose {
@@ -158,44 +382,7 @@
       margin: 0 0 1.25rem;
     }
     .prose strong { color: var(--warm-white); font-weight: 500; }
-
-    .panel-fact {
-      border: 1px solid var(--border-dark);
-      border-radius: 3px;
-      padding: 1.1rem 1.25rem;
-      background: var(--void-up);
-    }
-
-    .panel-command {
-      font-family: var(--font-mono); font-size: 0.78rem;
-      line-height: 1.7;
-      background: var(--void);
-      border: 1px solid var(--border-dark);
-      border-radius: 3px;
-      padding: 0.95rem 1.1rem;
-      color: var(--warm-white-dim);
-      white-space: pre;
-      overflow-x: auto;
-    }
-    .panel-command .kbd { color: var(--moss); }
-
-    .panel-invariant {
-      font-family: var(--font-mono); font-size: 0.78rem;
-      line-height: 1.7;
-      background: var(--void-up);
-      border: 1px solid var(--border-dark);
-      border-left: 2px solid var(--clay);
-      border-radius: 0 3px 3px 0;
-      padding: 0.95rem 1.15rem;
-      color: var(--warm-white-dim);
-      white-space: pre;
-      overflow-x: auto;
-    }
-    .panel-invariant .title {
-      color: var(--clay);
-      font-weight: 600;
-      letter-spacing: 0.04em;
-    }
+    .prose-tight { margin: 0 0 0.85rem; }
 
     .footer-links {
       margin-top: 1.5rem;
@@ -211,8 +398,6 @@
     .footer-links a:hover { color: var(--moss); border-bottom-color: currentColor; }
     .footer-links .sep { margin: 0 0.55rem; opacity: 0.45; }
 
-    /* ── Mark ── */
-
     .mark-row { display: flex; align-items: center; gap: 0.85rem; margin-bottom: 2rem; }
     .mark {
       width: 32px; height: 32px;
@@ -224,12 +409,8 @@
       color: var(--warm-white);
     }
 
-    /* ── Concept A — Manual ── */
-
+    /* Concept-specific layout */
     .c-manual { max-width: 44rem; margin: 0 auto; }
-
-    /* ── Concept B — Receipt ── */
-
     .c-receipt { max-width: 50rem; margin: 0 auto; font-family: var(--font-mono); }
     .c-receipt .ledger { display: grid; grid-template-columns: 9rem 1fr; gap: 0.4rem 1.5rem; font-size: 0.78rem; }
     .c-receipt .ledger dt {
@@ -240,31 +421,21 @@
     .c-receipt .ledger dd { margin: 0; color: var(--warm-white-dim); line-height: 1.65; }
     .c-receipt .ledger dd strong { color: var(--warm-white); font-weight: 500; }
     .c-receipt .ledger .row { display: contents; }
-    .c-receipt .ledger .rule {
-      grid-column: 1 / -1;
-      border-top: 1px dashed var(--border-dark);
-      margin: 0.4rem 0;
-      height: 0;
-    }
+    .c-receipt .ledger .rule { grid-column: 1 / -1; border-top: 1px dashed var(--border-dark); margin: 0.4rem 0; height: 0; }
     .c-receipt .identity { font-family: var(--font-mono); font-weight: 500; font-size: 1.05rem; letter-spacing: -0.005em; }
-
-    /* ── Concept C — Triptych ── */
 
     .c-triptych { max-width: 44rem; margin: 0 auto; }
     .c-triptych .section { margin-bottom: 1.5rem; }
     .c-triptych .section-tag {
       font-family: var(--font-mono); font-size: 0.55rem;
       letter-spacing: 0.18em; text-transform: uppercase;
-      color: var(--stone-faint);
-      margin-bottom: 0.45rem;
+      color: var(--stone-faint); margin-bottom: 0.45rem;
     }
     .c-triptych .section-tag .dot {
       display: inline-block; width: 4px; height: 4px;
       background: var(--stone-faint); border-radius: 50%;
       vertical-align: 2px; margin-right: 0.45rem;
     }
-
-    /* ── Concept D — Field note ── */
 
     .c-field { max-width: 50rem; margin: 0 auto; }
     .c-field .spine {
@@ -273,7 +444,7 @@
       align-items: start;
     }
     .c-field .spine .lhs .label-eyebrow { margin-bottom: 1rem; }
-    .c-field .spine .lhs .identity { font-size: 1.4rem; line-height: 1.25; }
+    .c-field .spine .lhs .identity { font-size: 1.35rem; line-height: 1.25; }
     .c-field .spine .lhs .micro { font-family: var(--font-mono); font-size: 0.62rem; color: var(--stone-faint); margin-top: 0.55rem; line-height: 1.5; }
     .c-field .spine .rhs .prose { max-width: 32em; margin-bottom: 1rem; }
     .c-field .install-row { margin-top: 0.8rem; }
@@ -300,223 +471,366 @@
 </svg>
 
 <header class="workpad-header">
-  <div class="workpad-title"><strong>gunb.ai workpad</strong> · index.html concepts</div>
-  <div class="workpad-meta">4 frames · moodboard palette · v0 sketches · <a href="legacy/moodboard.html">moodboard ↗</a></div>
+  <div class="workpad-title"><strong>gunb.ai workpad</strong> · v0.2 · primitives + concepts</div>
+  <div class="workpad-meta">moodboard palette · thesis: hand translation → structural description → derived artifacts</div>
+  <nav class="workpad-nav">
+    <a href="#primitives">primitives</a>
+    <a href="#example">example</a>
+    <a href="#concepts">concepts</a>
+    <a href="legacy/moodboard.html">moodboard ↗</a>
+  </nav>
 </header>
 
 <main class="workpad-canvas">
 
-  <!-- ═════════════════ CONCEPT A — Manual ═════════════════ -->
-  <section class="frame">
-    <div class="frame-label">
-      <span class="tag">A</span>
-      <span class="name">Manual</span>
-      <span>compiler manual · prose-led · most restrained</span>
-    </div>
-    <p class="frame-note">
-      Closest read of the moodboard's <code>.proto-dark</code> block. Reads like the first page of a technical reference — identity, problem, install, one diagnostic, two links. No diagram. The argument is carried entirely by the text and the typography.
+  <!-- ═══════════════════════ PRIMITIVES ═══════════════════════ -->
+
+  <section class="pad-section" id="primitives">
+    <span class="pad-section-label">primitives · 01</span>
+    <h2 class="pad-section-title">Materials</h2>
+    <p class="pad-section-note">
+      Five materials. Each has a reason. Moss is structural continuity, not "success." Clay is a boundary, not "danger." Neither is a UI status color — no traffic-light usage anywhere in the system.
     </p>
-    <div class="frame-stage">
-      <div class="inner c-manual">
-        <div class="mark-row">
-          <svg class="mark" viewBox="0 0 120 120" aria-hidden="true"><use href="#stoic-idle"/></svg>
-          <span class="wordmark">gunb.ai</span>
+
+    <div class="prim-grid">
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Void</span><span class="prim-cell-kind">material</span></div>
+        <div class="prim-cell-body"><div class="material-swatch swatch-void"></div></div>
+        <p class="prim-cell-note">The ground. Near-black, slightly warm. Product surface.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Stone</span><span class="prim-cell-kind">material</span></div>
+        <div class="prim-cell-body"><div class="material-swatch swatch-stone"></div></div>
+        <p class="prim-cell-note">Warm grey. Primary text on dark. Patient, recessive.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Warm White</span><span class="prim-cell-kind">material</span></div>
+        <div class="prim-cell-body"><div class="material-swatch swatch-warm-white"></div></div>
+        <p class="prim-cell-note">Off-white, warm cast. Light-mode surface.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Moss</span><span class="prim-cell-kind">accent</span></div>
+        <div class="prim-cell-body"><div class="material-swatch swatch-moss"></div></div>
+        <p class="prim-cell-note">Structural continuity. Link, held relation. <em>Not "success."</em></p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Clay</span><span class="prim-cell-kind">accent</span></div>
+        <div class="prim-cell-body"><div class="material-swatch swatch-clay"></div></div>
+        <p class="prim-cell-note">Boundary. Diagnostic, invariant break. <em>Not "danger."</em></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad-section">
+    <span class="pad-section-label">primitives · 02</span>
+    <h2 class="pad-section-title">Type roles</h2>
+    <p class="pad-section-note">
+      Five roles cover everything. Noto Sans for prose (statement). JetBrains Mono for everything compiler-flavored. No display font, no hero typography gimmick.
+    </p>
+
+    <div class="prim-grid">
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Statement</span><span class="prim-cell-kind">noto sans 600</span></div>
+        <div class="prim-cell-body"><div class="type-sample type-statement">A structural compiler for composable systems.</div></div>
+        <p class="prim-cell-note">Short prose claim. Identity lines, section headings.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Specifier</span><span class="prim-cell-kind">jetbrains mono</span></div>
+        <div class="prim-cell-body"><div class="type-sample type-specifier">gunbc · structural compiler</div></div>
+        <p class="prim-cell-note">Small-caps / letter-spaced label. Eyebrows.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Code</span><span class="prim-cell-kind">jetbrains mono</span></div>
+        <div class="prim-cell-body"><div class="type-sample type-code">cargo build --release</div></div>
+        <p class="prim-cell-note">Source / command line. Inline or block.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Receipt</span><span class="prim-cell-kind">jetbrains mono</span></div>
+        <div class="prim-cell-body"><div class="type-sample type-receipt">compiled:    12 files
+artifacts:   ./out/*.rs
+diagnostics: 0</div></div>
+        <p class="prim-cell-note">Aligned ledger row. Output / proof.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Diagnostic</span><span class="prim-cell-kind">jetbrains mono · clay</span></div>
+        <div class="prim-cell-body"><div class="type-sample type-diagnostic">Invariant — match not exhaustive</div></div>
+        <p class="prim-cell-note">Compiler voice. Clay used only inside Invariant.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad-section">
+    <span class="pad-section-label">primitives · 03</span>
+    <h2 class="pad-section-title">Panel types</h2>
+    <p class="pad-section-note">
+      Four panels carry almost every content type. Fact for stable claims. Command for what to run. Invariant for compiler voice (clay). Receipt for output / proof (moss left rule).
+    </p>
+
+    <div class="panel-row">
+      <div class="panel-proof">
+        <div class="panel-proof-tag"><span class="dot"></span>fact</div>
+        <div class="panel-fact">
+          <p class="head">A structural compiler for composable systems.</p>
+          <p class="body">daglang describes the system once. gunbc checks the description and derives the mechanical pieces.</p>
         </div>
+      </div>
 
-        <span class="label-eyebrow">gunbc · structural compiler</span>
-        <h1 class="identity">A structural compiler for composable systems.</h1>
-
-        <p class="prose">
-          Software drifts when the same fact lives in too many places: code, schemas, clients, tests, docs, workflows, and runtime boundaries. <strong>gunbc</strong> models the program as a typed graph, checks the graph, and emits from that structure.
-        </p>
-
+      <div class="panel-proof">
+        <div class="panel-proof-tag"><span class="dot"></span>command</div>
         <pre class="panel-command"><span class="kbd">git clone</span> https://github.com/gunb-ai/daglang
 <span class="kbd">cd</span> daglang
 <span class="kbd">cargo build --release</span></pre>
-
-        <div style="margin-top:1.5rem">
-          <pre class="panel-invariant"><span class="title">Invariant —</span>
-  match on Condition is not exhaustive
-
-  missing:
-    Rainy
-    Snowy
-
-  at:
-    examples/weather.dag:14
-
-  result:
-    no artifact emitted</pre>
-        </div>
-
-        <div class="footer-links">
-          <a href="#">GitHub</a><span class="sep">·</span><a href="#">Architecture</a>
-        </div>
       </div>
-    </div>
-  </section>
 
-  <!-- ═════════════════ CONCEPT B — Receipt ═════════════════ -->
-  <section class="frame">
-    <div class="frame-label">
-      <span class="tag">B</span>
-      <span class="name">Receipt</span>
-      <span>compiler output · ledger layout · feels like <code>gunbc --info</code></span>
-    </div>
-    <p class="frame-note">
-      Same content as A, formatted as a compiler-output ledger. Mono throughout, left column is field names in small caps, right column is values. The page reads as if the compiler printed itself. Maximum monospace rhythm; minimum visual variety on purpose.
-    </p>
-    <div class="frame-stage">
-      <div class="inner c-receipt">
-        <div class="mark-row">
-          <svg class="mark" viewBox="0 0 120 120" aria-hidden="true"><use href="#stoic-idle"/></svg>
-          <span class="wordmark">gunb.ai</span>
-        </div>
-
-        <dl class="ledger">
-          <div class="row">
-            <dt>identity</dt>
-            <dd><strong>gunbc</strong> — a structural compiler for composable systems.</dd>
-          </div>
-          <div class="rule"></div>
-          <div class="row">
-            <dt>problem</dt>
-            <dd>The same fact lives in code, schemas, clients, tests, docs, workflows, and runtime boundaries. Drift is the default.</dd>
-          </div>
-          <div class="row">
-            <dt>proposal</dt>
-            <dd>Model the program as a typed graph. Check the graph. Emit artifacts from that structure.</dd>
-          </div>
-          <div class="rule"></div>
-          <div class="row">
-            <dt>install</dt>
-            <dd style="white-space:pre; color:var(--warm-white)"><span style="color:var(--moss)">git clone</span> https://github.com/gunb-ai/daglang
-<span style="color:var(--moss)">cd</span> daglang
-<span style="color:var(--moss)">cargo build --release</span></dd>
-          </div>
-          <div class="rule"></div>
-          <div class="row">
-            <dt>diagnostic</dt>
-            <dd style="white-space:pre"><span style="color:var(--clay); font-weight:500">Invariant —</span>
-  match on Condition is not exhaustive
-  missing:  Rainy, Snowy
-  at:       examples/weather.dag:14
-  result:   no artifact emitted</dd>
-          </div>
-          <div class="rule"></div>
-          <div class="row">
-            <dt>see also</dt>
-            <dd><a href="#" style="color:var(--moss); text-decoration:none; border-bottom:1px solid currentColor">github.com/gunb-ai/daglang</a>  ·  <a href="#" style="color:var(--moss); text-decoration:none; border-bottom:1px solid currentColor">architecture</a></dd>
-          </div>
-        </dl>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═════════════════ CONCEPT C — Triptych ═════════════════ -->
-  <section class="frame">
-    <div class="frame-label">
-      <span class="tag">C</span>
-      <span class="name">Triptych</span>
-      <span>fact · command · invariant — labeled by panel type</span>
-    </div>
-    <p class="frame-note">
-      Makes the design-system grammar visible. Each section is tagged with the canonical panel type (Fact / Command / Invariant). Slightly more pedagogical — the visitor reads not just "what gunbc does" but also "what kind of object each panel is." Useful while the design language is new; possibly too explicit later.
-    </p>
-    <div class="frame-stage">
-      <div class="inner c-triptych">
-        <div class="mark-row">
-          <svg class="mark" viewBox="0 0 120 120" aria-hidden="true"><use href="#stoic-idle"/></svg>
-          <span class="wordmark">gunb.ai</span>
-        </div>
-
-        <div class="section">
-          <div class="section-tag"><span class="dot"></span>fact</div>
-          <div class="panel-fact">
-            <h1 class="identity" style="margin-bottom:0.55rem; font-size:1.4rem">A structural compiler for composable systems.</h1>
-            <p class="prose" style="margin:0; font-size:0.82rem">
-              Software drifts when the same fact lives in too many places. <strong>gunbc</strong> models the program as a typed graph, checks the graph, and emits from that structure.
-            </p>
-          </div>
-        </div>
-
-        <div class="section">
-          <div class="section-tag"><span class="dot"></span>command</div>
-          <pre class="panel-command"><span class="kbd">git clone</span> https://github.com/gunb-ai/daglang
-<span class="kbd">cd</span> daglang
-<span class="kbd">cargo build --release</span></pre>
-        </div>
-
-        <div class="section">
-          <div class="section-tag"><span class="dot"></span>invariant</div>
-          <pre class="panel-invariant"><span class="title">Invariant —</span>
-  match on Condition is not exhaustive
-
-  missing:
-    Rainy
-    Snowy
-
-  at:
-    examples/weather.dag:14
-
-  result:
-    no artifact emitted</pre>
-        </div>
-
-        <div class="footer-links">
-          <a href="#">GitHub</a><span class="sep">·</span><a href="#">Architecture</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═════════════════ CONCEPT D — Field note ═════════════════ -->
-  <section class="frame">
-    <div class="frame-label">
-      <span class="tag">D</span>
-      <span class="name">Field note</span>
-      <span>asymmetric · identity rail + content spine</span>
-    </div>
-    <p class="frame-note">
-      Left rail carries identity (mark, wordmark, headline, version line). Right spine carries the argument and the artifacts (prose, command, invariant) flowing top-to-bottom. Reads like a lab notebook page — less "manifesto", more "instrument label." Risk: more layout work for less density gain.
-    </p>
-    <div class="frame-stage">
-      <div class="inner c-field">
-        <div class="spine">
-          <div class="lhs">
-            <div class="mark-row" style="margin-bottom:1.5rem">
-              <svg class="mark" viewBox="0 0 120 120" aria-hidden="true"><use href="#stoic-idle"/></svg>
-              <span class="wordmark">gunb.ai</span>
-            </div>
-            <span class="label-eyebrow">gunbc · v0.x</span>
-            <h1 class="identity">A structural compiler for composable systems.</h1>
-            <div class="micro">structural · typed · fails closed</div>
-          </div>
-          <div class="rhs">
-            <span class="label-eyebrow">problem</span>
-            <p class="prose">
-              Software drifts when the same fact lives in too many places: code, schemas, clients, tests, docs, workflows, and runtime boundaries.
-            </p>
-
-            <span class="label-eyebrow">proposal</span>
-            <p class="prose">
-              <strong>gunbc</strong> models the program as a typed graph, checks the graph, and emits from that structure. Unsupported paths fail closed instead of producing plausible output.
-            </p>
-
-            <div class="install-row">
-              <span class="label-eyebrow">try it</span>
-              <pre class="panel-command"><span class="kbd">git clone</span> https://github.com/gunb-ai/daglang
-<span class="kbd">cd</span> daglang
-<span class="kbd">cargo build --release</span></pre>
-            </div>
-
-            <div style="margin-top:1.25rem">
-              <span class="label-eyebrow">a diagnostic</span>
-              <pre class="panel-invariant"><span class="title">Invariant —</span>
+      <div class="panel-proof">
+        <div class="panel-proof-tag"><span class="dot"></span>invariant</div>
+        <pre class="panel-invariant"><span class="title">Invariant —</span>
   match on Condition is not exhaustive
   missing:  Rainy, Snowy
   at:       examples/weather.dag:14
   result:   no artifact emitted</pre>
+      </div>
+
+      <div class="panel-proof">
+        <div class="panel-proof-tag"><span class="dot"></span>receipt</div>
+        <div class="panel-receipt">
+          <dl>
+            <dt>compiled</dt><dd><strong>12</strong> nodes</dd>
+            <dt>artifacts</dt><dd>rust · ts · openapi</dd>
+            <dt>diagnostics</dt><dd>0</dd>
+            <dt>elapsed</dt><dd>340 ms</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad-section">
+    <span class="pad-section-label">primitives · 04</span>
+    <h2 class="pad-section-title">SVG primitives</h2>
+    <p class="pad-section-note">
+      Eight shapes. One stroke weight. No gradients. No animated draw. Labels in HTML, never SVG <code>&lt;text&gt;</code>. Each primitive shown at canonical size; diagrams compose them.
+    </p>
+
+    <div class="prim-grid">
+      <!-- node -->
+      <div class="prim-cell svg-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Node</span><span class="prim-cell-kind">structure</span></div>
+        <div class="prim-cell-body">
+          <svg viewBox="0 0 128 80" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="44" y="28" width="40" height="24" rx="4" />
+          </svg>
+        </div>
+        <p class="prim-cell-note">A graph node. Rounded rect; small radius.</p>
+      </div>
+
+      <!-- edge -->
+      <div class="prim-cell svg-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Edge</span><span class="prim-cell-kind">relation</span></div>
+        <div class="prim-cell-body">
+          <svg viewBox="0 0 128 80" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="14" y="28" width="32" height="24" rx="4" />
+            <rect x="82" y="28" width="32" height="24" rx="4" />
+            <line x1="46" y1="40" x2="82" y2="40" />
+            <polyline points="76,36 82,40 76,44" />
+          </svg>
+        </div>
+        <p class="prim-cell-note">Directed relation between two nodes.</p>
+      </div>
+
+      <!-- port -->
+      <div class="prim-cell svg-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Port</span><span class="prim-cell-kind">surface</span></div>
+        <div class="prim-cell-body">
+          <svg viewBox="0 0 128 80" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="40" y="22" width="48" height="36" rx="4" />
+            <circle cx="40" cy="34" r="2" fill="currentColor" stroke="none"/>
+            <circle cx="40" cy="46" r="2" fill="currentColor" stroke="none"/>
+            <circle cx="88" cy="40" r="2" fill="currentColor" stroke="none"/>
+          </svg>
+        </div>
+        <p class="prim-cell-note">Typed boundary point on a node.</p>
+      </div>
+
+      <!-- fold -->
+      <div class="prim-cell svg-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Fold</span><span class="prim-cell-kind">structure</span></div>
+        <div class="prim-cell-body">
+          <svg viewBox="0 0 128 80" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M40,22 L36,22 L36,58 L40,58" />
+            <path d="M88,22 L92,22 L92,58 L88,58" />
+            <line x1="50" y1="34" x2="78" y2="34" />
+            <line x1="50" y1="46" x2="78" y2="46" />
+          </svg>
+        </div>
+        <p class="prim-cell-note">Bracket: contents folded as a unit (catamorphism).</p>
+      </div>
+
+      <!-- lens -->
+      <div class="prim-cell svg-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Lens</span><span class="prim-cell-kind">projection</span></div>
+        <div class="prim-cell-body">
+          <svg viewBox="0 0 128 80" fill="none" stroke="currentColor" stroke-width="1.5">
+            <line x1="20" y1="40" x2="60" y2="40" />
+            <ellipse cx="64" cy="40" rx="6" ry="14" />
+            <line x1="68" y1="40" x2="108" y2="40" />
+          </svg>
+        </div>
+        <p class="prim-cell-note">Aperture over an edge — a derived view.</p>
+      </div>
+
+      <!-- artifact -->
+      <div class="prim-cell svg-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Artifact</span><span class="prim-cell-kind">receipt</span></div>
+        <div class="prim-cell-body">
+          <svg viewBox="0 0 128 80" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M40,22 L80,22 L88,30 L88,58 L40,58 Z" />
+            <line x1="80" y1="22" x2="80" y2="30" />
+            <line x1="80" y1="30" x2="88" y2="30" />
+          </svg>
+        </div>
+        <p class="prim-cell-note">Emitted target. Cut corner = "produced from."</p>
+      </div>
+
+      <!-- boundary -->
+      <div class="prim-cell svg-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Boundary</span><span class="prim-cell-kind">clay</span></div>
+        <div class="prim-cell-body">
+          <svg viewBox="0 0 128 80" fill="none" stroke-width="1.5">
+            <rect x="20" y="28" width="32" height="24" rx="4" stroke="currentColor" />
+            <line x1="64" y1="20" x2="64" y2="60" stroke="var(--clay)" stroke-dasharray="4 3" />
+            <rect x="76" y="28" width="32" height="24" rx="4" stroke="currentColor" stroke-opacity="0.45" stroke-dasharray="3 3" />
+          </svg>
+        </div>
+        <p class="prim-cell-note">Where the compiler stops. Beyond is unmodeled.</p>
+      </div>
+
+      <!-- checkpoint -->
+      <div class="prim-cell svg-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Checkpoint</span><span class="prim-cell-kind">receipt</span></div>
+        <div class="prim-cell-body">
+          <svg viewBox="0 0 128 80" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M28,22 L92,22 L100,30 L100,58 L28,58 Z" />
+            <line x1="28" y1="36" x2="100" y2="36" />
+            <line x1="40" y1="46" x2="60" y2="46" stroke="var(--moss-dim)" stroke-width="2" />
+          </svg>
+        </div>
+        <p class="prim-cell-note">Held invariant — clipped ledger row.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ COMPOSED EXAMPLE ═══════════════════════ -->
+
+  <section class="pad-section" id="example">
+    <span class="pad-section-label">composition · 05</span>
+    <h2 class="pad-section-title">The argument, in primitives</h2>
+    <p class="pad-section-note">
+      The site's central argument — <em>describe the system once; derive the rest</em> — rendered two ways from the primitives above. The mono version is the V1 default. The SVG version is what later pages may earn.
+    </p>
+
+    <div class="micro-example">
+      <div class="micro-mono">
+<span class="prim-cell-kind" style="display:block; margin-bottom:0.75rem; color:var(--stone-faint); font-size:0.55rem; letter-spacing:0.18em">mono · ascii panel</span>
+<span class="node">system.dag</span>
+   <span class="arr">│</span>
+   <span class="arr">▼</span>
+<span class="node">checked graph</span>
+   <span class="arr">├─</span> <span class="proj">rust</span>
+   <span class="arr">├─</span> <span class="proj">typescript</span>
+   <span class="arr">├─</span> <span class="proj">openapi</span>
+   <span class="arr">├─</span> <span class="proj">tests</span>
+   <span class="arr">└─</span> <span class="proj">docs</span>
+      </div>
+
+      <svg class="micro-svg" viewBox="0 0 360 220" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <!-- description node -->
+        <rect x="24" y="96" width="80" height="28" rx="4" />
+        <!-- edge in -->
+        <line x1="104" y1="110" x2="148" y2="110" />
+        <polyline points="142,106 148,110 142,114" />
+        <!-- checked graph (fold brackets) -->
+        <path d="M158,90 L154,90 L154,130 L158,130" />
+        <path d="M232,90 L236,90 L236,130 L232,130" />
+        <rect x="164" y="96" width="66" height="28" rx="4" />
+        <!-- 5 projection edges -->
+        <line x1="236" y1="110" x2="270" y2="60"  />
+        <line x1="236" y1="110" x2="270" y2="86"  />
+        <line x1="236" y1="110" x2="270" y2="110" />
+        <line x1="236" y1="110" x2="270" y2="134" />
+        <line x1="236" y1="110" x2="270" y2="160" />
+        <!-- 5 artifact slots (cut corner) -->
+        <path d="M276,48  L322,48  L334,60  L334,72 L276,72  Z" />
+        <path d="M276,74  L322,74  L334,86  L334,98 L276,98  Z" />
+        <path d="M276,100 L322,100 L334,112 L334,124 L276,124 Z" />
+        <path d="M276,126 L322,126 L334,138 L334,150 L276,150 Z" />
+        <path d="M276,152 L322,152 L334,164 L334,176 L276,176 Z" />
+      </svg>
+    </div>
+
+    <div style="margin-top:1.25rem; font-family:var(--font-mono); font-size:0.62rem; color:var(--stone-faint); letter-spacing:0.13em; text-transform:uppercase; display:flex; gap:1.5rem; flex-wrap:wrap">
+      <span><span style="color:var(--warm-white)">left:</span> node · edge · fold · artifact (mono)</span>
+      <span><span style="color:var(--warm-white)">right:</span> same primitives, svg</span>
+      <span><span style="color:var(--warm-white)">labels:</span> would be HTML overlays in production</span>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ CONCEPTS ═══════════════════════ -->
+
+  <section class="pad-section" id="concepts">
+    <span class="pad-section-label">applications · 06</span>
+    <h2 class="pad-section-title">Concepts — V1 index assembled from the primitives</h2>
+    <p class="pad-section-note">
+      Same six-section argument in four registers. All four use the updated thesis copy (hand translation → structural description → derived artifacts). Pick a register, or specify which elements to combine across frames.
+    </p>
+
+    <div class="concept-grid">
+
+      <!-- ─── A — Manual ─── -->
+      <section class="frame">
+        <div class="frame-label">
+          <span class="tag">A</span>
+          <span class="name">Manual</span>
+          <span>prose-led · most restrained · the moodboard's own register</span>
+        </div>
+        <p class="frame-note">
+          Reads like the first page of a technical reference. Identity, two-line tagline, problem paragraph, command, one diagnostic, two links. The argument carried by typography and rhythm — no diagram.
+        </p>
+        <div class="frame-stage">
+          <div class="inner c-manual">
+            <div class="mark-row">
+              <svg class="mark" viewBox="0 0 120 120" aria-hidden="true"><use href="#stoic-idle"/></svg>
+              <span class="wordmark">gunb.ai</span>
+            </div>
+
+            <span class="label-eyebrow">gunbc · structural compiler</span>
+            <h1 class="identity">A structural compiler for composable systems.</h1>
+            <p class="identity-second">Describe the system once. Let the compiler derive the rest.</p>
+
+            <p class="prose">
+              Modern systems are full of hand-written translations: backend types to client types, models to schemas, services to docs, code to tests, source to build rules.
+            </p>
+            <p class="prose">
+              <strong>daglang</strong> describes the system once. <strong>gunbc</strong> checks that description and derives the mechanical pieces. When the description is incomplete, the compiler refuses to guess.
+            </p>
+
+            <pre class="panel-command"><span class="kbd">git clone</span> https://github.com/gunb-ai/daglang
+<span class="kbd">cd</span> daglang
+<span class="kbd">cargo build --release</span></pre>
+
+            <div style="margin-top:1.5rem">
+              <pre class="panel-invariant"><span class="title">Invariant —</span>
+  match on Condition is not exhaustive
+
+  missing:
+    Rainy
+    Snowy
+
+  at:
+    examples/weather.dag:14
+
+  result:
+    no artifact emitted</pre>
             </div>
 
             <div class="footer-links">
@@ -524,7 +838,189 @@
             </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      <!-- ─── B — Receipt ─── -->
+      <section class="frame">
+        <div class="frame-label">
+          <span class="tag">B</span>
+          <span class="name">Receipt</span>
+          <span>compiler-output ledger · mono throughout</span>
+        </div>
+        <p class="frame-note">
+          Same content as A, formatted as a compiler-output ledger. The page reads as if gunbc printed itself. Maximum monospace rhythm; minimum visual variety by design.
+        </p>
+        <div class="frame-stage">
+          <div class="inner c-receipt">
+            <div class="mark-row">
+              <svg class="mark" viewBox="0 0 120 120" aria-hidden="true"><use href="#stoic-idle"/></svg>
+              <span class="wordmark">gunb.ai</span>
+            </div>
+
+            <dl class="ledger">
+              <div class="row">
+                <dt>identity</dt>
+                <dd><strong>gunbc</strong> — a structural compiler for composable systems.</dd>
+              </div>
+              <div class="row">
+                <dt>premise</dt>
+                <dd>Describe the system once. Let the compiler derive the rest.</dd>
+              </div>
+              <div class="rule"></div>
+              <div class="row">
+                <dt>problem</dt>
+                <dd>Modern systems are full of hand-written translations: backend types to client types, models to schemas, services to docs, code to tests, source to build rules.</dd>
+              </div>
+              <div class="row">
+                <dt>proposal</dt>
+                <dd><strong>daglang</strong> describes the system once. <strong>gunbc</strong> checks that description and derives the mechanical pieces.</dd>
+              </div>
+              <div class="row">
+                <dt>boundary</dt>
+                <dd>When the description is incomplete, the compiler refuses to guess.</dd>
+              </div>
+              <div class="rule"></div>
+              <div class="row">
+                <dt>install</dt>
+                <dd style="white-space:pre; color:var(--warm-white)"><span style="color:var(--moss)">git clone</span> https://github.com/gunb-ai/daglang
+<span style="color:var(--moss)">cd</span> daglang
+<span style="color:var(--moss)">cargo build --release</span></dd>
+              </div>
+              <div class="rule"></div>
+              <div class="row">
+                <dt>diagnostic</dt>
+                <dd style="white-space:pre"><span style="color:var(--clay); font-weight:500">Invariant —</span>
+  match on Condition is not exhaustive
+  missing:  Rainy, Snowy
+  at:       examples/weather.dag:14
+  result:   no artifact emitted</dd>
+              </div>
+              <div class="rule"></div>
+              <div class="row">
+                <dt>see also</dt>
+                <dd><a href="#" style="color:var(--moss); text-decoration:none; border-bottom:1px solid currentColor">github.com/gunb-ai/daglang</a>  ·  <a href="#" style="color:var(--moss); text-decoration:none; border-bottom:1px solid currentColor">architecture</a></dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── C — Triptych ─── -->
+      <section class="frame">
+        <div class="frame-label">
+          <span class="tag">C</span>
+          <span class="name">Triptych</span>
+          <span>panel-tagged · grammar visible</span>
+        </div>
+        <p class="frame-note">
+          Each section is labeled with its canonical panel type (Fact / Command / Invariant). Slightly pedagogical — the visitor reads "what kind of object" each panel is. Useful while the design language is new; possibly drop the labels in production.
+        </p>
+        <div class="frame-stage">
+          <div class="inner c-triptych">
+            <div class="mark-row">
+              <svg class="mark" viewBox="0 0 120 120" aria-hidden="true"><use href="#stoic-idle"/></svg>
+              <span class="wordmark">gunb.ai</span>
+            </div>
+
+            <div class="section">
+              <div class="section-tag"><span class="dot"></span>fact</div>
+              <div class="panel-fact">
+                <p class="head" style="font-family:var(--font-sans); font-weight:600; font-size:1.3rem; line-height:1.25; margin:0 0 0.4rem">A structural compiler for composable systems.</p>
+                <p class="body" style="font-family:var(--font-sans); font-size:0.86rem; line-height:1.5; color:var(--stone); margin:0 0 0.85rem">Describe the system once. Let the compiler derive the rest.</p>
+                <p style="font-family:var(--font-sans); font-size:0.8rem; line-height:1.65; color:var(--warm-white-dim); margin:0">
+                  Modern systems are full of hand-written translations: backend types to client types, models to schemas, services to docs. <strong style="color:var(--warm-white)">daglang</strong> describes the system once. <strong style="color:var(--warm-white)">gunbc</strong> checks and derives the mechanical pieces.
+                </p>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-tag"><span class="dot"></span>command</div>
+              <pre class="panel-command"><span class="kbd">git clone</span> https://github.com/gunb-ai/daglang
+<span class="kbd">cd</span> daglang
+<span class="kbd">cargo build --release</span></pre>
+            </div>
+
+            <div class="section">
+              <div class="section-tag"><span class="dot"></span>invariant</div>
+              <pre class="panel-invariant"><span class="title">Invariant —</span>
+  match on Condition is not exhaustive
+
+  missing:
+    Rainy
+    Snowy
+
+  at:
+    examples/weather.dag:14
+
+  result:
+    no artifact emitted</pre>
+            </div>
+
+            <div class="footer-links">
+              <a href="#">GitHub</a><span class="sep">·</span><a href="#">Architecture</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── D — Field note ─── -->
+      <section class="frame">
+        <div class="frame-label">
+          <span class="tag">D</span>
+          <span class="name">Field note</span>
+          <span>asymmetric · identity rail + argument spine</span>
+        </div>
+        <p class="frame-note">
+          Left rail carries identity. Right spine carries problem → proposal → command → diagnostic in sequence. Reads like an instrument label more than a manifesto. Slightly more layout work for a slight density gain.
+        </p>
+        <div class="frame-stage">
+          <div class="inner c-field">
+            <div class="spine">
+              <div class="lhs">
+                <div class="mark-row" style="margin-bottom:1.5rem">
+                  <svg class="mark" viewBox="0 0 120 120" aria-hidden="true"><use href="#stoic-idle"/></svg>
+                  <span class="wordmark">gunb.ai</span>
+                </div>
+                <span class="label-eyebrow">gunbc</span>
+                <h1 class="identity">A structural compiler for composable systems.</h1>
+                <div class="micro">describe once · derive the rest</div>
+              </div>
+              <div class="rhs">
+                <span class="label-eyebrow">problem</span>
+                <p class="prose">
+                  Modern systems are full of hand-written translations: backend types to client types, models to schemas, services to docs, code to tests, source to build rules.
+                </p>
+
+                <span class="label-eyebrow">proposal</span>
+                <p class="prose">
+                  <strong>daglang</strong> describes the system once. <strong>gunbc</strong> checks the description and derives the mechanical pieces. When the description is incomplete, the compiler refuses to guess.
+                </p>
+
+                <div class="install-row">
+                  <span class="label-eyebrow">try it</span>
+                  <pre class="panel-command"><span class="kbd">git clone</span> https://github.com/gunb-ai/daglang
+<span class="kbd">cd</span> daglang
+<span class="kbd">cargo build --release</span></pre>
+                </div>
+
+                <div style="margin-top:1.25rem">
+                  <span class="label-eyebrow">a diagnostic</span>
+                  <pre class="panel-invariant"><span class="title">Invariant —</span>
+  match on Condition is not exhaustive
+  missing:  Rainy, Snowy
+  at:       examples/weather.dag:14
+  result:   no artifact emitted</pre>
+                </div>
+
+                <div class="footer-links">
+                  <a href="#">GitHub</a><span class="sep">·</span><a href="#">Architecture</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </div>
   </section>
 
