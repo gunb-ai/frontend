@@ -446,9 +446,11 @@ CREATE INDEX ON todos
     <h2 style="margin:0.5rem 0 0.4rem">Built for agents: edit the graph, not the text</h2>
     <p class="section-lead muted">
       Most coding agents operate on raw bytes — write a string, hope it parses. daglang exposes the program as a
-      typed graph: agents read a scope, run a lens, apply a structural diff, and re-emit source only after the
-      graph checks pass. The flow below mirrors the v4 architecture where <code>CoreNode</code> is the canonical
-      input and <code>apply_diff</code> is symmetric to <code>fold_node</code>.
+      typed <code>CoreNode</code> graph. The primitives below are named directly from
+      <a href="https://github.com/gunb-ai/daglang/blob/main/docs/design-v4-compiler-homomorphism.md">design-v4-compiler-homomorphism.md</a>:
+      <code>ingest_text</code> (peripheral shim), <code>fold_node</code> (catamorphism — every pass is data, not code),
+      <code>apply_diff</code> (sequential edits with candidate-state gating, fails closed on path resolution), and
+      <code>affected_set</code> (the query primitive that drives <a href="affected-set.html">affected-set propagation</a>).
     </p>
 
     <!-- Flow strip -->
@@ -493,106 +495,126 @@ CREATE INDEX ON todos
       </p>
     </div>
 
-    <h3 style="font-size:1rem;margin:2.25rem 0 0.75rem">CLI surface (roadmap sketch)</h3>
+    <h3 style="font-size:1rem;margin:2.25rem 0 0.75rem">CLI: today vs designed</h3>
     <div class="demo-grid">
       <div class="demo-panel">
-        <header><span>Inspect a scope as graph</span><span class="badge badge-next">Building next</span></header>
-        <pre>$ gunbc graph inspect examples/weather.dag \
-    --scope fn:freezing_locations \
-    --format json
+        <header><span>Available today</span><span class="badge badge-now">Available now</span></header>
+        <pre>$ gunbc --help
+Usage: gunbc [OPTIONS] &lt;COMMAND&gt;
 
-{
-  "node": "fn:freezing_locations",
-  "inputs":  [{ "name": "forecasts", "type": "List&lt;Forecast&gt;" }],
-  "output":  "List&lt;String&gt;",
-  "lenses":  { "complexity": "O(n)" },
-  "calls":   ["filter", "is_freezing", "map"]
-}</pre>
+Commands:
+  compile   Compile .dag source files to a target language
+  run       Execute a .dag program directly (interpreter)
+
+Options:
+      --dry-run    Run in dry-run mode (mock all service calls)
+  -h, --help
+
+$ gunbc compile \
+    --source-root dsl/examples/weather \
+    --source-root dsl/std \
+    --output-dir /tmp/weather-out \
+    --target rust            # rust | python | go | dag
+
+$ gunbc run --source-root dsl/examples/weather \
+            --function main</pre>
+        <div class="demo-out muted" style="font-size:0.72rem">
+          <code>--target dag</code> is the identity round-trip — the foundation the agent edit
+          surface is being built on. Verbatim from <code>src/v2/stage0/src/main.rs</code>.
+        </div>
       </div>
       <div class="demo-panel">
-        <header><span>Run a lens against that scope</span><span class="badge badge-next">Building next</span></header>
-        <pre>$ gunbc graph lens examples/weather.dag \
-    --scope fn:freezing_locations \
-    --lens complexity
+        <header><span>Designed in v4 (not yet wired)</span><span class="badge badge-next">Building next</span></header>
+        <pre># 1 · Ingest: text → CoreNode via the peripheral shim
+$ gunbc ingest dsl/examples/weather/weather.dag \
+    --input-lang dag \
+    --emit core-node &gt; weather.core.json
 
-complexity(freezing_locations) = O(n)
-required bound = O(n log n)
-result = <span class="diag-ok">PASS</span>
+# 2 · Query: affected_set seeded by a path
+$ gunbc affected weather.core.json \
+    --at "fn:lookupCustomer/body/find"
 
-affected callers: daily_report, alert_freeze</pre>
+  fn:enrich          (direct caller)
+  fn:processOrders   (transitive)
+  fn:checkout        (transitive)
+
+# 3 · Diff: apply_diff over the candidate root
+$ gunbc diff apply weather.core.json patch.json \
+    --gate complexity,effects \
+    -o weather.next.json
+
+  applied 1 edit · candidate-state OK
+  ✓ complexity   O(n²) → O(n log n)
+  ✓ effect lens  unchanged
+
+# 4 · Emit: only from the green candidate
+$ gunbc emit weather.next.json --target rust \
+    --output-dir /tmp/weather-out</pre>
+        <div class="demo-out muted" style="font-size:0.72rem">
+          Subcommand names mirror the primitives in
+          <code>design-v4-compiler-homomorphism.md</code>: <code>ingest_text</code>,
+          <code>affected_set</code>, <code>apply_diff</code> (sequential, fails closed on Path
+          resolution), and the language-spec emit path.
+        </div>
       </div>
     </div>
 
-    <div class="demo-grid" style="margin-top:1.25rem">
-      <div class="demo-panel">
-        <header><span>Apply a structural diff (not a text rewrite)</span><span class="badge badge-next">Building next</span></header>
-        <pre>$ cat patch.json
-{
-  "ops": [{
-    "op":   "replace_node",
-    "path": "fn:lookupCustomer/body/find",
-    "with": { "kind": "index_lookup",
-              "index": "customers_by_id" }
-  }]
-}
-
-$ gunbc graph diff apply patch.json --check
-applied 1 op · 0 type errors · 2 lenses re-ran
-<span class="diag-ok">✓</span> complexity now O(n log n) (was O(n²))</pre>
-      </div>
-      <div class="demo-panel">
-        <header><span>Re-emit only on green</span><span class="badge badge-next">Building next</span></header>
-        <pre>$ gunbc compile examples/weather.dag --target rust
-
-✓ type check
-✓ exhaustiveness
-✓ complexity lens
-✓ effect lens
-
-emitting → /tmp/weather-out/src/
-  forecast.rs · 142 lines
-  condition.rs · 87 lines
-  freezing.rs · 38 lines
-
-<span class="diag-ok">done · 4 / 4 lenses green</span></pre>
-      </div>
-    </div>
-
-    <h3 style="font-size:1rem;margin:2.5rem 0 0.75rem">Programmatic surface (roadmap sketch)</h3>
+    <h3 style="font-size:1rem;margin:2.5rem 0 0.75rem">Programmatic surface (designed in v4)</h3>
     <p class="muted" style="margin:0 0 1rem">
-      Same primitives, available to tools and agents directly. Reads are folds; writes are typed diffs;
-      emission is the final step after the graph is green.
+      Reads are <code>fold_node</code>. Writes are <code>apply_diff</code>. <code>CoreNode</code> is the
+      canonical input whether it came from text ingest, a programmatic builder, a query-driven rewrite, or a
+      round-trip translate — so an agent's patch is held to the same lenses as a human edit.
     </p>
     <div class="demo-panel">
-      <header><span>gunbc · TypeScript SDK</span><span class="badge badge-next">Building next</span></header>
-      <pre>import { gunbc, replaceNode } from "@gunb-ai/gunbc";
+      <header><span>gunbc · TypeScript SDK sketch</span><span class="badge badge-next">Building next</span></header>
+      <pre>import {
+  ingestText, foldNode, affectedSet,
+  applyDiff, emit, type CoreNode, type Diff, type Outcome,
+} from "@gunb-ai/gunbc";
 
-const graph = await gunbc.read("examples/weather.dag");
+// 1 · Ingest: peripheral text→CoreNode shim (parse + normalize)
+const root: CoreNode = await ingestText(
+  await Deno.readTextFile("weather.dag"),
+  { inputLang: "dag" },
+);
 
-// 1. Inspect & analyze
-const fn = graph.fn("freezing_locations");
-const report = await graph.lens("complexity", { scope: fn });
-// report.class === "O(n)"
+// 2 · Read: every pass is a fold over the canonical Node
+const complexity = foldNode(root, complexityAlgebra);
+//   → { "fn:freezing_locations": "O(n)", "fn:lookupCustomer": "O(1)", … }
 
-// 2. Propose a structural diff
-const candidate = graph.applyDiff([
-  replaceNode(fn.body.find, {
-    kind: "index_lookup",
-    index: "customers_by_id",
-  }),
-]);
+// 3 · Query: derive the affected_set from a Path
+const affected = affectedSet(root, {
+  at: "fn:lookupCustomer/body/find",
+});
+//   → ["fn:enrich", "fn:processOrders", "fn:checkout"]
 
-// 3. Validate before emitting
-const check = await candidate.check();
-if (!check.ok) throw new Error(check.diagnostics.join("\n"));
+// 4 · Edit: apply_diff folds substitutions through the candidate root.
+//     Sequential — each Edit's Path resolves against the post-prior state.
+//     Any unresolved Path = whole Diff fails closed (P3).
+const diff: Diff = {
+  edits: [{
+    at: "fn:lookupCustomer/body/find",
+    replacement: indexLookup({ index: "customers_by_id" }),
+  }],
+};
 
-// 4. Emit target source from the green graph
-await candidate.emit({ target: "rust", outDir: "/tmp/weather-out" });</pre>
+const candidate: Outcome&lt;CoreNode&gt; = applyDiff(root, diff);
+if (!candidate.ok) throw candidate.diagnostics;
+
+// 5 · Gate: re-run only the lenses whose scope intersects affected
+const reChecked = foldNode(candidate.value, complexityAlgebra);
+//   reChecked["fn:processOrders"] === "O(n log n)"
+
+// 6 · Emit: language-spec realization from the green CoreNode
+await emit(candidate.value, { target: "rust", outDir: "/tmp/weather-out" });</pre>
     </div>
     <p class="muted" style="margin-top:1rem;font-size:0.78rem">
-      Reads are <code>fold_node</code>; writes are <code>apply_diff</code>. Same canonical <code>CoreNode</code>
-      whether the input came from text, an agent, or a round-trip translation — so an agent's patch is held to
-      the same lenses as a human edit.
+      Composes with <code>LawfulRewriteWitness</code> for dry-run (lens identifies I/O, witness substitutes,
+      eval against a mock runtime). Same surface a future query-driven rewrite or self-modification path uses —
+      the compiler editing its own source goes through modeled <code>apply_diff</code>, not implicit file writes.
+    </p>
+    <p style="margin-top:1.5rem">
+      <a href="affected-set.html" class="hero-cta-secondary">See <code>affected_set</code> propagate across lines →</a>
     </p>
   </section>
 
