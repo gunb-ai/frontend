@@ -43,6 +43,10 @@ receipt   → output, compile result, witness, install command, proof line
 
 10. **The site should feel discovered, not sold.** No "Get started" CTA clusters, no benefit cards, no "Built for teams" copy, no gradient blobs, no launch-microsite energy.
 
+11. **No visible gradients.** Surfaces are flat material. Depth comes from inset joints (top highlight + bottom shadow), not from a smooth color transition. Two narrow exceptions: (a) tightly-stopped `linear-gradient` used as a *pattern* (e.g. masonry-course seam lines) where the result reads as solid lines, not a gradient; (b) the mark itself, where two solid fills sit adjacent (body + features) with no transition between them.
+
+12. **Glow is a material, not a decoration.** A subtle moss or clay `box-shadow` (≤ 8px blur, low opacity) is allowed as a *lit* affordance — focused link, active receipt, held invariant. It must read as the surface emitting light, not as a halo or glow effect for its own sake. Never as a hover decoration on inert text. Never on more than one surface at a time per viewport.
+
 ## Materials (canonical palette)
 
 From `legacy/moodboard.html`. Reasons over hexes — if a color drifts from its reason, re-derive the hex from the reason.
