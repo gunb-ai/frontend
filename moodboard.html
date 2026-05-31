@@ -1174,8 +1174,8 @@
 
       <div class="mark-grid" id="mark-grid"></div>
       <div class="dl-row">
-        <button class="dl-btn" data-dl-symbol="#stoic-idle" data-dl-color="#0D0D0D" data-dl-name="gunb-mark-idle-dark">&darr; SVG (ink)</button>
-        <button class="dl-btn" data-dl-symbol="#stoic-idle" data-dl-color="#C4BDB0" data-dl-name="gunb-mark-idle-stone">&darr; SVG (stone)</button>
+        <button class="dl-btn" data-dl-symbol="#stoic-idle" data-dl-mode="light" data-dl-name="gunb-mark-idle">&darr; PNG (on cream)</button>
+        <button class="dl-btn" data-dl-symbol="#stoic-idle" data-dl-mode="dark" data-dl-name="gunb-mark-idle">&darr; PNG (on void)</button>
       </div>
 
       <div class="body" style="margin: 1.75rem 0 1rem">
@@ -1191,10 +1191,10 @@
 
       <div class="mark-grid" id="mark-grid-robot"></div>
       <div class="dl-row">
-        <button class="dl-btn" data-dl-symbol="#stoic-robot" data-dl-color="#0D0D0D" data-dl-name="gunb-mark-robot-dark">&darr; SVG (ink)</button>
-        <button class="dl-btn" data-dl-symbol="#stoic-robot" data-dl-color="#C4BDB0" data-dl-name="gunb-mark-robot-stone">&darr; SVG (stone)</button>
+        <button class="dl-btn" data-dl-symbol="#stoic-robot" data-dl-mode="light" data-dl-name="gunb-mark-robot">&darr; PNG (on cream)</button>
+        <button class="dl-btn" data-dl-symbol="#stoic-robot" data-dl-mode="dark" data-dl-name="gunb-mark-robot">&darr; PNG (on void)</button>
       </div>
-      <p class="dl-note">Tip: click any tile above to download that mark in the color it&rsquo;s shown in. Files are clean 120&times;120 standalone SVGs.</p>
+      <p class="dl-note">Tip: click any tile above to download that mark as a 512&times;512 PNG with its background baked in. Need vector? Hold &#8997;&nbsp;Option (Alt) while clicking for an SVG.</p>
     </div>
 
     <!-- ═══════════════════ VOICE ═══════════════════ -->
@@ -1442,41 +1442,74 @@
           + 'width="120" height="120">' + inner.trim() + '</svg>';
       }
 
-      function downloadSVG(symbol, color, name) {
-        var svg = buildStandaloneSVG(symbol, color);
-        var blob = new Blob([svg], { type: "image/svg+xml" });
+      function triggerDownload(blob, filename) {
         var url = URL.createObjectURL(blob);
         var a = document.createElement("a");
         a.href = url;
-        a.download = name.replace(/[^a-z0-9_-]+/gi, "-") + ".svg";
+        a.download = filename.replace(/[^a-z0-9_-]+/gi, "-") + "." + filename.split(".").pop();
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       }
 
+      function downloadSVG(symbol, color, name) {
+        var svg = buildStandaloneSVG(symbol, color);
+        triggerDownload(new Blob([svg], { type: "image/svg+xml" }), name + ".svg");
+      }
+
+      var PNG_SIZE = 512;
+      function downloadPNG(symbol, markColor, bgColor, name) {
+        var svg = buildStandaloneSVG(symbol, markColor);
+        var img = new Image();
+        img.onload = function () {
+          var canvas = document.createElement("canvas");
+          canvas.width = PNG_SIZE;
+          canvas.height = PNG_SIZE;
+          var ctx = canvas.getContext("2d");
+          ctx.fillStyle = bgColor;
+          ctx.fillRect(0, 0, PNG_SIZE, PNG_SIZE);
+          ctx.drawImage(img, 0, 0, PNG_SIZE, PNG_SIZE);
+          canvas.toBlob(function (blob) {
+            triggerDownload(blob, name + ".png");
+          }, "image/png");
+        };
+        img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+      }
+
+      /* Resolve the actual on-screen tile backgrounds (mode-dependent CSS vars)
+         so the baked PNG background matches exactly what the tile shows. */
+      var MODE = {
+        dark:  { mark: "#C4BDB0", bg: cssVar("--void-up")    || "#15140f" },
+        light: { mark: "#0D0D0D", bg: cssVar("--warm-white") || "#EFEAE0" }
+      };
+
       function renderMarks(target, symbol, name) {
-        function addCell(s, mode, color) {
+        function addCell(s, mode) {
+          var m = MODE[mode];
           var cell = document.createElement("div");
           cell.className = "mark-cell on-" + mode;
           cell.setAttribute("data-dl", "");
-          cell.title = "Download " + name + " (" + mode + ", " + s.label + ")";
-          cell.appendChild(makeMark(s.px, color, symbol));
+          cell.title = "Click: PNG  ·  Alt-click: SVG  (" + mode + ", " + s.label + ")";
+          cell.appendChild(makeMark(s.px, m.mark, symbol));
           var hint = document.createElement("span");
           hint.className = "dl-hint";
-          hint.textContent = "↓ svg";
+          hint.textContent = "↓ png";
           cell.appendChild(hint);
           var lbl = document.createElement("span");
           lbl.className = "size-label";
           lbl.textContent = s.label;
           cell.appendChild(lbl);
-          cell.addEventListener("click", function () {
-            downloadSVG(symbol, color, name + "-" + mode);
+          cell.addEventListener("click", function (e) {
+            // resolve background live, in case the page mode changed since render
+            var bg = getComputedStyle(cell).backgroundColor || m.bg;
+            if (e.altKey) downloadSVG(symbol, m.mark, name + "-" + mode);
+            else downloadPNG(symbol, m.mark, bg, name + "-" + mode);
           });
           target.appendChild(cell);
         }
-        sizes.forEach(function (s) { addCell(s, "dark", "#C4BDB0"); });
-        sizes.forEach(function (s) { addCell(s, "light", "#0D0D0D"); });
+        sizes.forEach(function (s) { addCell(s, "dark"); });
+        sizes.forEach(function (s) { addCell(s, "light"); });
       }
 
       renderMarks(grid, "#stoic-idle", "gunb-mark-idle");
@@ -1484,14 +1517,15 @@
       var robotGrid = document.getElementById("mark-grid-robot");
       if (robotGrid) renderMarks(robotGrid, "#stoic-robot", "gunb-mark-robot");
 
-      /* Explicit download buttons */
+      /* Explicit download buttons (PNG; Alt-click for SVG) */
       document.querySelectorAll(".dl-btn[data-dl-symbol]").forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          downloadSVG(
-            btn.getAttribute("data-dl-symbol"),
-            btn.getAttribute("data-dl-color"),
-            btn.getAttribute("data-dl-name")
-          );
+        btn.addEventListener("click", function (e) {
+          var mode = btn.getAttribute("data-dl-mode");
+          var m = MODE[mode] || MODE.light;
+          var name = btn.getAttribute("data-dl-name") + "-" + mode;
+          var symbol = btn.getAttribute("data-dl-symbol");
+          if (e.altKey) downloadSVG(symbol, m.mark, name);
+          else downloadPNG(symbol, m.mark, m.bg, name);
         });
       });
     })();
