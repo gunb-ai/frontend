@@ -42,6 +42,165 @@
   activateFromHash();
 })();
 
+/* ─── Hero pipeline diagram: SVG lines over HTML boxes ──────────
+ * Boxes/text are HTML so the browser handles baselines normally.
+ * The overlay SVG draws the connecting wires after measuring each
+ * node's center against the same container's coordinate frame —
+ * no SVG baseline guessing, no aspect-ratio surprises. */
+(function () {
+  var pipeline = document.getElementById("hero-pipeline");
+  var svg = document.getElementById("hero-pipeline-lines");
+  if (!pipeline || !svg) return;
+
+  var ART_ORDER = ["rust", "go", "python", "ts", "openapi", "verilog", "pspice"];
+  var ART_TIER  = {
+    rust: "now", go: "stable", python: "stable",
+    ts: "next", openapi: "next",
+    verilog: "vision", pspice: "vision",
+  };
+  var TIER_COLOR = {
+    now:    "var(--tier-now)",
+    stable: "var(--tier-stable)",
+    next:   "var(--tier-next)",
+    vision: "var(--tier-vision)",
+  };
+
+  function rectOf(sel, root) {
+    var el = typeof sel === "string" ? pipeline.querySelector(sel) : sel;
+    if (!el) return null;
+    var b = el.getBoundingClientRect();
+    return {
+      el: el,
+      left:   b.left   - root.left,
+      right:  b.right  - root.left,
+      top:    b.top    - root.top,
+      bottom: b.bottom - root.top,
+      cx:     b.left   - root.left + b.width / 2,
+      cy:     b.top    - root.top  + b.height / 2,
+    };
+  }
+
+  function draw() {
+    var rootBox = pipeline.getBoundingClientRect();
+    var W = rootBox.width, H = rootBox.height;
+    if (!W || !H) return;
+
+    var source = rectOf("#hp-source", rootBox);
+    var compiler = rectOf("#hp-compiler", rootBox);
+    var artifacts = ART_ORDER.map(function (n) {
+      return rectOf('[data-art="' + n + '"]', rootBox);
+    });
+    if (!source || !compiler || artifacts.some(function (a) { return !a; })) return;
+
+    var artRight = Math.max.apply(null, artifacts.map(function (a) { return a.right; }));
+    var trunkX = (compiler.right + artifacts[0].left) / 2;
+    // Trunk extends to include the compiler.cy so the horizontal join always
+    // lands ON the trunk (no visual gap if compiler is above or below the
+    // artifact stack's vertical range).
+    var trunkTop = Math.min(artifacts[0].cy, compiler.cy);
+    var trunkBot = Math.max(artifacts[artifacts.length - 1].cy, compiler.cy);
+    var busX = Math.min(artRight + 18, W - 6);
+
+    var parts = [];
+
+    // Arrowhead markers
+    parts.push(
+      '<defs>' +
+      '<marker id="hp-arr-now"    viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,1 L7,4 L0,7 z" fill="' + TIER_COLOR.now    + '"/></marker>' +
+      '<marker id="hp-arr-stable" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,1 L7,4 L0,7 z" fill="' + TIER_COLOR.stable + '"/></marker>' +
+      '<marker id="hp-arr-next"   viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,1 L7,4 L0,7 z" fill="' + TIER_COLOR.next   + '"/></marker>' +
+      '<marker id="hp-arr-vision" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,1 L7,4 L0,7 z" fill="' + TIER_COLOR.vision + '"/></marker>' +
+      '</defs>'
+    );
+
+    // source → compiler arrow
+    parts.push(line(source.right, source.cy, compiler.left, compiler.cy,
+      TIER_COLOR.now, "url(#hp-arr-now)"));
+
+    // compiler → trunk midpoint (horizontal join)
+    parts.push(line(compiler.right, compiler.cy, trunkX, compiler.cy,
+      TIER_COLOR.now));
+
+    // Vertical trunk spanning the artifact stack
+    parts.push(line(trunkX, trunkTop, trunkX, trunkBot, TIER_COLOR.now));
+
+    // One branch per artifact, with tier-colored arrowhead
+    artifacts.forEach(function (a, i) {
+      var tier = ART_TIER[ART_ORDER[i]];
+      parts.push(line(trunkX, a.cy, a.left, a.cy,
+        TIER_COLOR[tier], "url(#hp-arr-" + tier + ")"));
+    });
+
+    // ── Runtime bus 1: Web (Rust + TS + OpenAPI) ──
+    var webIdx = [0, 3, 4]; // rust, ts, openapi
+    var webTiles = webIdx.map(function (i) { return artifacts[i]; });
+    var webTop = webTiles[0].cy, webBot = webTiles[webTiles.length - 1].cy;
+    webTiles.forEach(function (t) {
+      parts.push(line(t.right, t.cy, busX, t.cy, TIER_COLOR.now, null, 1.3));
+    });
+    parts.push(line(busX, webTop, busX, webBot, TIER_COLOR.now, null, 1.3));
+    var webMidY = (webTop + webBot) / 2;
+    parts.push(line(busX, webMidY, busX + 10, webMidY, TIER_COLOR.now, null, 1.3));
+    positionBusLabel("#hp-bus-web", busX + 14, webMidY, rootBox);
+
+    // ── Runtime bus 2: HW (Verilog + PSpice) ──
+    var hwIdx = [5, 6];
+    var hwTiles = hwIdx.map(function (i) { return artifacts[i]; });
+    var hwTop = hwTiles[0].cy, hwBot = hwTiles[1].cy;
+    hwTiles.forEach(function (t) {
+      parts.push(line(t.right, t.cy, busX, t.cy, TIER_COLOR.vision, null, 1.3));
+    });
+    parts.push(line(busX, hwTop, busX, hwBot, TIER_COLOR.vision, null, 1.3));
+    var hwMidY = (hwTop + hwBot) / 2;
+    parts.push(line(busX, hwMidY, busX + 10, hwMidY, TIER_COLOR.vision, null, 1.3));
+    positionBusLabel("#hp-bus-hw", busX + 14, hwMidY, rootBox);
+
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    svg.innerHTML = parts.join("");
+  }
+
+  function line(x1, y1, x2, y2, color, markerEnd, width) {
+    return '<line x1="' + x1.toFixed(1) +
+      '" y1="' + y1.toFixed(1) +
+      '" x2="' + x2.toFixed(1) +
+      '" y2="' + y2.toFixed(1) +
+      '" stroke="' + color +
+      '" stroke-width="' + (width || 1.3) +
+      '" stroke-linecap="round"' +
+      (markerEnd ? ' marker-end="' + markerEnd + '"' : '') +
+      ' />';
+  }
+
+  function positionBusLabel(sel, x, y, rootBox) {
+    var label = pipeline.querySelector(sel);
+    if (!label) return;
+    // Position the label so its vertical center sits on y.
+    label.style.left = Math.round(x) + "px";
+    label.style.top  = Math.round(y - label.offsetHeight / 2) + "px";
+    label.style.visibility = "visible";
+  }
+
+  // rAF-debounced redraw
+  var queued = false;
+  function schedule() {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(function () { queued = false; draw(); });
+  }
+
+  window.addEventListener("resize", schedule);
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(schedule);
+  }
+  if ("ResizeObserver" in window) {
+    new ResizeObserver(schedule).observe(pipeline);
+  }
+  draw();
+  // One extra pass after layout settles, for the case where fonts.ready
+  // resolved before the listener was attached.
+  requestAnimationFrame(draw);
+})();
+
 /* ─── Hero mark idle cursor-follow ──────────────── */
 (function () {
   var features = document.querySelector(".hero-logo .features");
