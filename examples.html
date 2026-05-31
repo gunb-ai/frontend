@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="site.css" />
 </head>
 <body>
+<a href="#main-content" class="skip-link">Skip to main content</a>
 
 <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
   <symbol id="stoic-idle" viewBox="0 0 120 120">
@@ -29,7 +30,7 @@
 
 <nav class="nav">
   <a href="/" class="nav-left">
-    <svg class="nav-logo" viewBox="0 0 120 120"><use href="#stoic-idle"/></svg>
+    <svg class="nav-logo" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><use href="#stoic-idle"/></svg>
     <span class="wordmark">daglang</span>
   </a>
   <div class="nav-right">
@@ -49,7 +50,7 @@
   </div>
 </nav>
 
-<main class="wrap" style="padding:3.5rem 0 4rem">
+<main id="main-content" class="wrap" style="padding:3.5rem 0 4rem">
   <p class="section-eyebrow">Examples</p>
   <h1 style="font-size:2rem;margin:0 0 0.6rem;letter-spacing:-0.02em">Try today. Explore the roadmap.</h1>
   <p class="muted" style="max-width:42em;margin:0 0 2.25rem">
@@ -238,7 +239,7 @@ fn describe_condition(cond: Condition) -> String {
         </div>
         <div class="pg-shape">
           <header><span id="pg-shape-name">Structural shape</span><span style="opacity:0.55" id="pg-shape-tag">cost-lens algebra</span></header>
-          <svg class="pg-shape-svg" id="pg-shape-svg" viewBox="0 0 320 220" aria-hidden="true"></svg>
+          <svg class="pg-shape-svg" id="pg-shape-svg" viewBox="0 0 320 220" role="img" aria-labelledby="pg-shape-name"></svg>
         </div>
       </div>
 
@@ -702,7 +703,7 @@ fn list_in_list_index_used() {
 
     <!-- Flow strip -->
     <div class="playground" style="padding:1.5rem 1.75rem">
-      <svg viewBox="0 0 640 90" style="width:100%;height:auto;display:block" aria-hidden="true">
+      <svg viewBox="0 0 640 90" style="width:100%;height:auto;display:block" role="img" aria-label="Agent workflow: read graph, analyze with lens, apply diff, query affected set, emit artifacts">
         <defs>
           <marker id="arrow-next" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
             <path d="M0,0 L10,5 L0,10 z" fill="hsl(38, 72%, 56%)"/>

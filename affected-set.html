@@ -387,6 +387,7 @@
   </style>
 </head>
 <body>
+<a href="#main-content" class="skip-link">Skip to main content</a>
 
 <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
   <symbol id="stoic-idle" viewBox="0 0 120 120">
@@ -401,7 +402,7 @@
 
 <nav class="nav">
   <a href="/" class="nav-left">
-    <svg class="nav-logo" viewBox="0 0 120 120"><use href="#stoic-idle"/></svg>
+    <svg class="nav-logo" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><use href="#stoic-idle"/></svg>
     <span class="wordmark">daglang</span>
   </a>
   <div class="nav-right">
@@ -421,7 +422,7 @@
   </div>
 </nav>
 
-<main class="wrap" style="padding:3rem 0 5rem">
+<main id="main-content" class="wrap" style="padding:3rem 0 5rem">
   <p class="section-eyebrow">Graph-aware impact analysis</p>
   <h1 style="font-size:2rem;margin:0 0 0.6rem;letter-spacing:-0.02em">Change one line. See the graph move.</h1>
   <p class="muted as-intro">
@@ -455,9 +456,9 @@
     <span><i class="lg-skipped"></i> skipped with receipt</span>
   </div>
 
-  <div class="as-stage">
+  <div class="as-stage" role="region" aria-label="Affected-set impact diagram">
     <!-- ── Fan-out gutter — left margin of the code, curves bulge inward ── -->
-    <svg class="as-fanout" id="as-fanout" aria-hidden="true"></svg>
+    <svg class="as-fanout" id="as-fanout" aria-hidden="true" focusable="false"></svg>
 
     <!-- ── Code column ── -->
     <div class="as-code" id="as-code"><!-- populated by JS --></div>

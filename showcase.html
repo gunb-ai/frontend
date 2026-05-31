@@ -157,6 +157,11 @@
       from { transform: translateX(-100%); }
       to   { transform: translateX(100%); }
     }
+    @media (prefers-reduced-motion: reduce) {
+      .sc-tile { transition: none !important; }
+      .sc-tile:hover { transform: none !important; }
+      .sc-tile.is-affected::after { animation: none !important; opacity: 1; transform: none; }
+    }
 
     .sc-tile header {
       display: flex; justify-content: space-between; align-items: center;
@@ -309,6 +314,7 @@
   </style>
 </head>
 <body>
+<a href="#main-content" class="skip-link">Skip to main content</a>
 
 <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
   <symbol id="stoic-idle" viewBox="0 0 120 120">
@@ -323,7 +329,7 @@
 
 <nav class="nav">
   <a href="/" class="nav-left">
-    <svg class="nav-logo" viewBox="0 0 120 120"><use href="#stoic-idle"/></svg>
+    <svg class="nav-logo" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><use href="#stoic-idle"/></svg>
     <span class="wordmark">daglang</span>
   </a>
   <div class="nav-right">
@@ -373,7 +379,7 @@
   </div>
 </div>
 
-<main class="wrap" style="padding:2.5rem 0 5rem">
+<main id="main-content" class="wrap" style="padding:2.5rem 0 5rem">
   <p class="section-eyebrow">Showcase</p>
   <h1 style="font-size:2.2rem;margin:0 0 0.6rem;letter-spacing:-0.024em">Every feature, on one circuit.</h1>
   <p class="muted" style="max-width:46em;margin:0 0 0.5rem;font-size:1.05rem">
@@ -980,17 +986,19 @@ await emit(lifted, { target: "rust",       outDir: "./svc/src" });</pre>
   }
 
   /** Affected-set sweep: pulse every tile whose data-uses includes the changed axis. */
+  var reduceMotion = window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   function pulseAffected(axis) {
     var tiles = document.querySelectorAll(".sc-tile");
     tiles.forEach(function (t) {
       var uses = (t.getAttribute("data-uses") || "").split(",");
-      if (uses.indexOf(axis) !== -1) {
-        // restart animation by toggling the class
-        t.classList.remove("is-affected");
-        void t.offsetWidth;
-        t.classList.add("is-affected");
-        setTimeout(function () { t.classList.remove("is-affected"); }, 700);
-      }
+      if (uses.indexOf(axis) === -1) return;
+      t.classList.add("is-affected");
+      if (reduceMotion) return;
+      t.classList.remove("is-affected");
+      void t.offsetWidth;
+      t.classList.add("is-affected");
+      setTimeout(function () { t.classList.remove("is-affected"); }, 700);
     });
   }
 

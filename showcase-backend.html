@@ -228,6 +228,13 @@
     .sb-topo .edge.e-stable { stroke: var(--tier-stable); }
     .sb-topo .edge.e-next   { stroke: var(--tier-next); }
 
+    @media (prefers-reduced-motion: reduce) {
+      .sb-tile, .sb-handler, .sb-scenario {
+        transition: none !important;
+      }
+      .sb-tile:hover { transform: none !important; }
+    }
+
     /* Responsive */
     @media (max-width: 900px) {
       .sb-protagonist { grid-template-columns: 1fr; }
@@ -240,6 +247,7 @@
   </style>
 </head>
 <body>
+<a href="#main-content" class="skip-link">Skip to main content</a>
 
 <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
   <symbol id="stoic-idle" viewBox="0 0 120 120">
@@ -254,7 +262,7 @@
 
 <nav class="nav">
   <a href="/" class="nav-left">
-    <svg class="nav-logo" viewBox="0 0 120 120"><use href="#stoic-idle"/></svg>
+    <svg class="nav-logo" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><use href="#stoic-idle"/></svg>
     <span class="wordmark">daglang</span>
   </a>
   <div class="nav-right">
@@ -273,7 +281,7 @@
   </div>
 </nav>
 
-<main class="wrap" style="padding:2.5rem 0 5rem">
+<main id="main-content" class="wrap" style="padding:2.5rem 0 5rem">
   <p class="section-eyebrow">Showcase · backend dev</p>
   <h1 style="font-size:2.2rem;margin:0 0 0.6rem;letter-spacing:-0.024em">Every feature, on one CRUD service.</h1>
   <p class="muted" style="max-width:46em;margin:0 0 0.5rem;font-size:1.05rem">

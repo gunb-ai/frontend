@@ -59,6 +59,18 @@
   --max-narrow: 54rem;
 }
 
+/* Dark void — lift tier hues for ≥4.5:1 text on --void / --void-up */
+[data-mode="dark"] {
+  --tier-now:        hsl(134, 48%, 62%);
+  --tier-now-line:   hsla(134, 48%, 62%, 0.5);
+  --tier-stable:     hsl(158, 36%, 62%);
+  --tier-stable-line:hsla(158, 36%, 62%, 0.48);
+  --tier-next:       hsl(38, 78%, 62%);
+  --tier-next-line:  hsla(38, 78%, 62%, 0.5);
+  --tier-vision:     hsl(265, 48%, 72%);
+  --tier-vision-line:hsla(265, 48%, 72%, 0.5);
+}
+
 *, *::before, *::after { box-sizing: border-box; }
 html { font-family: var(--font-sans); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
 body { margin: 0; }
@@ -107,7 +119,7 @@ a { color: inherit; }
 [data-mode="light"] .hero-cta-secondary { color: var(--text-dark-dim); border-color: var(--text-dark-dim); }
 .hero-cta-secondary:hover { border-color: var(--tier-now); color: var(--tier-now); }
 
-[data-mode="dark"] .mode-toggle { background: var(--void-up); color: var(--stone-faint); border: 1px solid var(--border-dark); }
+[data-mode="dark"] .mode-toggle { background: var(--void-up); color: var(--stone-dim); border: 1px solid var(--border-dark); }
 [data-mode="light"] .mode-toggle { background: var(--warm-white-up); color: var(--text-dark-dim); border: 1px solid var(--border-light); }
 
 [data-mode="dark"] pre { background: var(--void-up2); color: var(--warm-white-dim); }
@@ -118,6 +130,31 @@ a { color: inherit; }
 [data-mode="light"] .diag-fail { color: hsl(0, 55%, 42%); }
 [data-mode="dark"] .diag-ok { color: var(--tier-now); }
 [data-mode="light"] .diag-ok { color: hsl(134, 42%, 32%); }
+
+/* ─── Skip link ───────────────────────────────────── */
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -3rem;
+  z-index: 100;
+  padding: 0.45rem 0.85rem;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-decoration: none;
+  background: var(--warm-white);
+  color: var(--void);
+  border: 1px solid var(--border-light-strong);
+}
+.skip-link:focus {
+  top: 0.65rem;
+  outline: 2px solid var(--tier-now);
+  outline-offset: 2px;
+}
+[data-mode="light"] .skip-link {
+  background: var(--void);
+  color: var(--warm-white);
+}
 
 /* ─── Nav ─────────────────────────────────────────── */
 .nav {
@@ -384,6 +421,14 @@ a { color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .hero-diagram .edge, .hero-diagram .node, .hero-diagram text {
     animation: none !important; opacity: 1 !important; stroke-dashoffset: 0 !important;
+  }
+  .hero-logo .features,
+  .hero-cta, .hero-cta-secondary,
+  .card, .tile, .beyond-tile, .pg-fn, .tab {
+    transition: none !important;
+  }
+  .hero-cta:hover, .card:hover, .tile:hover, .beyond-tile:hover {
+    transform: none !important;
   }
 }
 
