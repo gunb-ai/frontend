@@ -226,26 +226,28 @@
     }
     .as-art-file { opacity: 0.85; }
 
-    /* Gate + precision explainer below the receipt strip */
+    /* Gate, generated checks, and precision — one block under the receipt */
     .as-explainer {
       margin-top: 1rem; padding: 1rem 1.25rem;
       border: 1px dashed; border-radius: 5px;
+      font-family: var(--font-mono);
     }
     [data-mode="dark"] .as-explainer { border-color: var(--tier-now-line); background: var(--tier-now-soft); }
     [data-mode="light"] .as-explainer { border-color: var(--tier-now-line); background: var(--tier-now-soft); }
-    .as-explainer-lead {
-      display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.65rem 1rem;
-      margin-bottom: 0.65rem;
-      font-family: var(--font-mono);
+    .as-explainer-head {
+      margin: 0 0 0.85rem; font-size: 0.7rem; letter-spacing: 0.14em;
+      text-transform: uppercase; font-weight: 600; opacity: 0.75;
     }
-    .as-explainer-gate { font-size: 0.76rem; font-weight: 600; }
-    .as-explainer-tag {
-      font-size: 0.62rem; letter-spacing: 0.16em;
-      text-transform: uppercase; font-weight: 600; color: var(--tier-now); opacity: 0.9;
+    .as-explainer-gate {
+      font-size: 0.76rem; font-weight: 600; margin: 0 0 0.85rem;
     }
+    .as-explainer-checks { margin: 0 0 0.85rem; }
+    .as-explainer-checks .as-gen-row:first-of-type { border-top: 0; }
     .as-explainer-body {
-      font-family: var(--font-mono); font-size: 0.76rem; line-height: 1.65;
+      font-size: 0.76rem; line-height: 1.65; margin: 0;
+      padding-top: 0.85rem; border-top: 1px dashed var(--border-dark);
     }
+    [data-mode="light"] .as-explainer-body { border-top-color: var(--border-light); }
     .as-explainer-body strong { color: var(--tier-now); }
     .as-explainer-body em { font-style: normal; opacity: 0.7; }
 
@@ -332,10 +334,6 @@
       font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; opacity: 0.55;
     }
     .as-receipt-value { font-weight: 500; }
-    .as-receipt-sub {
-      display: block; margin-top: 0.2rem;
-      font-size: 0.72rem; font-weight: 400; opacity: 0.75;
-    }
 
     @media (max-width: 880px) {
       .as-stage { grid-template-columns: 1fr; }
@@ -476,34 +474,33 @@
 
   <div class="as-receipt" id="as-receipt">
     <div class="as-receipt-cell">
-      <span class="as-receipt-label">edit</span>
-      <span class="as-receipt-value" id="r-edit">—</span>
+      <span class="as-receipt-label">edit site · line</span>
+      <span class="as-receipt-value" id="r-site">—</span>
     </div>
     <div class="as-receipt-cell">
-      <span class="as-receipt-label">affected</span>
+      <span class="as-receipt-label">changed node</span>
+      <span class="as-receipt-value" id="r-node" style="font-size:0.72rem">—</span>
+    </div>
+    <div class="as-receipt-cell">
+      <span class="as-receipt-label">affected nodes</span>
       <span class="as-receipt-value" id="r-size">—</span>
     </div>
     <div class="as-receipt-cell">
-      <span class="as-receipt-label">checks</span>
-      <span class="as-receipt-value" id="r-lenses" style="font-size:0.72rem">—</span>
-    </div>
-    <div class="as-receipt-cell">
-      <span class="as-receipt-label">artifacts</span>
+      <span class="as-receipt-label">artifacts touched</span>
       <span class="as-receipt-value" id="r-artifacts" style="font-size:0.72rem">—</span>
     </div>
     <div class="as-receipt-cell">
-      <span class="as-receipt-label">skipped</span>
+      <span class="as-receipt-label">skipped with receipt</span>
       <span class="as-receipt-value" id="r-skipped" style="opacity:0.85;font-size:0.72rem">—</span>
     </div>
   </div>
 
-  <div class="as-explainer" id="as-explainer" aria-live="polite">
-    <div class="as-explainer-lead">
-      <span class="as-explainer-gate" id="as-explainer-gate">—</span>
-      <span class="as-explainer-tag">why does it stop?</span>
-    </div>
+  <section class="as-explainer" id="as-explainer" aria-live="polite">
+    <h3 class="as-explainer-head">Why this happens / what runs</h3>
+    <div class="as-explainer-gate" id="as-explainer-gate">—</div>
+    <div class="as-explainer-checks" id="as-explainer-checks" aria-label="generated checks"><!-- populated by JS --></div>
     <div class="as-explainer-body" id="as-explainer-body">—</div>
-  </div>
+  </section>
 
   <p class="muted" style="margin-top:1.5rem;font-size:0.78rem">
     Compute is local: the scenarios are precomputed for clarity, but real <code>affected_set(root, { at })</code>
@@ -845,16 +842,7 @@ await candidate.emitAffected({ scope: affected });
     // Generated checks — testgen + lens derivations for the affected scope
     if (s.generated && s.generated.length) {
       html += '<h3 style="margin-top:1.25rem">generated checks · ' + s.generated.length + '</h3>';
-      s.generated.forEach(function (g) {
-        var stateClass = g.state === "fail" ? "g-fail" : g.state === "warn" ? "g-warn" : "g-pass";
-        var icon = g.state === "fail" ? "✕" : g.state === "warn" ? "!" : "✓";
-        var kindIcon = g.kind === "lens" ? "λ" : g.kind === "testgen" ? "∗" : "•";
-        html += '<div class="as-gen-row ' + stateClass + '">' +
-          '<span class="as-gen-state">' + icon + '</span>' +
-          '<span class="as-gen-kind" title="' + g.kind + '">' + kindIcon + '</span>' +
-          '<span class="as-gen-label">' + escapeHtml(g.label) + '</span>' +
-          '</div>';
-      });
+      html += generatedChecksHtml(s.generated);
     }
 
     // Cross-language artifacts touched
@@ -997,33 +985,46 @@ await candidate.emitAffected({ scope: affected });
     });
   }
 
+  function renderGeneratedChecks(container, items) {
+    if (!container) return;
+    var html = "";
+    (items || []).forEach(function (g) {
+      var stateClass = g.state === "fail" ? "g-fail" : g.state === "warn" ? "g-warn" : "g-pass";
+      var icon = g.state === "fail" ? "✕" : g.state === "warn" ? "!" : "✓";
+      var kindIcon = g.kind === "lens" ? "λ" : g.kind === "testgen" ? "∗" : "•";
+      html += '<div class="as-gen-row ' + stateClass + '">' +
+        '<span class="as-gen-state">' + icon + '</span>' +
+        '<span class="as-gen-kind" title="' + g.kind + '">' + kindIcon + '</span>' +
+        '<span class="as-gen-label">' + escapeHtml(g.label) + '</span>' +
+        '</div>';
+    });
+    container.innerHTML = html;
+  }
+
   function renderReceipt(s) {
-    var edit = document.getElementById("r-edit");
-    if (edit) {
-      edit.innerHTML =
-        "L" + s.site.line + " · " + escapeHtml(s.site.label) +
-        '<span class="as-receipt-sub">' + escapeHtml(s.site.node) + "</span>";
-    }
+    document.getElementById("r-site").textContent = "L" + s.site.line + " · " + s.site.label;
+    var node = document.getElementById("r-node");
+    if (node) node.textContent = s.site.node;
     document.getElementById("r-size").textContent =
       (1 + s.direct.length + s.transitive.length) +
       " (1 + " + s.direct.length + " direct + " + s.transitive.length + " transitive)";
-    var gens = (s.generated || []);
-    var run = gens.length;
-    document.getElementById("r-lenses").textContent =
-      run + " run / " + (s.skipCount || 0) + " skip";
     var artifacts = document.getElementById("r-artifacts");
     if (artifacts) {
       artifacts.textContent = (s.artifacts || []).map(function (a) { return a.lang; }).join(" · ") || "none";
     }
     var skipped = document.getElementById("r-skipped");
     if (skipped) skipped.textContent = (s.skipCount || 0) + " · " + (s.skipped || "—");
+  }
+
+  function renderExplainer(s) {
     var gate = document.getElementById("as-explainer-gate");
     if (gate) {
       gate.textContent = s.gate.label;
       gate.style.color = s.gate.ok ? "var(--tier-now)" : "var(--diag-fail)";
     }
-    var explainer = document.getElementById("as-explainer-body");
-    if (explainer) explainer.innerHTML = s.precision || "";
+    renderGeneratedChecks(document.getElementById("as-explainer-checks"), s.generated);
+    var body = document.getElementById("as-explainer-body");
+    if (body) body.innerHTML = s.precision || "";
   }
 
   function applyScenario(id) {
@@ -1039,6 +1040,7 @@ await candidate.emitAffected({ scope: affected });
 
     renderTree(s);
     renderReceipt(s);
+    renderExplainer(s);
     // Wait one frame so the line-class restyling settles before measuring.
     requestAnimationFrame(function () { renderFanout(s); });
 
