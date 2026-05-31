@@ -1228,7 +1228,7 @@
           <option value="16">16px</option>
         </select>
       </div>
-      <p class="dl-note">Tip: the tile grid is a legibility preview &mdash; clicking any tile downloads a crisp 1024px master. For a specific size, use the buttons with the size dropdown. Background is baked in (ink on cream <code>#F4F1EC</code>, or stone on void <code>#151514</code>). Need a transparent vector? Hold &#8997;&nbsp;Option (Alt) while clicking for an SVG.</p>
+      <p class="dl-note">Tip: the tile grid is a legibility preview &mdash; clicking any tile downloads a crisp 1024px master, framed with padding (mark centered on its background, like the small tiles). Use the buttons + size dropdown for a specific resolution. Background is baked in (ink on cream <code>#F4F1EC</code>, or stone on void <code>#151514</code>). Need a full-bleed, resolution-independent version? Hold &#8997;&nbsp;Option (Alt) while clicking for the SVG.</p>
     </div>
 
     <!-- ═══════════════════ VOICE ═══════════════════ -->
@@ -1492,7 +1492,9 @@
         triggerDownload(new Blob([svg], { type: "image/svg+xml" }), name + ".svg");
       }
 
-      function downloadPNG(symbol, markColor, bgColor, size, name) {
+      /* markFrac = fraction of the frame the mark occupies (rest is padding,
+         filled with bgColor). 1 = full-bleed; ~0.5 = generous padding. */
+      function downloadPNG(symbol, markColor, bgColor, size, markFrac, name) {
         var svg = buildStandaloneSVG(symbol, markColor);
         var img = new Image();
         img.onload = function () {
@@ -1504,12 +1506,25 @@
             ctx.fillStyle = bgColor;
             ctx.fillRect(0, 0, size, size);
           }
-          ctx.drawImage(img, 0, 0, size, size);
+          var inner = Math.round(size * (markFrac || 1));
+          var off = Math.round((size - inner) / 2);
+          ctx.drawImage(img, off, off, inner, inner);
           canvas.toBlob(function (blob) {
             triggerDownload(blob, name + ".png");
           }, "image/png");
         };
         img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+      }
+
+      /* The mark-to-frame ratio shown by the 64px preview tile (small mark in a
+         larger background cell). Used as the default download framing. */
+      function framingFrac() {
+        var ref = document.querySelector('.mark-cell svg[width="64"]');
+        if (ref) {
+          var cellW = ref.closest(".mark-cell").getBoundingClientRect().width;
+          if (cellW) return ref.getBoundingClientRect().width / cellW;
+        }
+        return 0.5;
       }
 
       /* Resolve the actual on-screen tile backgrounds (mode-dependent CSS vars)
@@ -1536,10 +1551,10 @@
           lbl.textContent = s.label;
           cell.appendChild(lbl);
           cell.addEventListener("click", function (e) {
-            // Tiles always export a crisp 1024 master regardless of preview
-            // size; the tile px is just a legibility preview. Alt = vector SVG.
+            // Tiles always export a crisp 1024 master, framed (padded) like the
+            // 64px preview. The tile px is just a legibility preview. Alt = SVG.
             if (e.altKey) downloadSVG(symbol, m.mark, name + "-" + mode);
-            else downloadPNG(symbol, m.mark, m.bg, 1024, name + "-" + mode + "-1024px");
+            else downloadPNG(symbol, m.mark, m.bg, 1024, framingFrac(), name + "-" + mode + "-1024px");
           });
           target.appendChild(cell);
         }
@@ -1562,7 +1577,7 @@
           var size = sizeSel ? parseInt(sizeSel.value, 10) : 1024;
           var name = btn.getAttribute("data-dl-name") + "-" + mode + "-" + size + "px";
           if (e.altKey) downloadSVG(symbol, m.mark, btn.getAttribute("data-dl-name") + "-" + mode);
-          else downloadPNG(symbol, m.mark, m.bg, size, name);
+          else downloadPNG(symbol, m.mark, m.bg, size, framingFrac(), name);
         });
       });
     })();
