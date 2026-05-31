@@ -523,6 +523,27 @@
     .mark-cell.on-light { background: var(--warm-white); border: 1px solid var(--border-light); }
     .mark-cell .size-label { position: absolute; bottom: 0.35rem; right: 0.45rem; font-size: 0.58rem; }
 
+    /* Clickable download tiles */
+    .mark-cell[data-dl] { cursor: pointer; transition: border-color 0.12s ease; }
+    .mark-cell[data-dl]:hover { border-color: var(--moss); }
+    .mark-cell .dl-hint {
+      position: absolute; top: 0.35rem; left: 0.45rem;
+      font-family: var(--font-mono); font-size: 0.55rem;
+      opacity: 0; transition: opacity 0.12s ease; pointer-events: none;
+    }
+    .mark-cell[data-dl]:hover .dl-hint { opacity: 0.65; }
+
+    .dl-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.85rem; }
+    .dl-btn {
+      font-family: var(--font-mono); font-size: 0.7rem;
+      padding: 0.4rem 0.7rem; border-radius: 2px; cursor: pointer;
+      background: transparent; color: inherit;
+      border: 1px solid var(--border-dark);
+      transition: border-color 0.12s ease, color 0.12s ease;
+    }
+    .dl-btn:hover { border-color: var(--moss); color: var(--moss); }
+    .dl-note { font-family: var(--font-mono); font-size: 0.62rem; opacity: 0.6; margin-top: 0.5rem; }
+
     .proto-dark {
       border: 1px solid;
       border-radius: 3px;
@@ -1152,6 +1173,10 @@
       </div>
 
       <div class="mark-grid" id="mark-grid"></div>
+      <div class="dl-row">
+        <button class="dl-btn" data-dl-symbol="#stoic-idle" data-dl-color="#0D0D0D" data-dl-name="gunb-mark-idle-dark">&darr; SVG (ink)</button>
+        <button class="dl-btn" data-dl-symbol="#stoic-idle" data-dl-color="#C4BDB0" data-dl-name="gunb-mark-idle-stone">&darr; SVG (stone)</button>
+      </div>
 
       <div class="body" style="margin: 1.75rem 0 1rem">
         <p>
@@ -1165,6 +1190,11 @@
       </div>
 
       <div class="mark-grid" id="mark-grid-robot"></div>
+      <div class="dl-row">
+        <button class="dl-btn" data-dl-symbol="#stoic-robot" data-dl-color="#0D0D0D" data-dl-name="gunb-mark-robot-dark">&darr; SVG (ink)</button>
+        <button class="dl-btn" data-dl-symbol="#stoic-robot" data-dl-color="#C4BDB0" data-dl-name="gunb-mark-robot-stone">&darr; SVG (stone)</button>
+      </div>
+      <p class="dl-note">Tip: click any tile above to download that mark in the color it&rsquo;s shown in. Files are clean 120&times;120 standalone SVGs.</p>
     </div>
 
     <!-- ═══════════════════ VOICE ═══════════════════ -->
@@ -1402,34 +1432,68 @@
         return svg;
       }
 
-      function renderMarks(target, symbol) {
-        sizes.forEach(function (s) {
-          var cell = document.createElement("div");
-          cell.className = "mark-cell on-dark";
-          cell.appendChild(makeMark(s.px, "#C4BDB0", symbol));
-          var lbl = document.createElement("span");
-          lbl.className = "size-label";
-          lbl.textContent = s.label;
-          cell.appendChild(lbl);
-          target.appendChild(cell);
-        });
-
-        sizes.forEach(function (s) {
-          var cell = document.createElement("div");
-          cell.className = "mark-cell on-light";
-          cell.appendChild(makeMark(s.px, "#0D0D0D", symbol));
-          var lbl = document.createElement("span");
-          lbl.className = "size-label";
-          lbl.textContent = s.label;
-          cell.appendChild(lbl);
-          target.appendChild(cell);
-        });
+      /* Build a clean, standalone 120×120 SVG string from a symbol, with the
+         color baked in (currentColor → hex) so the file works anywhere. */
+      function buildStandaloneSVG(symbol, color) {
+        var sym = document.querySelector(symbol);
+        var inner = sym ? sym.innerHTML : "";
+        inner = inner.replace(/currentColor/g, color);
+        return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" '
+          + 'width="120" height="120">' + inner.trim() + '</svg>';
       }
 
-      renderMarks(grid, "#stoic-idle");
+      function downloadSVG(symbol, color, name) {
+        var svg = buildStandaloneSVG(symbol, color);
+        var blob = new Blob([svg], { type: "image/svg+xml" });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = name.replace(/[^a-z0-9_-]+/gi, "-") + ".svg";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      function renderMarks(target, symbol, name) {
+        function addCell(s, mode, color) {
+          var cell = document.createElement("div");
+          cell.className = "mark-cell on-" + mode;
+          cell.setAttribute("data-dl", "");
+          cell.title = "Download " + name + " (" + mode + ", " + s.label + ")";
+          cell.appendChild(makeMark(s.px, color, symbol));
+          var hint = document.createElement("span");
+          hint.className = "dl-hint";
+          hint.textContent = "↓ svg";
+          cell.appendChild(hint);
+          var lbl = document.createElement("span");
+          lbl.className = "size-label";
+          lbl.textContent = s.label;
+          cell.appendChild(lbl);
+          cell.addEventListener("click", function () {
+            downloadSVG(symbol, color, name + "-" + mode);
+          });
+          target.appendChild(cell);
+        }
+        sizes.forEach(function (s) { addCell(s, "dark", "#C4BDB0"); });
+        sizes.forEach(function (s) { addCell(s, "light", "#0D0D0D"); });
+      }
+
+      renderMarks(grid, "#stoic-idle", "gunb-mark-idle");
 
       var robotGrid = document.getElementById("mark-grid-robot");
-      if (robotGrid) renderMarks(robotGrid, "#stoic-robot");
+      if (robotGrid) renderMarks(robotGrid, "#stoic-robot", "gunb-mark-robot");
+
+      /* Explicit download buttons */
+      document.querySelectorAll(".dl-btn[data-dl-symbol]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          downloadSVG(
+            btn.getAttribute("data-dl-symbol"),
+            btn.getAttribute("data-dl-color"),
+            btn.getAttribute("data-dl-name")
+          );
+        });
+      });
     })();
   </script>
 </body>
