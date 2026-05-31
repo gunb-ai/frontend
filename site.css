@@ -23,13 +23,13 @@
   --tier-stable-soft:hsla(158, 32%, 52%, 0.13);
   --tier-stable-line:hsla(158, 32%, 52%, 0.42);
 
-  --tier-next:       hsl(193, 48%, 54%);
-  --tier-next-soft:  hsla(193, 48%, 54%, 0.13);
-  --tier-next-line:  hsla(193, 48%, 54%, 0.42);
+  --tier-next:       hsl(38, 72%, 56%);
+  --tier-next-soft:  hsla(38, 72%, 56%, 0.13);
+  --tier-next-line:  hsla(38, 72%, 56%, 0.45);
 
-  --tier-vision:     hsl(262, 38%, 66%);
-  --tier-vision-soft:hsla(262, 38%, 66%, 0.13);
-  --tier-vision-line:hsla(262, 38%, 66%, 0.42);
+  --tier-vision:     hsl(212, 52%, 62%);
+  --tier-vision-soft:hsla(212, 52%, 62%, 0.13);
+  --tier-vision-line:hsla(212, 52%, 62%, 0.42);
 
   --diag-fail:       hsl(0, 70%, 65%);
   --diag-fail-soft:  hsla(0, 70%, 65%, 0.13);
