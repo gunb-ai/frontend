@@ -1,6 +1,6 @@
 # Site reboot — top-down wishlist
 
-Status: **proposal**, revised twice. No code in this PR. Goal: agree on shape — including the design system, not just the page — before building.
+Status: **proposal**, revised three times. This PR is prose-only (`PROPOSAL.md` + `DESIGN.md`). An internal design workpad (`workpad.html` on PR #13) is in flight in parallel — it is not the public site and is never linked from production.
 
 Companion: PR #11 moves the previous iteration to `legacy/` for reference.
 
