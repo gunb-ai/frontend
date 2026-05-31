@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>daglang · backend showcase — every feature on one CRUD service</title>
+  <meta name="description" content="Walk every daglang feature on one backend protagonist — a Todo CRUD service. One .dag emits Rust handlers, TypeScript client, SQL migration, OpenAPI spec, docs, and CI lens receipts in lockstep. Handler picker shows the cost lens deriving O(1) through O(n²) across the API surface." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="site.css" />
+  <style>
+    /* ─── Step containers (shared shape with EE showcase) ─── */
+    .sb-step { padding: 4.5rem 0; border-top: 1px solid; }
+    [data-mode="dark"] .sb-step { border-top-color: var(--border-dark); }
+    [data-mode="light"] .sb-step { border-top-color: var(--border-light); }
+    .sb-step:first-of-type { border-top: 0; padding-top: 3rem; }
+    .sb-step-num {
+      font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.22em;
+      text-transform: uppercase; opacity: 0.5; margin: 0 0 0.45rem;
+    }
+    .sb-step-title { font-size: 1.7rem; margin: 0 0 0.6rem; letter-spacing: -0.02em; }
+    .sb-step-lead { max-width: 46em; margin: 0 0 1.75rem; font-size: 1rem; }
+
+    /* Step 1: graph + service-topology diagram */
+    .sb-protagonist { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 1.5rem; }
+    .sb-source { border: 1px solid; border-radius: 6px; overflow: hidden; }
+    [data-mode="dark"] .sb-source { background: var(--void-up); border-color: var(--border-dark); }
+    [data-mode="light"] .sb-source { background: var(--warm-white-up); border-color: var(--border-light); }
+    .sb-source header {
+      padding: 0.75rem 1rem; font-family: var(--font-mono); font-size: 0.72rem;
+      border-bottom: 1px solid; display: flex; justify-content: space-between; align-items: center;
+    }
+    [data-mode="dark"] .sb-source header { background: var(--void-up2); border-bottom-color: var(--border-dark); }
+    [data-mode="light"] .sb-source header { background: var(--warm-white); border-bottom-color: var(--border-light); }
+    .sb-source pre { margin: 0; padding: 1rem; font-size: 0.74rem; line-height: 1.65; overflow-x: auto; }
+
+    .sb-topo-wrap {
+      border: 1px solid; border-radius: 6px; padding: 1rem;
+      aspect-ratio: 16/11; position: relative; overflow: hidden;
+    }
+    [data-mode="dark"] .sb-topo-wrap { background: var(--void-up2); border-color: var(--border-dark); }
+    [data-mode="light"] .sb-topo-wrap { background: var(--warm-white); border-color: var(--border-light); }
+    .sb-topo { width: 100%; height: 100%; display: block; overflow: visible; }
+    .sb-topo-wrap::before {
+      content: ""; position: absolute; inset: 0;
+      background-image: radial-gradient(currentColor 0.5px, transparent 0.5px);
+      background-size: 16px 16px;
+      opacity: 0.06; pointer-events: none;
+    }
+
+    /* Step 2: artifact tiles (same shape as omni-emission) */
+    .sb-tiles {
+      display: grid; gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+    }
+    .sb-tile {
+      border: 1px solid; border-radius: 6px; overflow: hidden;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+    [data-mode="dark"] .sb-tile { background: var(--void-up); border-color: var(--border-dark); }
+    [data-mode="light"] .sb-tile { background: var(--warm-white-up); border-color: var(--border-light); }
+    .sb-tile:hover { transform: translateY(-2px); }
+    .sb-tile.t-now    { border-color: var(--tier-now-line); }
+    .sb-tile.t-stable { border-color: var(--tier-stable-line); }
+    .sb-tile.t-next   { border-color: var(--tier-next-line); }
+    .sb-tile.t-vision { border-color: var(--tier-vision-line); }
+    .sb-tile header {
+      display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;
+      padding: 0.7rem 0.9rem; font-family: var(--font-mono); font-size: 0.72rem;
+      border-bottom: 1px solid;
+    }
+    [data-mode="dark"] .sb-tile header { background: var(--void-up2); border-bottom-color: var(--border-dark); }
+    [data-mode="light"] .sb-tile header { background: var(--warm-white); border-bottom-color: var(--border-light); }
+    .sb-tile-title { font-weight: 600; display: flex; align-items: center; gap: 0.45rem; }
+    .sb-tile-icon { width: 14px; height: 14px; opacity: 0.85; }
+    .sb-tile pre {
+      margin: 0; padding: 0.85rem 0.95rem; font-size: 0.7rem; line-height: 1.55;
+      overflow-x: auto; min-height: 9rem; max-height: 12rem;
+    }
+    .sb-tile-foot {
+      padding: 0.5rem 0.9rem; font-family: var(--font-mono); font-size: 0.66rem;
+      opacity: 0.6; border-top: 1px solid;
+    }
+    [data-mode="dark"] .sb-tile-foot { border-top-color: var(--border-dark); }
+    [data-mode="light"] .sb-tile-foot { border-top-color: var(--border-light); }
+
+    /* Step 3: handler picker + cost-lens panel */
+    .sb-handlers {
+      display: grid; grid-template-columns: 14rem 1fr; gap: 1.25rem;
+      border: 1px solid; border-radius: 6px; padding: 1.25rem;
+    }
+    [data-mode="dark"] .sb-handlers { background: var(--void-up); border-color: var(--border-dark); }
+    [data-mode="light"] .sb-handlers { background: var(--warm-white-up); border-color: var(--border-light); }
+    .sb-handler-list { display: flex; flex-direction: column; gap: 0.4rem; }
+    .sb-handler-pill {
+      display: grid; grid-template-columns: 1fr 4rem; gap: 0.5rem;
+      align-items: center;
+      padding: 0.5rem 0.65rem; border: 1px solid; border-radius: 4px;
+      font-family: var(--font-mono); font-size: 0.72rem;
+      background: transparent; cursor: pointer; color: inherit; text-align: left;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+    [data-mode="dark"] .sb-handler-pill { border-color: var(--border-dark-strong); }
+    [data-mode="light"] .sb-handler-pill { border-color: var(--border-light-strong); }
+    .sb-handler-pill[aria-selected="true"] {
+      border-color: currentColor;
+    }
+    .sb-handler-pill.c-O1    [aria-selected="true"],
+    .sb-handler-pill.c-O1[aria-selected="true"]    { color: var(--tier-now);    background: var(--tier-now-soft); }
+    .sb-handler-pill.c-Olog[aria-selected="true"]  { color: var(--tier-stable); background: var(--tier-stable-soft); }
+    .sb-handler-pill.c-On[aria-selected="true"]    { color: var(--tier-next);   background: var(--tier-next-soft); }
+    .sb-handler-pill.c-OnLog[aria-selected="true"] { color: var(--tier-vision); background: var(--tier-vision-soft); }
+    .sb-handler-pill.c-On2[aria-selected="true"]   { color: var(--diag-fail);   background: var(--diag-fail-soft); }
+    .sb-handler-name { font-weight: 500; }
+    .sb-handler-class { font-size: 0.68rem; opacity: 0.85; text-align: right; }
+
+    .sb-handler-panel {
+      display: grid; gap: 0.85rem;
+      grid-template-columns: 1fr 1fr;
+    }
+    .sb-handler-panel > div {
+      border: 1px solid; border-radius: 5px; overflow: hidden;
+    }
+    [data-mode="dark"] .sb-handler-panel > div { background: var(--void-up2); border-color: var(--border-dark); }
+    [data-mode="light"] .sb-handler-panel > div { background: var(--warm-white); border-color: var(--border-light); }
+    .sb-handler-panel header {
+      padding: 0.55rem 0.85rem; font-family: var(--font-mono); font-size: 0.68rem;
+      border-bottom: 1px solid; display: flex; justify-content: space-between; align-items: center;
+    }
+    [data-mode="dark"] .sb-handler-panel header { background: var(--void-up); border-bottom-color: var(--border-dark); }
+    [data-mode="light"] .sb-handler-panel header { background: var(--warm-white-up); border-bottom-color: var(--border-light); }
+    .sb-handler-panel pre {
+      margin: 0; padding: 0.85rem 1rem; font-size: 0.7rem; line-height: 1.55;
+      overflow-x: auto; min-height: 8rem;
+    }
+    .sb-handler-summary {
+      padding: 0.85rem 1rem; font-family: var(--font-mono); font-size: 0.74rem; line-height: 1.7;
+    }
+    .sb-handler-summary strong { font-weight: 600; }
+
+    /* Step 4: scenario picker + impact receipt */
+    .sb-scenarios { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.25rem; }
+    .sb-scenario {
+      font-family: var(--font-mono); font-size: 0.74rem;
+      padding: 0.5rem 0.9rem; border: 1px solid; border-radius: 4px;
+      background: transparent; cursor: pointer; color: inherit;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+    [data-mode="dark"] .sb-scenario { border-color: var(--border-dark-strong); color: var(--warm-white-dim); }
+    [data-mode="light"] .sb-scenario { border-color: var(--border-light-strong); color: var(--text-dark-dim); }
+    .sb-scenario[aria-selected="true"] {
+      border-color: var(--tier-next-line); background: var(--tier-next-soft); color: var(--tier-next);
+    }
+    .sb-impact {
+      border: 1px solid; border-radius: 6px; padding: 1.25rem;
+      display: grid; gap: 1rem;
+      grid-template-columns: 1fr;
+      font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.7;
+    }
+    [data-mode="dark"] .sb-impact { background: var(--void-up); border-color: var(--border-dark); }
+    [data-mode="light"] .sb-impact { background: var(--warm-white-up); border-color: var(--border-light); }
+    .sb-impact-row { display: grid; grid-template-columns: 8rem 1fr; gap: 0.85rem; align-items: baseline; }
+    .sb-impact-label {
+      font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.6;
+    }
+    .sb-impact-row strong { color: var(--tier-next); font-weight: 600; }
+
+    /* Step 5: lens gate cards */
+    .sb-lens { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    .sb-lens-card { padding: 1.25rem 1.4rem; border: 1px solid; border-radius: 6px; }
+    [data-mode="dark"] .sb-lens-card { background: var(--void-up); border-color: var(--border-dark); }
+    [data-mode="light"] .sb-lens-card { background: var(--warm-white-up); border-color: var(--border-light); }
+    .sb-lens-card.is-pass { border-color: var(--tier-now-line); background: var(--tier-now-soft); }
+    .sb-lens-card.is-fail { border-color: var(--diag-fail); background: var(--diag-fail-soft); }
+    .sb-lens-title {
+      font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.12em;
+      text-transform: uppercase; margin: 0 0 0.55rem; opacity: 0.7;
+    }
+    .sb-lens-state {
+      font-family: var(--font-mono); font-size: 1.05rem; font-weight: 600; margin: 0 0 0.55rem;
+    }
+    .sb-lens-card.is-pass .sb-lens-state { color: var(--tier-now); }
+    .sb-lens-card.is-fail .sb-lens-state { color: var(--diag-fail); }
+    .sb-lens-body { font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.6; }
+
+    /* Step 6 code panel */
+    .sb-code-panel { border: 1px solid; border-radius: 6px; overflow: hidden; }
+    [data-mode="dark"] .sb-code-panel { background: var(--void-up); border-color: var(--border-dark); }
+    [data-mode="light"] .sb-code-panel { background: var(--warm-white-up); border-color: var(--border-light); }
+    .sb-code-panel header {
+      padding: 0.75rem 1rem; font-family: var(--font-mono); font-size: 0.72rem;
+      border-bottom: 1px solid; display: flex; justify-content: space-between;
+    }
+    [data-mode="dark"] .sb-code-panel header { background: var(--void-up2); border-bottom-color: var(--border-dark); }
+    [data-mode="light"] .sb-code-panel header { background: var(--warm-white); border-bottom-color: var(--border-light); }
+    .sb-code-panel pre { margin: 0; padding: 1rem; font-size: 0.74rem; line-height: 1.65; overflow-x: auto; }
+
+    /* Step 7 recap rows */
+    .sb-recap { display: grid; gap: 0.65rem; }
+    .sb-recap-row {
+      display: grid; grid-template-columns: 2.6rem 9rem 1fr 7rem; gap: 1rem;
+      align-items: center;
+      padding: 0.7rem 1rem; border: 1px solid; border-radius: 4px;
+      font-family: var(--font-mono); font-size: 0.74rem;
+    }
+    [data-mode="dark"] .sb-recap-row { background: var(--void-up); border-color: var(--border-dark); }
+    [data-mode="light"] .sb-recap-row { background: var(--warm-white-up); border-color: var(--border-light); }
+    .sb-recap-step { font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.55; }
+    .sb-recap-title { font-weight: 600; }
+    .sb-recap-detail { opacity: 0.7; font-size: 0.7rem; }
+
+    /* Service topology SVG primitives */
+    .sb-topo .node {
+      stroke-width: 1.2;
+    }
+    .sb-topo .node.n-data    { fill: var(--tier-now-soft);    stroke: var(--tier-now-line); }
+    .sb-topo .node.n-service { fill: var(--tier-next-soft);   stroke: var(--tier-next-line); }
+    .sb-topo .node.n-store   { fill: var(--tier-stable-soft); stroke: var(--tier-stable-line); }
+    .sb-topo .node.n-ui      { fill: var(--tier-vision-soft); stroke: var(--tier-vision-line); }
+    .sb-topo .edge { fill: none; stroke-width: 1.2; opacity: 0.7; }
+    .sb-topo .edge.e-now    { stroke: var(--tier-now); }
+    .sb-topo .edge.e-stable { stroke: var(--tier-stable); }
+    .sb-topo .edge.e-next   { stroke: var(--tier-next); }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .sb-protagonist { grid-template-columns: 1fr; }
+      .sb-handlers { grid-template-columns: 1fr; }
+      .sb-handler-panel { grid-template-columns: 1fr; }
+      .sb-lens { grid-template-columns: 1fr; }
+      .sb-recap-row { grid-template-columns: 2rem 1fr 5.5rem; }
+      .sb-recap-detail { grid-column: 2 / -1; }
+    }
+  </style>
+</head>
+<body>
+
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
+  <symbol id="stoic-idle" viewBox="0 0 120 120">
+    <path fill-rule="evenodd" fill="currentColor" d="
+      M40,20 H80 A30,30 0 0,1 110,50 V70 A30,30 0 0,1 80,100 H40 A30,30 0 0,1 10,70 V50 A30,30 0 0,1 40,20 Z
+      M35,40 A8,8 0 0,1 35,56 A8,8 0 0,1 35,40 Z
+      M85,40 A8,8 0 0,1 85,56 A8,8 0 0,1 85,40 Z
+      M54,54 H66 A2,2 0 0,1 68,56 V58 A2,2 0 0,1 66,60 H54 A2,2 0 0,1 52,58 V56 A2,2 0 0,1 54,54 Z
+    "/>
+  </symbol>
+</svg>
+
+<nav class="nav">
+  <a href="/" class="nav-left">
+    <svg class="nav-logo" viewBox="0 0 120 120"><use href="#stoic-idle"/></svg>
+    <span class="wordmark">daglang</span>
+  </a>
+  <div class="nav-right">
+    <div class="nav-links">
+      <a href="showcase.html" class="nav-link" style="color:var(--tier-now)">Showcase</a>
+      <a href="showcase-backend.html" class="nav-link active" style="color:var(--tier-next)">Showcase · backend</a>
+      <a href="examples.html" class="nav-link">Examples</a>
+      <a href="affected-set.html" class="nav-link">Affected-set</a>
+      <a href="roadmap.html" class="nav-link">Roadmap</a>
+      <a href="https://github.com/gunb-ai/daglang" class="nav-link">GitHub</a>
+    </div>
+    <button class="mode-toggle" id="mode-toggle" type="button" aria-label="Toggle light/dark mode">
+      <span class="indicator"></span>
+      <span id="mode-label-text">Dark</span>
+    </button>
+  </div>
+</nav>
+
+<main class="wrap" style="padding:2.5rem 0 5rem">
+  <p class="section-eyebrow">Showcase · backend dev</p>
+  <h1 style="font-size:2.2rem;margin:0 0 0.6rem;letter-spacing:-0.024em">Every feature, on one CRUD service.</h1>
+  <p class="muted" style="max-width:46em;margin:0 0 0.5rem;font-size:1.05rem">
+    The EE-flavored <a href="showcase.html">showcase</a> walks a low-pass filter. This one walks the same
+    seven features on a stack a backend dev lives in: a Todo CRUD service. One <code>.dag</code> file
+    declares the data, the service, the store, and the UI. Every artifact — Rust handler, TypeScript
+    client, SQL migration, OpenAPI spec, docs, CI lens receipts — is a projection of that one graph.
+  </p>
+  <p style="font-family:var(--font-mono);font-size:0.78rem;letter-spacing:0.04em;margin:0 0 0;color:var(--tier-now)">
+    One source of truth. <strong>Five emitted languages. Zero drift.</strong>
+  </p>
+
+  <!-- ─────────────── Step 1: the protagonist ─────────────── -->
+  <section class="sb-step" id="step-graph">
+    <p class="sb-step-num">Step 1 · the graph</p>
+    <h2 class="sb-step-title">42-line <code>.dag</code>. The whole service.</h2>
+    <p class="muted sb-step-lead">
+      The backend dev writes <em>one</em> file. It declares the data shape, the service surface
+      (HTTP routes, methods, request/response types), the store (table schema + indexes), and a small
+      UI. No hand-written migrations, no hand-written client. Every consumer of <code>Todo</code> stays
+      in sync structurally — or the build fails closed before anything ships.
+    </p>
+    <div class="sb-protagonist">
+      <div class="sb-source">
+        <header>
+          <span>todo_app.dag</span>
+          <span class="badge badge-next">Building next · one source of truth</span>
+        </header>
+<pre>module examples.todo_app
+
+import v4.std.http   { HttpGet, HttpPost, HttpPatch, HttpDelete }
+import v4.std.time   { Timestamp }
+import v4.std.uuid   { Uuid }
+
+app TodoApp {
+  data Todo {
+    id:         Uuid
+    list_id:    Uuid
+    title:      String
+    completed:  Bool
+    created_at: Timestamp
+  }
+
+  type NewTodo  { list_id: Uuid, title: String }
+  type Toggle   { completed: Bool }
+
+  service TodoApi {
+    get_by_id:    HttpGet&lt;/todos/:id&gt;                -> Todo
+    list_in_list: HttpGet&lt;/todos?list_id=:list_id&gt;   -> List&lt;Todo&gt;
+    list_all:     HttpGet&lt;/todos&gt;                    -> List&lt;Todo&gt;
+    list_recent:  HttpGet&lt;/todos?sort=created_at&gt;    -> List&lt;Todo&gt;
+    duplicates:   HttpGet&lt;/todos/duplicates&gt;         -> List&lt;TodoPair&gt;
+    create:       HttpPost&lt;/todos, NewTodo&gt;          -> Todo
+    toggle:       HttpPatch&lt;/todos/:id, Toggle&gt;      -> Todo
+
+    spec latency_budget: each handler &lt; 50ms p95
+  }
+
+  store TodoDb {
+    table todos: Todo
+      primary id
+      index   (list_id, completed)
+      index   (created_at desc)
+  }
+
+  ui TodoList {
+    source:    TodoApi.list_in_list
+    render:    TodoCard
+    on_toggle: TodoApi.toggle
+  }
+}</pre>
+      </div>
+
+      <div class="sb-topo-wrap">
+        <svg class="sb-topo" viewBox="0 0 360 240" aria-label="TodoApp service topology">
+          <defs>
+            <marker id="sb-arr-now"    viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,1 L7,4 L0,7 z" fill="var(--tier-now)"/></marker>
+            <marker id="sb-arr-stable" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,1 L7,4 L0,7 z" fill="var(--tier-stable)"/></marker>
+            <marker id="sb-arr-next"   viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,1 L7,4 L0,7 z" fill="var(--tier-next)"/></marker>
+          </defs>
+
+          <!-- title -->
+          <text x="180" y="14" text-anchor="middle" style="font-family:var(--font-mono);font-size:7px;letter-spacing:0.18em;fill:currentColor;opacity:0.5">APP TODOAPP · GRAPH</text>
+
+          <!-- data Todo -->
+          <rect class="node n-data" x="20" y="40" width="100" height="40" rx="5" />
+          <text x="70" y="58" dominant-baseline="central" text-anchor="middle" style="font-family:var(--font-mono);font-size:10px;font-weight:600;fill:var(--tier-now)">data Todo</text>
+          <text x="70" y="71" dominant-baseline="central" text-anchor="middle" style="font-family:var(--font-mono);font-size:7px;fill:currentColor;opacity:0.6">5 fields</text>
+
+          <!-- service TodoApi (center) -->
+          <rect class="node n-service" x="130" y="100" width="100" height="40" rx="5" />
+          <text x="180" y="118" dominant-baseline="central" text-anchor="middle" style="font-family:var(--font-mono);font-size:10px;font-weight:600;fill:var(--tier-next)">service TodoApi</text>
+          <text x="180" y="131" dominant-baseline="central" text-anchor="middle" style="font-family:var(--font-mono);font-size:7px;fill:currentColor;opacity:0.6">7 handlers</text>
+
+          <!-- store TodoDb -->
+          <rect class="node n-store" x="240" y="40" width="100" height="40" rx="5" />
+          <text x="290" y="58" dominant-baseline="central" text-anchor="middle" style="font-family:var(--font-mono);font-size:10px;font-weight:600;fill:var(--tier-stable)">store TodoDb</text>
+          <text x="290" y="71" dominant-baseline="central" text-anchor="middle" style="font-family:var(--font-mono);font-size:7px;fill:currentColor;opacity:0.6">1 table · 2 indexes</text>
+
+          <!-- ui TodoList -->
+          <rect class="node n-ui" x="130" y="180" width="100" height="40" rx="5" />
+          <text x="180" y="198" dominant-baseline="central" text-anchor="middle" style="font-family:var(--font-mono);font-size:10px;font-weight:600;fill:var(--tier-vision)">ui TodoList</text>
+          <text x="180" y="211" dominant-baseline="central" text-anchor="middle" style="font-family:var(--font-mono);font-size:7px;fill:currentColor;opacity:0.6">consumes 2 handlers</text>
+
+          <!-- edges -->
+          <path class="edge e-now"    d="M120,60  C 150,60  150,100 175,108" marker-end="url(#sb-arr-now)" />
+          <path class="edge e-stable" d="M230,118 C 245,110 270,90  285,80" marker-end="url(#sb-arr-stable)" />
+          <path class="edge e-next"   d="M180,140 L180,180" marker-end="url(#sb-arr-next)" />
+
+          <!-- labels on edges -->
+          <text x="146" y="86" text-anchor="middle" style="font-family:var(--font-mono);font-size:7px;fill:currentColor;opacity:0.6">uses</text>
+          <text x="262" y="103" text-anchor="middle" style="font-family:var(--font-mono);font-size:7px;fill:currentColor;opacity:0.6">reads/writes</text>
+          <text x="195" y="162" text-anchor="start" style="font-family:var(--font-mono);font-size:7px;fill:currentColor;opacity:0.6">subscribes</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── Step 2: artifact projections ─────────────── -->
+  <section class="sb-step" id="step-projections">
+    <p class="sb-step-num">Step 2 · projections</p>
+    <h2 class="sb-step-title">One graph. Six artifacts. Always in lockstep.</h2>
+    <p class="muted sb-step-lead">
+      Every tile below is emitted from the same <code>CoreNode</code>. Add a field upstream — every tile
+      updates. Forget to update any one of them, and an old hand-written codebase ships with mismatched
+      types between server, client, database, and contract. Here, that's not even possible.
+    </p>
+    <div class="sb-tiles">
+
+      <article class="sb-tile t-stable">
+        <header><span class="sb-tile-title">Rust handler · axum</span><span class="badge badge-stable">Stabilizing</span></header>
+<pre>#[axum::handler]
+pub async fn list_in_list(
+    State(db): State&lt;TodoDb&gt;,
+    Query(p):  Query&lt;ListQuery&gt;,
+) -&gt; Json&lt;Vec&lt;Todo&gt;&gt; {
+    Json(db.todos()
+        .by_list_id(&amp;p.list_id)
+        .collect()
+        .await)
+}</pre>
+        <div class="sb-tile-foot">--target rust · uses generated <code>TodoDb</code> + <code>Todo</code></div>
+      </article>
+
+      <article class="sb-tile t-next">
+        <header><span class="sb-tile-title">TypeScript client</span><span class="badge badge-next">Building next</span></header>
+<pre>export async function listInList(
+  listId: Uuid,
+): Promise&lt;Todo[]&gt; {
+  const r = await fetch(
+    `/todos?list_id=${listId}`,
+  );
+  return TodoSchema
+    .array()
+    .parse(await r.json());
+}</pre>
+        <div class="sb-tile-foot">zod schema + fetch wrapper, types co-vary with <code>Todo</code></div>
+      </article>
+
+      <article class="sb-tile t-next">
+        <header><span class="sb-tile-title">SQL migration</span><span class="badge badge-next">Building next</span></header>
+<pre>CREATE TABLE todos (
+  id          UUID PRIMARY KEY,
+  list_id     UUID NOT NULL,
+  title       TEXT NOT NULL,
+  completed   BOOLEAN NOT NULL,
+  created_at  TIMESTAMPTZ NOT NULL
+);
+CREATE INDEX ON todos (list_id, completed);
+CREATE INDEX ON todos (created_at DESC);</pre>
+        <div class="sb-tile-foot">migration is derived; field rename → migration step, not a manual chore</div>
+      </article>
+
+      <article class="sb-tile t-next">
+        <header><span class="sb-tile-title">OpenAPI spec</span><span class="badge badge-next">Building next</span></header>
+<pre>paths:
+  /todos:
+    get:
+      operationId: list_all
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/Todo[]"
+components:
+  schemas:
+    Todo:
+      $ref: "#/Todo"</pre>
+        <div class="sb-tile-foot">no hand-edited YAML; the contract IS the service declaration</div>
+      </article>
+
+      <article class="sb-tile t-vision">
+        <header><span class="sb-tile-title">Generated docs</span><span class="badge badge-vision">Planned</span></header>
+<pre># TodoApi.list_in_list
+
+GET /todos?list_id=:list_id → List&lt;Todo&gt;
+
+Returns todos for one list, ordered by
+(list_id, completed) index. Latency
+budget: 50ms p95. Cost class: O(log n).</pre>
+        <div class="sb-tile-foot">cost class + latency budget pulled live from the lens</div>
+      </article>
+
+      <article class="sb-tile t-vision">
+        <header><span class="sb-tile-title">CI lens receipt</span><span class="badge badge-vision">Planned</span></header>
+<pre>✓ type_shape_consistency      pass
+✓ migration_safety            pass
+✓ openapi_round_trip          pass
+✓ client_compat               pass
+✓ complexity (per handler)    pass
+✓ latency_budget              pass
+6 / 6 lenses green
+0 affected downstream</pre>
+        <div class="sb-tile-foot">structural facts checked before any artifact ships</div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ─────────────── Step 3: cost-lens handler picker ─────────────── -->
+  <section class="sb-step" id="step-cost">
+    <p class="sb-step-num">Step 3 · cost lens per handler</p>
+    <h2 class="sb-step-title">Every handler gets a structural cost class.</h2>
+    <p class="muted sb-step-lead">
+      The complexity analyzer folds across each handler's body and the store's indexes. Pick a handler
+      to see its derived cost class, the resulting DB plan, and whether the latency-budget spec lens
+      passes. This is what the analyzer reports today on <code>weather.dag</code>
+      (<a href="examples.html#complexity">playground</a>) — pointed at a service surface.
+    </p>
+
+    <div class="sb-handlers">
+      <div class="sb-handler-list" role="tablist" aria-label="Handler picker">
+        <button class="sb-handler-pill c-O1"    role="tab" data-handler="get_by_id"    aria-selected="true">
+          <span class="sb-handler-name">get_by_id</span>
+          <span class="sb-handler-class">O(1)</span>
+        </button>
+        <button class="sb-handler-pill c-Olog"  role="tab" data-handler="list_in_list" aria-selected="false">
+          <span class="sb-handler-name">list_in_list</span>
+          <span class="sb-handler-class">O(log n)</span>
+        </button>
+        <button class="sb-handler-pill c-On"    role="tab" data-handler="list_all"     aria-selected="false">
+          <span class="sb-handler-name">list_all</span>
+          <span class="sb-handler-class">O(n)</span>
+        </button>
+        <button class="sb-handler-pill c-OnLog" role="tab" data-handler="list_recent"  aria-selected="false">
+          <span class="sb-handler-name">list_recent</span>
+          <span class="sb-handler-class">O(n log n)</span>
+        </button>
+        <button class="sb-handler-pill c-On2"   role="tab" data-handler="duplicates"   aria-selected="false">
+          <span class="sb-handler-name">duplicates</span>
+          <span class="sb-handler-class">O(n²)</span>
+        </button>
+      </div>
+
+      <div class="sb-handler-panel" id="sb-handler-panel">
+        <div>
+          <header><span id="sb-handler-source-title">.dag handler body</span><span id="sb-handler-class-tag">O(1) · primary-key seek</span></header>
+          <pre id="sb-handler-source">fn get_by_id(id: Uuid) -> Todo {
+  todos
+    |> by_primary(id: id)
+    |> first()
+}</pre>
+        </div>
+        <div>
+          <header><span>DB plan + cost-lens derivation</span><span>spec: &lt; 50ms p95</span></header>
+          <div class="sb-handler-summary" id="sb-handler-summary">
+            <div><strong>plan:</strong> index seek on PRIMARY KEY <code>(id)</code></div>
+            <div><strong>cost:</strong> 1 page read</div>
+            <div><strong>class:</strong> O(1)</div>
+            <div style="margin-top:0.5rem;color:var(--tier-now)"><strong>spec_band_lens:</strong> PASS</div>
+            <div style="opacity:0.7;margin-top:0.4rem">Hash/B-tree lookup over primary key is constant by construction. The analyzer folds the call chain (<code>by_primary</code> → <code>first</code>) and sees no dependence on table size <code>n</code>.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="muted" style="font-size:0.78rem;margin:1.25rem 0 0">
+      Same algebra as the <a href="examples.html#complexity">complexity playground</a> — but driven by
+      the service-surface structure (HTTP route + store query + index declaration) rather than function
+      pipelines on lists. The five handlers above cover the cost classes the lens can derive today.
+    </p>
+  </section>
+
+  <!-- ─────────────── Step 4: affected_set scenarios ─────────────── -->
+  <section class="sb-step" id="step-affected">
+    <p class="sb-step-num">Step 4 · affected_set</p>
+    <h2 class="sb-step-title">Edit the data shape. See every artifact light up.</h2>
+    <p class="muted sb-step-lead">
+      Backend devs know the drift dance: change a field on the server, miss the migration, the client
+      breaks, OpenAPI is stale, the doc is wrong. With one graph, <code>affected_set</code> derives the
+      typed dependency closure and tells you exactly which artifacts must re-emit.
+    </p>
+
+    <div class="sb-scenarios" role="tablist" aria-label="Edit scenarios">
+      <button class="sb-scenario" role="tab" data-scenario="priority" aria-selected="true">
+        Add <code>priority: Priority</code> field to <code>Todo</code>
+      </button>
+      <button class="sb-scenario" role="tab" data-scenario="index" aria-selected="false">
+        Drop the <code>(list_id, completed)</code> index
+      </button>
+      <button class="sb-scenario" role="tab" data-scenario="rename" aria-selected="false">
+        Rename <code>created_at</code> → <code>created</code>
+      </button>
+    </div>
+
+    <div class="sb-impact" id="sb-impact">
+      <div class="sb-impact-row">
+        <span class="sb-impact-label">edit</span>
+        <span id="sb-impact-edit">—</span>
+      </div>
+      <div class="sb-impact-row">
+        <span class="sb-impact-label">graph node</span>
+        <span id="sb-impact-node">—</span>
+      </div>
+      <div class="sb-impact-row">
+        <span class="sb-impact-label">affected nodes</span>
+        <span id="sb-impact-affected">—</span>
+      </div>
+      <div class="sb-impact-row">
+        <span class="sb-impact-label">artifacts touched</span>
+        <span id="sb-impact-artifacts">—</span>
+      </div>
+      <div class="sb-impact-row">
+        <span class="sb-impact-label">generated checks</span>
+        <span id="sb-impact-checks">—</span>
+      </div>
+      <div class="sb-impact-row">
+        <span class="sb-impact-label">gate result</span>
+        <span id="sb-impact-gate">—</span>
+      </div>
+      <div class="sb-impact-row">
+        <span class="sb-impact-label">skipped</span>
+        <span id="sb-impact-skip" style="opacity:0.85">—</span>
+      </div>
+    </div>
+
+    <p class="muted" style="font-size:0.78rem;margin:1rem 0 0">
+      The propagation isn't a textual grep — it's a typed graph walk. See
+      <a href="affected-set.html">the standalone affected-set page</a> for the live curved-fanout visual
+      of the same primitive on a smaller (weather) example.
+    </p>
+  </section>
+
+  <!-- ─────────────── Step 5: latency budget lens ─────────────── -->
+  <section class="sb-step" id="step-lens">
+    <p class="sb-step-num">Step 5 · lens gate</p>
+    <h2 class="sb-step-title">Latency budget enforced before merge.</h2>
+    <p class="muted sb-step-lead">
+      The service declares a spec: <code>each handler &lt; 50ms p95</code>. The cost lens derives a
+      symbolic complexity per handler. The latency-budget lens combines that with table-size assumptions
+      from the store and decides whether each handler fits — and fails closed on anything that doesn't,
+      before the artifact is emitted. No more "we'll catch the regression in load testing."
+    </p>
+    <div class="sb-lens">
+      <div class="sb-lens-card is-pass">
+        <p class="sb-lens-title">latency_budget_lens · 6 / 7 handlers</p>
+        <p class="sb-lens-state">PASS</p>
+        <div class="sb-lens-body">
+          <div>get_by_id, list_in_list, list_recent, create, toggle, delete</div>
+          <div style="margin-top:0.5rem;opacity:0.75">all derive ≤ O(n log n) on the indexed columns; modeled p95 ≤ 50ms</div>
+        </div>
+      </div>
+      <div class="sb-lens-card is-fail">
+        <p class="sb-lens-title">latency_budget_lens · duplicates handler</p>
+        <p class="sb-lens-state">FAIL · O(n²)</p>
+        <div class="sb-lens-body">
+          <div><code>duplicates</code> · pairwise comparison without an index</div>
+          <div style="margin-top:0.5rem;opacity:0.85">derived bound: <code>O(n²)</code> on todos table size</div>
+          <div style="margin-top:0.5rem">modeled p95 at n=10k: <strong>3.2 s</strong> · budget: 50ms</div>
+          <div style="margin-top:0.5rem;opacity:0.75">suggested: add <code>index (title) where completed=false</code>, or compute duplicates via a stream that visits each title once</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── Step 6: agent path ─────────────── -->
+  <section class="sb-step" id="step-agent">
+    <p class="sb-step-num">Step 6 · the agent path</p>
+    <h2 class="sb-step-title">An agent fixes the slow handler. Same gates.</h2>
+    <p class="muted sb-step-lead">
+      The slider in the EE showcase was a UI affordance over a typed <code>Diff</code>. Here, an agent
+      proposes the same kind of diff: add an index, rewrite the offending body, re-emit. The lens is
+      the same lens a human would run; the gate is the same gate.
+    </p>
+    <div class="sb-code-panel">
+      <header>
+        <span>agent.ts — fix duplicates handler via apply_diff</span>
+        <span class="badge badge-next">Building next · v4 SDK</span>
+      </header>
+<pre>import {
+  ingestText, foldNode, affectedSet,
+  applyDiff, emit, addStoreIndex, replaceHandlerBody,
+  type CoreNode, type Diff, type Outcome,
+} from "@gunb-ai/gunbc";
+
+const root = await ingestText(
+  await Deno.readTextFile("examples/todo_app.dag"),
+  { inputLang: "dag" },
+);
+
+// 1 · Diff: add an index, rewrite the handler to use it
+const diff: Diff = {
+  edits: [
+    addStoreIndex("TodoDb", "todos",
+                  "(title) where completed = false"),
+    replaceHandlerBody("TodoApi.duplicates",
+      `todos |> by_title_index_where_active()
+              |> group_by(t => t.title)
+              |> filter(g => g.size > 1)
+              |> map(pair_from_group)`),
+  ],
+};
+
+// 2 · Candidate state: apply_diff is sequential + fails closed (P3)
+const candidate: Outcome&lt;CoreNode&gt; = applyDiff(root, diff);
+if (!candidate.ok) throw candidate.diagnostics;
+
+// 3 · Affected: re-emit only the artifacts the index + body touched
+const affected = affectedSet(candidate.value, {
+  at: "Service.TodoApi.duplicates",
+});
+// → [ "Rust::duplicates handler", "TS::client", "SQL::migration",
+//     "OpenAPI::operation", "Docs::duplicates", "Lens::latency_budget" ]
+
+// 4 · Gate: re-run the lens — does the bound now fit the budget?
+const gated = foldNode(candidate.value, latencyBudgetLens);
+// → { duplicates: "PASS · O(n log n) · modeled p95 = 18ms" }
+
+// 5 · Emit only the affected artifacts (others skip with receipt)
+await emit(candidate.value, { target: "rust",       outDir: "./svc/src" });
+await emit(candidate.value, { target: "typescript", outDir: "./ui/src" });
+await emit(candidate.value, { target: "sql",        outDir: "./migrations" });</pre>
+    </div>
+    <p class="muted" style="font-size:0.78rem;margin:1rem 0 0">
+      Same primitives. Same affected set. Same gates. The agent never freehand-wrote a migration; the
+      typed graph holds the agent to the same lens the human path runs.
+    </p>
+  </section>
+
+  <!-- ─────────────── Step 7: honest recap ─────────────── -->
+  <section class="sb-step" id="step-recap">
+    <p class="sb-step-num">Step 7 · what's real today</p>
+    <h2 class="sb-step-title">The honesty layer.</h2>
+    <p class="muted sb-step-lead">
+      Tier-tagged so the demo doesn't overpromise. The Rust path is shipped; everything else on this
+      page sits in Building next or Planned — designed, scoped, and on the
+      <a href="roadmap.html">roadmap graph</a>.
+    </p>
+    <div class="sb-recap">
+      <div class="sb-recap-row">
+        <span class="sb-recap-step">1</span>
+        <span class="sb-recap-title">The graph</span>
+        <span class="sb-recap-detail"><code>.dag</code> parser, <code>app/data/service/store/ui</code> declarations, <code>CoreNode</code> substrate</span>
+        <span class="badge badge-next">Building next</span>
+      </div>
+      <div class="sb-recap-row">
+        <span class="sb-recap-step">2a</span>
+        <span class="sb-recap-title">Rust handler emission</span>
+        <span class="sb-recap-detail">structs + match arms via <code>gunbc compile --target rust</code></span>
+        <span class="badge badge-now">Available now</span>
+      </div>
+      <div class="sb-recap-row">
+        <span class="sb-recap-step">2b</span>
+        <span class="sb-recap-title">TS / SQL / OpenAPI</span>
+        <span class="sb-recap-detail">Shape A TypeScript target + Shape B SQL / OpenAPI emitters</span>
+        <span class="badge badge-next">Building next</span>
+      </div>
+      <div class="sb-recap-row">
+        <span class="sb-recap-step">2c</span>
+        <span class="sb-recap-title">Docs + CI receipt</span>
+        <span class="sb-recap-detail">generated Markdown + lens-gated CI artifacts</span>
+        <span class="badge badge-vision">Planned</span>
+      </div>
+      <div class="sb-recap-row">
+        <span class="sb-recap-step">3</span>
+        <span class="sb-recap-title">Cost lens per handler</span>
+        <span class="sb-recap-detail">cost algebra over service+store; ports the function-level analyzer to the API surface</span>
+        <span class="badge badge-next">Building next</span>
+      </div>
+      <div class="sb-recap-row">
+        <span class="sb-recap-step">4</span>
+        <span class="sb-recap-title"><code>affected_set</code> across artifacts</span>
+        <span class="sb-recap-detail">v4 substrate primitive; CI selection is the gap</span>
+        <span class="badge badge-next">Building next</span>
+      </div>
+      <div class="sb-recap-row">
+        <span class="sb-recap-step">5</span>
+        <span class="sb-recap-title">Latency-budget lens</span>
+        <span class="sb-recap-detail">spec_band over the cost lens output; per-handler gate</span>
+        <span class="badge badge-vision">Planned</span>
+      </div>
+      <div class="sb-recap-row">
+        <span class="sb-recap-step">6</span>
+        <span class="sb-recap-title">Agent <code>apply_diff</code> SDK</span>
+        <span class="sb-recap-detail">substrate primitive specified; SDK ships with the v4 cut</span>
+        <span class="badge badge-next">Building next</span>
+      </div>
+    </div>
+    <p style="margin-top:2rem;display:flex;gap:0.6rem;flex-wrap:wrap">
+      <a href="showcase.html" class="hero-cta-secondary">← EE showcase (low-pass filter)</a>
+      <a href="examples.html" class="hero-cta-secondary">Per-feature examples</a>
+      <a href="affected-set.html" class="hero-cta-secondary">Standalone affected-set</a>
+      <a href="roadmap.html" class="hero-cta-secondary">Roadmap</a>
+    </p>
+  </section>
+</main>
+
+<footer class="footer">
+  <p>Built by <a href="https://gunb.ai">Gunb.ai</a> · <a href="https://github.com/gunb-ai/daglang">gunb-ai/daglang</a></p>
+</footer>
+
+<script src="site.js"></script>
+<script>
+/* ─── Backend showcase interactivity ─────────────── */
+(function () {
+  // === HANDLER PICKER (step 3) ===
+  var HANDLERS = {
+    get_by_id: {
+      classTag: "O(1) · primary-key seek",
+      source: 'fn get_by_id(id: Uuid) -> Todo {\n' +
+              '  todos\n' +
+              '    |> by_primary(id: id)\n' +
+              '    |> first()\n' +
+              '}',
+      summary:
+        '<div><strong>plan:</strong> index seek on PRIMARY KEY <code>(id)</code></div>' +
+        '<div><strong>cost:</strong> 1 page read</div>' +
+        '<div><strong>class:</strong> O(1)</div>' +
+        '<div style="margin-top:0.5rem;color:var(--tier-now)"><strong>spec_band_lens:</strong> PASS</div>' +
+        '<div style="opacity:0.7;margin-top:0.4rem">Hash/B-tree lookup over the primary key is constant by construction. The analyzer folds <code>by_primary</code> → <code>first</code> and sees no dependence on table size <code>n</code>.</div>',
+    },
+    list_in_list: {
+      classTag: "O(log n) · indexed scan",
+      source: 'fn list_in_list(list_id: Uuid) -> List<Todo> {\n' +
+              '  todos\n' +
+              '    |> by_index(list_id, completed)\n' +
+              '    |> filter(t => t.list_id == list_id)\n' +
+              '    |> to_list()\n' +
+              '}',
+      summary:
+        '<div><strong>plan:</strong> index range scan on <code>(list_id, completed)</code></div>' +
+        '<div><strong>cost:</strong> O(log n) seek + O(k) tuple fetch, k ≪ n</div>' +
+        '<div><strong>class:</strong> O(log n)</div>' +
+        '<div style="margin-top:0.5rem;color:var(--tier-now)"><strong>spec_band_lens:</strong> PASS</div>' +
+        '<div style="opacity:0.7;margin-top:0.4rem">The store declares an index on <code>(list_id, completed)</code>; the lens folds the index plan into the call and derives a logarithmic seek cost.</div>',
+    },
+    list_all: {
+      classTag: "O(n) · sequential scan",
+      source: 'fn list_all() -> List<Todo> {\n' +
+              '  todos |> to_list()\n' +
+              '}',
+      summary:
+        '<div><strong>plan:</strong> sequential scan over <code>todos</code></div>' +
+        '<div><strong>cost:</strong> visits every row exactly once</div>' +
+        '<div><strong>class:</strong> O(n)</div>' +
+        '<div style="margin-top:0.5rem;color:var(--tier-now)"><strong>spec_band_lens:</strong> PASS at small n</div>' +
+        '<div style="opacity:0.7;margin-top:0.4rem">No filter and no index → linear. The lens warns once the modeled table size hits the budget ceiling (≈ 50k rows at 50ms).</div>',
+    },
+    list_recent: {
+      classTag: "O(n log n) · sort step (or O(log n + k) via index)",
+      source: 'fn list_recent(limit: Int) -> List<Todo> {\n' +
+              '  todos\n' +
+              '    |> by_index(created_at desc)\n' +
+              '    |> take(limit)\n' +
+              '}',
+      summary:
+        '<div><strong>plan:</strong> index scan on <code>(created_at desc)</code> + LIMIT</div>' +
+        '<div><strong>cost:</strong> O(log n + k) where k = limit (index present)</div>' +
+        '<div><strong>class:</strong> O(n log n) <em>worst case</em> (no index) → O(log n + k) <em>actual</em></div>' +
+        '<div style="margin-top:0.5rem;color:var(--tier-now)"><strong>spec_band_lens:</strong> PASS · index exists</div>' +
+        '<div style="opacity:0.7;margin-top:0.4rem">If the store dropped the <code>created_at desc</code> index, this handler would degrade to O(n log n) full-sort; the lens detects the change at <em>graph-edit time</em>, not in production.</div>',
+    },
+    duplicates: {
+      classTag: "O(n²) · pairwise comparison",
+      source: 'fn duplicates() -> List<TodoPair> {\n' +
+              '  todos\n' +
+              '    |> all_pairs()\n' +
+              '    |> filter(p => p.left.title == p.right.title)\n' +
+              '}',
+      summary:
+        '<div><strong>plan:</strong> nested loop (n × n)</div>' +
+        '<div><strong>cost:</strong> visits every (a, b) pair where a ≠ b</div>' +
+        '<div><strong>class:</strong> <span style="color:var(--diag-fail)">O(n²)</span></div>' +
+        '<div style="margin-top:0.5rem;color:var(--diag-fail)"><strong>spec_band_lens:</strong> FAIL · 3.2s p95 at n=10k</div>' +
+        '<div style="opacity:0.7;margin-top:0.4rem">The lens computes the nested iteration structurally — no benchmark needed. Suggested fix lives in the agent panel below (add a per-title index, group instead of pair).</div>',
+    },
+  };
+
+  var pills = document.querySelectorAll(".sb-handler-pill");
+  var srcEl  = document.getElementById("sb-handler-source");
+  var tagEl  = document.getElementById("sb-handler-class-tag");
+  var sumEl  = document.getElementById("sb-handler-summary");
+
+  function selectHandler(name) {
+    var h = HANDLERS[name];
+    if (!h) return;
+    if (srcEl) srcEl.textContent = h.source;
+    if (tagEl) tagEl.textContent = h.classTag;
+    if (sumEl) sumEl.innerHTML   = h.summary;
+    pills.forEach(function (p) {
+      p.setAttribute("aria-selected", p.getAttribute("data-handler") === name ? "true" : "false");
+    });
+  }
+  pills.forEach(function (p) {
+    p.addEventListener("click", function () { selectHandler(p.getAttribute("data-handler")); });
+  });
+
+  // === SCENARIO PICKER (step 4) ===
+  var SCENARIOS = {
+    priority: {
+      edit: "<code>data Todo</code> · add <strong>priority: Priority</strong> (enum Low/Normal/High)",
+      node: "<code>Field.Todo.priority</code> + <code>Type.Priority</code>",
+      affected: "<strong>9 nodes</strong> · 5 emit-paths, 2 doc paths, 2 lens re-runs",
+      artifacts:
+        "<strong>Rust</strong> struct field + Default impl · " +
+        "<strong>TypeScript</strong> interface + Zod enum · " +
+        "<strong>SQL</strong> ALTER TABLE + DEFAULT 'normal' · " +
+        "<strong>OpenAPI</strong> property + enum values · " +
+        "<strong>Docs</strong> column entry",
+      checks: "type-check · exhaustiveness on every Priority match · openapi_round_trip · migration_safety",
+      gate: { ok: true, label: "PASS · additive shape change, no existing arm broken" },
+      skip: "PSpice low_pass · 14 unrelated handlers · auth schema · all UI components except TodoCard",
+    },
+    index: {
+      edit: "<code>store TodoDb</code> · drop index <strong>(list_id, completed)</strong>",
+      node: "<code>StoreIndex.todos.list_id_completed</code>",
+      affected: "<strong>2 nodes</strong> · <code>list_in_list</code> handler + its docs entry",
+      artifacts: "<strong>SQL</strong> DROP INDEX migration · <strong>Docs</strong> cost annotation",
+      checks: "cost lens re-run on list_in_list · latency_budget_lens",
+      gate: { ok: false, label: "FAIL · list_in_list cost O(log n) → O(n); modeled p95 18ms → 470ms" },
+      skip: "TypeScript client · Rust struct · all other handlers · OpenAPI (signature unchanged)",
+    },
+    rename: {
+      edit: "<code>data Todo</code> · rename <strong>created_at → created</strong>",
+      node: "<code>Field.Todo.created_at</code>",
+      affected:
+        "<strong>5 nodes</strong> · Rust struct · TS interface · SQL migration · OpenAPI property · " +
+        "<code>list_recent</code> handler (reads the field)",
+      artifacts:
+        "<strong>Rust</strong> struct rename · <strong>TS</strong> interface rename · " +
+        "<strong>SQL</strong> ALTER TABLE … RENAME COLUMN · <strong>OpenAPI</strong> property rename",
+      checks: "type-check · migration_safety (rename, not destructive) · openapi_round_trip",
+      gate: { ok: true, label: "PASS · rename propagates via apply_diff; all consumers in lockstep" },
+      skip: "all handlers that don't reference the field · PSpice · UI · docs paragraph unchanged",
+    },
+  };
+
+  var scenarios = document.querySelectorAll(".sb-scenario");
+  function applyScenario(name) {
+    var s = SCENARIOS[name];
+    if (!s) return;
+    document.getElementById("sb-impact-edit").innerHTML       = s.edit;
+    document.getElementById("sb-impact-node").innerHTML       = s.node;
+    document.getElementById("sb-impact-affected").innerHTML   = s.affected;
+    document.getElementById("sb-impact-artifacts").innerHTML  = s.artifacts;
+    document.getElementById("sb-impact-checks").innerHTML     = s.checks;
+    var gate = document.getElementById("sb-impact-gate");
+    gate.textContent  = s.gate.label;
+    gate.style.color  = s.gate.ok ? "var(--tier-now)" : "var(--diag-fail)";
+    document.getElementById("sb-impact-skip").textContent     = s.skip;
+    scenarios.forEach(function (p) {
+      p.setAttribute("aria-selected", p.getAttribute("data-scenario") === name ? "true" : "false");
+    });
+  }
+  scenarios.forEach(function (p) {
+    p.addEventListener("click", function () { applyScenario(p.getAttribute("data-scenario")); });
+  });
+
+  // initial state
+  selectHandler("get_by_id");
+  applyScenario("priority");
+})();
+</script>
+</body>
+</html>
