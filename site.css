@@ -571,35 +571,54 @@ a { color: inherit; }
   display: grid; gap: 1.5rem;
   grid-template-columns: minmax(0, 1fr) 14rem;
 }
-.playground-plot { width: 100%; aspect-ratio: 16 / 11; display: block; }
-.playground-plot .axis { stroke: currentColor; stroke-width: 0.5; opacity: 0.35; }
-.playground-plot .grid-line { stroke: currentColor; stroke-width: 0.4; opacity: 0.08; stroke-dasharray: 2 3; }
-.playground-plot .axis-label {
-  font-family: var(--font-mono); font-size: 9px; opacity: 0.55;
+/* Growth ladder — replaces the misleading curve plot. Fixed-ordered
+   horizontal bars; log-scaled widths so the ordering is unambiguous and
+   stable at any n. Bar values update with the slider; widths don't. */
+.cx-ladder {
+  display: grid; gap: 0.55rem;
+  padding: 0.5rem 0;
 }
-.playground-plot .curve {
-  fill: none; stroke-width: 1.6;
-  /* Hide inactive curves entirely — crisscrossing was misleading at small n
-     (per reviewer: do not use a fake continuous curve plot unless obviously
-     ordered). One curve at a time, always the selected one. */
-  opacity: 0;
-  transition: opacity 0.25s ease, stroke-width 0.25s ease;
+.cx-row {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr) 6.5rem;
+  align-items: center; gap: 0.85rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid; border-radius: 4px;
+  font-family: var(--font-mono); font-size: 0.78rem;
+  transition: border-color 0.2s ease, background 0.2s ease, opacity 0.2s ease;
+  opacity: 0.55;  /* inactive rows dimmed; active row pops */
 }
-.playground-plot .curve.is-active { opacity: 1; stroke-width: 2.2; }
-.playground-plot .curve.c-O1 { stroke: var(--tier-now); }
-.playground-plot .curve.c-On { stroke: var(--tier-stable); }
-.playground-plot .curve.c-OnlogN { stroke: var(--tier-next); }
-.playground-plot .curve.c-On2 { stroke: var(--tier-vision); }
-.playground-plot .curve.c-On2_strict { stroke: var(--tier-vision); }
-.playground-plot .curve-dot {
-  r: 3.2; opacity: 0;
-  transition: opacity 0.25s ease;
+[data-mode="dark"]  .cx-row { background: var(--void-up2); }
+[data-mode="light"] .cx-row { background: var(--warm-white); }
+.cx-row.is-active { opacity: 1; }
+.cx-row-class { font-weight: 600; }
+.cx-row-track {
+  height: 9px; border-radius: 2px;
+  background: currentColor; opacity: 0.18;
+  position: relative;
 }
-.playground-plot .curve-dot.is-active { opacity: 1; }
-.playground-plot .curve-dot.c-O1 { fill: var(--tier-now); }
-.playground-plot .curve-dot.c-On { fill: var(--tier-stable); }
-.playground-plot .curve-dot.c-OnlogN { fill: var(--tier-next); }
-.playground-plot .curve-dot.c-On2 { fill: var(--tier-vision); }
+.cx-row.is-active .cx-row-track { opacity: 0.22; }
+.cx-row-fill {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  border-radius: 2px;
+}
+.cx-row.c-O1     { border-color: var(--tier-now-line);    color: var(--tier-now); }
+.cx-row.c-On     { border-color: var(--tier-stable-line); color: var(--tier-stable); }
+.cx-row.c-OnlogN { border-color: var(--tier-next-line);   color: var(--tier-next); }
+.cx-row.c-On2    { border-color: var(--tier-vision-line); color: var(--tier-vision); }
+.cx-row.is-active.c-O1     { background: var(--tier-now-soft); }
+.cx-row.is-active.c-On     { background: var(--tier-stable-soft); }
+.cx-row.is-active.c-OnlogN { background: var(--tier-next-soft); }
+.cx-row.is-active.c-On2    { background: var(--tier-vision-soft); }
+.cx-row.c-O1     .cx-row-fill { background: var(--tier-now);    width: 12%; }
+.cx-row.c-On     .cx-row-fill { background: var(--tier-stable); width: 42%; }
+.cx-row.c-OnlogN .cx-row-fill { background: var(--tier-next);   width: 68%; }
+.cx-row.c-On2    .cx-row-fill { background: var(--tier-vision); width: 100%; }
+.cx-row-ops {
+  font-size: 0.74rem; opacity: 0.85;
+  text-align: right; font-variant-numeric: tabular-nums;
+}
+.cx-row-ops strong { color: currentColor; font-weight: 600; }
 /* ─── Per-function source + structural-graph swap ─── */
 .pg-source-row {
   margin-top: 1.5rem;

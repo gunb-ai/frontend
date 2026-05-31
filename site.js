@@ -334,41 +334,31 @@
   armIdle();
 })();
 
-/* ─── Complexity playground ─────────────────────── */
+/* ─── Complexity playground (growth ladder) ──────────
+ * Replaces the old curve plot with a fixed-ordered ladder of bars.
+ * Bar widths are static (set in CSS) so the relative ordering is
+ * unambiguous at every n; only the per-class op counts update with
+ * the slider. Pills still drive which class is highlighted. */
 (function () {
   var plot = document.getElementById("pg-plot");
   if (!plot) return;
 
-  var X0 = 40, X1 = 310, Y0 = 195, Y1 = 30;
-  var SAMPLES = 60;
   var CLASSES = ["O1", "On", "OnlogN", "On2"];
 
-  function bound(kind, n) {
+  // Raw op counts per class at given n. Pretty integer rounding.
+  function opsAt(kind, n) {
     switch (kind) {
-      case "O1":     return 0.06;
-      case "On":     return n / 200;
-      case "OnlogN": return (n * Math.log2(Math.max(n, 2))) / (200 * Math.log2(200));
-      case "On2":    return (n * n) / (200 * 200);
+      case "O1":     return 1;
+      case "On":     return Math.round(n);
+      case "OnlogN": return Math.round(n * Math.log2(Math.max(n, 2)));
+      case "On2":    return Math.round(n * n);
     }
+    return 0;
   }
-  function pathFor(kind) {
-    var pts = [];
-    for (var i = 0; i <= SAMPLES; i++) {
-      var n = (i / SAMPLES) * 200;
-      var v = bound(kind, n);
-      var x = X0 + (n / 200) * (X1 - X0);
-      var y = Y0 + v * (Y1 - Y0);
-      pts.push((i === 0 ? "M" : "L") + x.toFixed(2) + "," + y.toFixed(2));
-    }
-    return pts.join(" ");
+  function fmt(n) {
+    // Group by thousands for readability at large n
+    return n.toLocaleString();
   }
-  function drawCurves() {
-    CLASSES.forEach(function (k) {
-      var el = document.getElementById("curve-" + k);
-      if (el) el.setAttribute("d", pathFor(k));
-    });
-  }
-  drawCurves();
 
   var slider = document.getElementById("pg-n");
   var nLabel = document.getElementById("pg-n-value");
@@ -523,12 +513,10 @@
   }
 
   function updateActive() {
-    document.querySelectorAll(".curve").forEach(function (c) { c.classList.remove("is-active"); });
-    document.querySelectorAll(".curve-dot").forEach(function (d) { d.classList.remove("is-active"); });
-    var curve = document.getElementById("curve-" + current);
-    var dot = document.getElementById("dot-" + current);
-    if (curve) curve.classList.add("is-active");
-    if (dot) dot.classList.add("is-active");
+    // Toggle is-active on the matching ladder row.
+    document.querySelectorAll(".cx-row").forEach(function (r) {
+      r.classList.toggle("is-active", r.getAttribute("data-class") === current);
+    });
 
     var meta = FNS[current];
     if (meta) {
@@ -545,16 +533,12 @@
   }
 
   function placeDot() {
+    // Update per-class op counts in the ladder + the slider label.
     var n = parseFloat(slider.value);
     if (nLabel) nLabel.textContent = "n = " + n;
     CLASSES.forEach(function (k) {
-      var dot = document.getElementById("dot-" + k);
-      if (!dot) return;
-      var v = bound(k, n);
-      var x = X0 + (n / 200) * (X1 - X0);
-      var y = Y0 + v * (Y1 - Y0);
-      dot.setAttribute("cx", x.toFixed(2));
-      dot.setAttribute("cy", y.toFixed(2));
+      var el = document.getElementById("cx-val-" + k);
+      if (el) el.textContent = fmt(opsAt(k, n));
     });
   }
 
@@ -568,9 +552,8 @@
   });
   if (slider) slider.addEventListener("input", placeDot);
 
-  if ("ResizeObserver" in window) {
-    new ResizeObserver(function () { drawCurves(); placeDot(); }).observe(plot);
-  }
+  // No more SVG redraw needed — bars are static CSS. Slider input is the
+  // only thing that updates the displayed numbers.
 
   updateActive();
   placeDot();
