@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>daglang · affected-set propagation</title>
+  <meta name="description" content="Change one line of .dag source. Watch every downstream node light up. affected_set is the v4 substrate primitive that drives incremental rebuild, lens re-runs, and agent-native editing." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="site.css" />
+  <style>
+    /* ── Page-local layout ── */
+    .as-intro { max-width: 44em; margin: 0 0 2rem; }
+    .as-scenarios { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0 0 1.75rem; }
+    .as-scenario {
+      font-family: var(--font-mono); font-size: 0.74rem;
+      padding: 0.55rem 0.95rem; border: 1px solid; border-radius: 4px;
+      background: transparent; cursor: pointer; color: inherit;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+    }
+    .as-scenario::before {
+      content: ""; width: 7px; height: 7px; border-radius: 50%;
+      background: var(--diag-fail); opacity: 0.85;
+    }
+    [data-mode="dark"] .as-scenario { border-color: var(--border-dark-strong); color: var(--warm-white-dim); }
+    [data-mode="light"] .as-scenario { border-color: var(--border-light-strong); color: var(--text-dark-dim); }
+    .as-scenario[aria-selected="true"] {
+      border-color: var(--diag-fail);
+      background: var(--diag-fail-soft);
+      color: var(--diag-fail);
+    }
+
+    /* Three-column stage: code | fanout svg | affected tree */
+    .as-stage {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) 64px minmax(0, 1fr);
+      gap: 0; align-items: stretch;
+      border: 1px solid; border-radius: 6px; overflow: hidden;
+    }
+    [data-mode="dark"] .as-stage { border-color: var(--border-dark); background: var(--void-up); }
+    [data-mode="light"] .as-stage { border-color: var(--border-light); background: var(--warm-white-up); }
+
+    .as-code, .as-tree {
+      padding: 1.25rem 1.25rem 1.25rem 0;
+      font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.7;
+    }
+    .as-code { padding-right: 0.5rem; padding-left: 0; min-width: 0; }
+    .as-tree {
+      padding-left: 0.5rem; padding-right: 1.25rem;
+      border-left: 1px solid;
+    }
+    [data-mode="dark"] .as-tree { border-left-color: var(--border-dark); }
+    [data-mode="light"] .as-tree { border-left-color: var(--border-light); }
+
+    /* Code line layout: gutter pin · line-no · code */
+    .as-line {
+      display: grid;
+      grid-template-columns: 22px 36px 1fr;
+      align-items: baseline;
+      padding: 0 0.5rem 0 0.5rem;
+      border-left: 3px solid transparent;
+      transition: background 0.2s ease, border-left-color 0.2s ease;
+      white-space: pre;
+    }
+    .as-line .as-gutter {
+      font-size: 0.7rem; opacity: 0; text-align: center;
+      transition: opacity 0.2s ease;
+    }
+    .as-line .as-no {
+      font-size: 0.7rem; opacity: 0.4; text-align: right; padding-right: 0.6rem;
+      user-select: none;
+    }
+    .as-line .as-src { white-space: pre; overflow-x: visible; }
+
+    /* States */
+    .as-line.is-changed {
+      background: var(--diag-fail-soft);
+      border-left-color: var(--diag-fail);
+    }
+    .as-line.is-changed .as-gutter { opacity: 1; color: var(--diag-fail); }
+    .as-line.is-changed .as-src { color: var(--diag-fail); font-weight: 500; }
+
+    .as-line.is-direct {
+      background: var(--tier-next-soft);
+      border-left-color: var(--tier-next);
+    }
+    .as-line.is-direct .as-gutter { opacity: 1; color: var(--tier-next); }
+
+    .as-line.is-transitive {
+      background: var(--tier-vision-soft);
+      border-left-color: var(--tier-vision);
+    }
+    .as-line.is-transitive .as-gutter { opacity: 1; color: var(--tier-vision); }
+
+    .as-line:not(.is-changed):not(.is-direct):not(.is-transitive) {
+      opacity: 0.62;
+      transition: opacity 0.25s ease;
+    }
+
+    /* Function-header subtle hint */
+    .as-line.is-fn-head {
+      margin-top: 0.45rem;
+    }
+
+    /* Fan-out SVG column */
+    .as-fanout {
+      width: 64px;
+      align-self: stretch;
+      pointer-events: none;
+    }
+    .as-fanout path {
+      fill: none; stroke-width: 1.4; opacity: 0.85;
+      stroke-dasharray: 220; stroke-dashoffset: 220;
+      animation: as-edge-draw 0.6s ease forwards;
+    }
+    .as-fanout path.e-direct { stroke: var(--tier-next); }
+    .as-fanout path.e-transitive { stroke: var(--tier-vision); opacity: 0.7; }
+    .as-fanout circle { r: 2.6; }
+    .as-fanout circle.dot-changed     { fill: var(--diag-fail); }
+    .as-fanout circle.dot-direct      { fill: var(--tier-next); }
+    .as-fanout circle.dot-transitive  { fill: var(--tier-vision); }
+
+    @keyframes as-edge-draw { to { stroke-dashoffset: 0; } }
+    @media (prefers-reduced-motion: reduce) {
+      .as-fanout path { animation: none !important; stroke-dashoffset: 0 !important; }
+    }
+
+    /* Tree */
+    .as-tree h3 {
+      font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.14em;
+      text-transform: uppercase; margin: 0 0 0.85rem; opacity: 0.65; font-weight: 600;
+    }
+    .as-tree-row {
+      display: grid; grid-template-columns: 14px 1fr 4rem;
+      align-items: baseline; gap: 0.4rem;
+      padding: 0.3rem 0; border-top: 1px dashed transparent;
+    }
+    .as-tree-row + .as-tree-row { border-top-color: var(--border-dark); }
+    [data-mode="light"] .as-tree-row + .as-tree-row { border-top-color: var(--border-light); }
+    .as-tree-row .as-tree-marker {
+      font-size: 0.62rem; line-height: 1;
+    }
+    .as-tree-row.r-changed     .as-tree-marker { color: var(--diag-fail); }
+    .as-tree-row.r-direct      .as-tree-marker { color: var(--tier-next); }
+    .as-tree-row.r-transitive  .as-tree-marker { color: var(--tier-vision); }
+    .as-tree-row .as-tree-name { font-weight: 500; }
+    .as-tree-row .as-tree-line { font-size: 0.68rem; opacity: 0.6; text-align: right; }
+    .as-tree-row.r-changed     .as-tree-name { color: var(--diag-fail); }
+    .as-tree-row.r-direct      .as-tree-name { color: var(--tier-next); }
+    .as-tree-row.r-transitive  .as-tree-name { color: var(--tier-vision); }
+    .as-tree-empty { font-size: 0.74rem; opacity: 0.5; padding: 0.4rem 0; }
+
+    /* Receipt strip below the stage */
+    .as-receipt {
+      margin-top: 1.25rem; padding: 1rem 1.25rem;
+      border: 1px solid; border-radius: 5px;
+      font-family: var(--font-mono); font-size: 0.76rem;
+      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem;
+    }
+    [data-mode="dark"] .as-receipt { border-color: var(--border-dark); background: var(--void-up2); }
+    [data-mode="light"] .as-receipt { border-color: var(--border-light); background: var(--warm-white); }
+    .as-receipt-cell { display: flex; flex-direction: column; gap: 0.2rem; }
+    .as-receipt-label {
+      font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; opacity: 0.55;
+    }
+    .as-receipt-value { font-weight: 500; }
+
+    @media (max-width: 880px) {
+      .as-stage { grid-template-columns: 1fr; }
+      .as-fanout { display: none; }
+      .as-tree { border-left: 0; border-top: 1px solid var(--border-dark); padding: 1.25rem; }
+      [data-mode="light"] .as-tree { border-top-color: var(--border-light); }
+      .as-receipt { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
+  <symbol id="stoic-idle" viewBox="0 0 120 120">
+    <path fill-rule="evenodd" fill="currentColor" d="
+      M40,20 H80 A30,30 0 0,1 110,50 V70 A30,30 0 0,1 80,100 H40 A30,30 0 0,1 10,70 V50 A30,30 0 0,1 40,20 Z
+      M35,40 A8,8 0 0,1 35,56 A8,8 0 0,1 35,40 Z
+      M85,40 A8,8 0 0,1 85,56 A8,8 0 0,1 85,40 Z
+      M54,54 H66 A2,2 0 0,1 68,56 V58 A2,2 0 0,1 66,60 H54 A2,2 0 0,1 52,58 V56 A2,2 0 0,1 54,54 Z
+    "/>
+  </symbol>
+</svg>
+
+<nav class="nav">
+  <a href="/" class="nav-left">
+    <svg class="nav-logo" viewBox="0 0 120 120"><use href="#stoic-idle"/></svg>
+    <span class="wordmark">daglang</span>
+  </a>
+  <div class="nav-right">
+    <div class="nav-links">
+      <a href="examples.html" class="nav-link">Examples</a>
+      <a href="/#roadmap" class="nav-link">Roadmap</a>
+      <a href="https://github.com/gunb-ai/daglang" class="nav-link">GitHub</a>
+    </div>
+    <button class="mode-toggle" id="mode-toggle" type="button" aria-label="Toggle light/dark mode">
+      <span class="indicator"></span>
+      <span id="mode-label-text">Dark</span>
+    </button>
+  </div>
+</nav>
+
+<main class="wrap" style="padding:3rem 0 5rem">
+  <p class="section-eyebrow">affected_set · v4 substrate primitive</p>
+  <h1 style="font-size:2rem;margin:0 0 0.6rem;letter-spacing:-0.02em">Change one line. See every downstream node light up.</h1>
+  <p class="muted as-intro">
+    The compiler's <code>affected_set</code> primitive walks the typed CoreNode graph from an edit site
+    outward, returning every node whose meaning could shift because of that edit. This is what powers
+    incremental rebuild, lens re-runs, and agent-native <code>apply_diff</code>: only the affected scope
+    has to be re-checked, and a typed diff that breaks anything downstream fails closed before it can
+    re-emit text. Pick a scenario — the red bar marks the edit, amber lines are direct callers,
+    blue lines are transitive.
+  </p>
+
+  <div class="as-scenarios" role="tablist" aria-label="Edit scenarios">
+    <button class="as-scenario" role="tab" data-scenario="condition" aria-selected="true">
+      Add <code>Refunded</code> variant to <code>Condition</code>
+    </button>
+    <button class="as-scenario" role="tab" data-scenario="temperature" aria-selected="false">
+      Change <code>Temperature</code> unit to Celsius
+    </button>
+    <button class="as-scenario" role="tab" data-scenario="lookup" aria-selected="false">
+      Make <code>lookupCustomer</code> a linear scan
+    </button>
+  </div>
+
+  <div class="as-stage">
+    <!-- ── Code column ── -->
+    <div class="as-code" id="as-code"><!-- populated by JS --></div>
+
+    <!-- ── Fan-out SVG ── -->
+    <svg class="as-fanout" id="as-fanout" viewBox="0 0 64 600" preserveAspectRatio="none" aria-hidden="true"></svg>
+
+    <!-- ── Affected tree ── -->
+    <div class="as-tree" id="as-tree"><!-- populated by JS --></div>
+  </div>
+
+  <div class="as-receipt" id="as-receipt">
+    <div class="as-receipt-cell">
+      <span class="as-receipt-label">edit site</span>
+      <span class="as-receipt-value" id="r-site">—</span>
+    </div>
+    <div class="as-receipt-cell">
+      <span class="as-receipt-label">affected set · size</span>
+      <span class="as-receipt-value" id="r-size">—</span>
+    </div>
+    <div class="as-receipt-cell">
+      <span class="as-receipt-label">lenses to re-run</span>
+      <span class="as-receipt-value" id="r-lenses">—</span>
+    </div>
+    <div class="as-receipt-cell">
+      <span class="as-receipt-label">gate result</span>
+      <span class="as-receipt-value" id="r-gate">—</span>
+    </div>
+  </div>
+
+  <p class="muted" style="margin-top:1.5rem;font-size:0.78rem">
+    Compute is local: the scenarios are precomputed for clarity, but real <code>affected_set(root, { at })</code>
+    in v4 returns the dependency closure of the edit Path against the typed graph — not a textual grep, and
+    not a whole-program rebuild. Combined with sequential <code>apply_diff</code> and candidate-state gating,
+    an agent's structural patch either passes the same lenses a human edit would, or fails closed before any
+    file on disk changes.
+  </p>
+
+  <p style="margin-top:2rem;display:flex;gap:0.6rem;flex-wrap:wrap">
+    <a href="examples.html#agent" class="hero-cta-secondary">← Agent-native editing</a>
+    <a href="examples.html#complexity" class="hero-cta-secondary">Complexity playground</a>
+    <a href="/" class="hero-cta-secondary">Home</a>
+  </p>
+</main>
+
+<footer class="footer">
+  <p>Built by <a href="https://gunb.ai">Gunb.ai</a> · <a href="https://github.com/gunb-ai/daglang">gunb-ai/daglang</a></p>
+</footer>
+
+<script src="site.js"></script>
+<script>
+/* ─── Affected-set scenarios ───────────────────────────
+ * Each scenario uses the same weather.dag-style source. We label lines by index
+ * (1-based) and precompute which lines are the edit site, direct callers, or
+ * transitive callers. Real affected_set(root, { at }) does this from the typed
+ * CoreNode graph; here we ship it as data so the visual story is clear.
+ * ─────────────────────────────────────────────────────── */
+(function () {
+  var SOURCE = [
+    "module examples.weather",                                       // 1
+    "",                                                              // 2
+    "type Temperature {",                                            // 3
+    "  fahrenheit: Float",                                           // 4
+    "}",                                                             // 5
+    "",                                                              // 6
+    "type Condition",                                                // 7
+    "  = Sunny",                                                     // 8
+    "  | Cloudy",                                                    // 9
+    "  | Rainy  { mm_per_hour: Float }",                             // 10
+    "  | Snowy  { cm_per_hour: Float }",                             // 11
+    "",                                                              // 12
+    "type Forecast {",                                               // 13
+    "  location:  String",                                           // 14
+    "  high:      Temperature",                                      // 15
+    "  low:       Temperature",                                      // 16
+    "  condition: Condition",                                        // 17
+    "}",                                                             // 18
+    "",                                                              // 19
+    "fn is_freezing(temp: Temperature) -> Bool {",                   // 20
+    "  temp.fahrenheit < 32.0",                                      // 21
+    "}",                                                             // 22
+    "",                                                              // 23
+    "fn to_fahrenheit(temp: Temperature) -> Float {",                // 24
+    "  temp.fahrenheit",                                             // 25
+    "}",                                                             // 26
+    "",                                                              // 27
+    "fn describe_condition(cond: Condition) -> String {",            // 28
+    "  match cond {",                                                // 29
+    "    Sunny  => \"clear skies\"",                                 // 30
+    "    Cloudy => \"overcast\"",                                    // 31
+    "    Rainy  { mm_per_hour: r } =>",                              // 32
+    "      if r > 10.0 { \"heavy rain\" } else { \"light rain\" }",  // 33
+    "    Snowy  { cm_per_hour: _ } => \"snowfall\"",                 // 34
+    "  }",                                                           // 35
+    "}",                                                             // 36
+    "",                                                              // 37
+    "fn freezing_locations(forecasts: List<Forecast>) -> List<String> {", // 38
+    "  forecasts",                                                   // 39
+    "    |> filter(f => is_freezing(temp: f.low))",                  // 40
+    "    |> map(f => f.location)",                                   // 41
+    "}",                                                             // 42
+    "",                                                              // 43
+    "fn daily_summary(forecast: Forecast) -> String {",              // 44
+    "  let high_f = to_fahrenheit(temp: forecast.high)",             // 45
+    "  let desc   = describe_condition(cond: forecast.condition)",   // 46
+    "  concat(forecast.location, \": \", desc, \", high \",",        // 47
+    "         to_string(value: high_f), \"°F\")",                    // 48
+    "}",                                                             // 49
+  ];
+
+  // Lines that begin a function header (used purely for spacing).
+  var FN_HEADS = [20, 24, 28, 38, 44];
+
+  var SCENARIOS = {
+    condition: {
+      site: { line: 7, label: "type Condition (add Refunded variant)" },
+      direct: [
+        { line: 29, name: "describe_condition · match cond", note: "+1 arm" },
+      ],
+      transitive: [
+        { line: 46, name: "daily_summary · uses describe_condition", note: "re-typecheck" },
+      ],
+      lenses: ["exhaustiveness", "type-check"],
+      gate: { ok: true, label: "fails closed until match arm added · then PASS" },
+    },
+    temperature: {
+      site: { line: 3, label: "type Temperature (swap unit to Celsius)" },
+      direct: [
+        { line: 20, name: "is_freezing · reads temp.fahrenheit", note: "field rename" },
+        { line: 24, name: "to_fahrenheit · returns temp.fahrenheit", note: "field rename" },
+      ],
+      transitive: [
+        { line: 40, name: "freezing_locations · calls is_freezing", note: "re-typecheck" },
+        { line: 45, name: "daily_summary · calls to_fahrenheit", note: "re-typecheck" },
+        { line: 47, name: "daily_summary · interpolates high_f", note: "re-typecheck" },
+      ],
+      lenses: ["type-check", "complexity", "effects"],
+      gate: { ok: false, label: "FAIL · is_freezing still compares to 32.0 (now °C)" },
+    },
+    lookup: {
+      // Reuse the freezing_locations / map / filter chain as the analog: switching
+      // `filter` from a structural pass to a linear scan (illustrative — same
+      // O(n) → O(n²) story as lookupCustomer in the complexity demo).
+      site: { line: 40, label: "filter(...) — switch indexed lookup → linear scan" },
+      direct: [
+        { line: 38, name: "freezing_locations · body", note: "complexity changes" },
+      ],
+      transitive: [
+        { line: 46, name: "daily_summary · indirect via describe", note: "no callers of freezing_locations here, but the lens marks the path" },
+      ],
+      lenses: ["complexity"],
+      gate: { ok: false, label: "FAIL · complexity(freezing_locations) O(n) → O(n²)" },
+    },
+  };
+
+  var codeEl = document.getElementById("as-code");
+  var treeEl = document.getElementById("as-tree");
+  var fanoutEl = document.getElementById("as-fanout");
+  var scenarioBtns = document.querySelectorAll(".as-scenario");
+
+  function escapeHtml(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function renderCode() {
+    var html = "";
+    SOURCE.forEach(function (src, i) {
+      var lineNo = i + 1;
+      var isHead = FN_HEADS.indexOf(lineNo) !== -1 ? " is-fn-head" : "";
+      html += '<div class="as-line' + isHead + '" data-line="' + lineNo + '">' +
+        '<span class="as-gutter">●</span>' +
+        '<span class="as-no">' + lineNo + '</span>' +
+        '<span class="as-src">' + (escapeHtml(src) || "&nbsp;") + '</span>' +
+        '</div>';
+    });
+    codeEl.innerHTML = html;
+  }
+
+  function classifyLines(s) {
+    var map = {};
+    map[s.site.line] = "is-changed";
+    s.direct.forEach(function (d) { map[d.line] = "is-direct"; });
+    s.transitive.forEach(function (t) {
+      if (!map[t.line]) map[t.line] = "is-transitive";
+    });
+    return map;
+  }
+
+  function renderTree(s) {
+    var html = "<h3>affected_set · " + (1 + s.direct.length + s.transitive.length) + " nodes</h3>";
+    html += '<div class="as-tree-row r-changed">' +
+      '<span class="as-tree-marker">●</span>' +
+      '<span class="as-tree-name">' + escapeHtml(s.site.label) + '</span>' +
+      '<span class="as-tree-line">L' + s.site.line + '</span>' +
+      '</div>';
+    s.direct.forEach(function (d) {
+      html += '<div class="as-tree-row r-direct">' +
+        '<span class="as-tree-marker">◐</span>' +
+        '<span class="as-tree-name">' + escapeHtml(d.name) +
+          ' <small style="opacity:0.7">' + escapeHtml(d.note || "") + '</small></span>' +
+        '<span class="as-tree-line">L' + d.line + '</span>' +
+        '</div>';
+    });
+    s.transitive.forEach(function (t) {
+      html += '<div class="as-tree-row r-transitive">' +
+        '<span class="as-tree-marker">○</span>' +
+        '<span class="as-tree-name">' + escapeHtml(t.name) +
+          ' <small style="opacity:0.7">' + escapeHtml(t.note || "") + '</small></span>' +
+        '<span class="as-tree-line">L' + t.line + '</span>' +
+        '</div>';
+    });
+    if (s.direct.length === 0 && s.transitive.length === 0) {
+      html += '<div class="as-tree-empty">No downstream nodes affected.</div>';
+    }
+    treeEl.innerHTML = html;
+  }
+
+  function renderFanout(s) {
+    // Compute y centers for each line relative to the code container.
+    var codeBox = codeEl.getBoundingClientRect();
+    var siteEl = codeEl.querySelector('[data-line="' + s.site.line + '"]');
+    if (!siteEl) { fanoutEl.innerHTML = ""; return; }
+    var siteY = siteEl.getBoundingClientRect().top - codeBox.top + siteEl.offsetHeight / 2;
+
+    var fanH = codeBox.height;
+    fanoutEl.setAttribute("viewBox", "0 0 64 " + fanH);
+    fanoutEl.style.height = fanH + "px";
+
+    var svgParts = [
+      // origin dot at the changed line
+      '<circle class="dot-changed" cx="2" cy="' + siteY + '" />',
+    ];
+
+    function addEdge(targetLine, kind) {
+      var tEl = codeEl.querySelector('[data-line="' + targetLine + '"]');
+      if (!tEl) return;
+      var tY = tEl.getBoundingClientRect().top - codeBox.top + tEl.offsetHeight / 2;
+      var midX = 36;
+      // curved bezier from (2, siteY) to (62, tY)
+      var d = "M2," + siteY +
+              " C" + midX + "," + siteY +
+              " " + midX + "," + tY +
+              " 62," + tY;
+      svgParts.push('<path class="e-' + kind + '" d="' + d + '" />');
+      svgParts.push('<circle class="dot-' + kind + '" cx="62" cy="' + tY + '" />');
+    }
+
+    s.direct.forEach(function (d)  { addEdge(d.line, "direct"); });
+    s.transitive.forEach(function (t) { addEdge(t.line, "transitive"); });
+
+    fanoutEl.innerHTML = svgParts.join("");
+  }
+
+  function renderReceipt(s) {
+    document.getElementById("r-site").textContent = "L" + s.site.line + " · " + s.site.label;
+    document.getElementById("r-size").textContent =
+      (1 + s.direct.length + s.transitive.length) +
+      " (1 changed · " + s.direct.length + " direct · " + s.transitive.length + " transitive)";
+    document.getElementById("r-lenses").textContent = s.lenses.join(" · ");
+    var gate = document.getElementById("r-gate");
+    gate.textContent = s.gate.label;
+    gate.style.color = s.gate.ok ? "var(--tier-now)" : "var(--diag-fail)";
+  }
+
+  function applyScenario(id) {
+    var s = SCENARIOS[id];
+    if (!s) return;
+
+    var lineMap = classifyLines(s);
+    codeEl.querySelectorAll(".as-line").forEach(function (row) {
+      row.classList.remove("is-changed", "is-direct", "is-transitive");
+      var ln = parseInt(row.getAttribute("data-line"), 10);
+      if (lineMap[ln]) row.classList.add(lineMap[ln]);
+    });
+
+    renderTree(s);
+    renderReceipt(s);
+    // Wait one frame so the line-class restyling settles before measuring.
+    requestAnimationFrame(function () { renderFanout(s); });
+
+    scenarioBtns.forEach(function (b) {
+      b.setAttribute("aria-selected", b.getAttribute("data-scenario") === id ? "true" : "false");
+    });
+  }
+
+  scenarioBtns.forEach(function (b) {
+    b.addEventListener("click", function () {
+      applyScenario(b.getAttribute("data-scenario"));
+    });
+  });
+
+  window.addEventListener("resize", function () {
+    var current = document.querySelector('.as-scenario[aria-selected="true"]');
+    if (current) applyScenario(current.getAttribute("data-scenario"));
+  });
+
+  renderCode();
+  applyScenario("condition");
+})();
+</script>
+</body>
+</html>
