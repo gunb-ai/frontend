@@ -46,10 +46,12 @@
     .as-legend .lg-transitive { background: var(--tier-vision); }
     .as-legend .lg-skipped    { background: var(--stone-faint); }
 
-    /* Three-column stage: code | fanout svg | affected tree */
+    /* Three-column stage: fanout gutter | source code | affected tree.
+       Curves hang off the LEFT of the code (like a margin annotation),
+       so dot endpoints land flush against the highlighted lines' left borders. */
     .as-stage {
       display: grid;
-      grid-template-columns: minmax(0, 1.25fr) 96px minmax(17rem, 0.9fr);
+      grid-template-columns: 96px minmax(0, 1.25fr) minmax(17rem, 0.9fr);
       gap: 0; align-items: stretch;
       border: 1px solid; border-radius: 6px; overflow: hidden;
     }
@@ -62,7 +64,7 @@
     }
     .as-code { padding-right: 0.5rem; padding-left: 0; min-width: 0; overflow-x: auto; }
     .as-tree {
-      padding-left: 0.5rem; padding-right: 1.25rem;
+      padding-left: 1rem; padding-right: 1.25rem;
       border-left: 1px solid;
     }
     [data-mode="dark"] .as-tree { border-left-color: var(--border-dark); }
@@ -118,7 +120,10 @@
       margin-top: 0.45rem;
     }
 
-    /* Fan-out SVG column */
+    /* Fan-out SVG column — sits to the left of the code; curves bulge into it.
+       Dash properties are set per-path in JS via getTotalLength() so the
+       draw-in animation doesn't break mid-curve when the path is longer
+       than a fixed CSS dasharray. */
     .as-fanout {
       width: 96px;
       align-self: stretch;
@@ -127,21 +132,15 @@
     .as-fanout path {
       fill: none; stroke-width: 1.5; opacity: 0.85;
       stroke-linecap: round;
-      stroke-dasharray: 320; stroke-dashoffset: 320;
-      animation: as-edge-draw 0.65s ease forwards;
     }
     .as-fanout path.e-direct { stroke: var(--tier-next); }
     .as-fanout path.e-transitive { stroke: var(--tier-vision); opacity: 0.75; }
     .as-fanout circle.dot-changed     { fill: var(--diag-fail); }
     .as-fanout circle.dot-direct      { fill: var(--tier-next); }
     .as-fanout circle.dot-transitive  { fill: var(--tier-vision); }
-    .as-fanout circle.dot-changed     { r: 3.6; }
-    .as-fanout circle.dot-direct      { r: 3.0; }
-    .as-fanout circle.dot-transitive  { r: 3.0; }
 
-    @keyframes as-edge-draw { to { stroke-dashoffset: 0; } }
     @media (prefers-reduced-motion: reduce) {
-      .as-fanout path { animation: none !important; stroke-dashoffset: 0 !important; }
+      .as-fanout path { transition: none !important; stroke-dashoffset: 0 !important; }
     }
 
     /* Tree */
@@ -260,11 +259,11 @@
   </div>
 
   <div class="as-stage">
+    <!-- ── Fan-out gutter — left margin of the code, curves bulge inward ── -->
+    <svg class="as-fanout" id="as-fanout" aria-hidden="true"></svg>
+
     <!-- ── Code column ── -->
     <div class="as-code" id="as-code"><!-- populated by JS --></div>
-
-    <!-- ── Fan-out SVG (viewBox computed from rendered size — coords are 1:1 with pixels) ── -->
-    <svg class="as-fanout" id="as-fanout" aria-hidden="true"></svg>
 
     <!-- ── Affected tree ── -->
     <div class="as-tree" id="as-tree"><!-- populated by JS --></div>
