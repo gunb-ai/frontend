@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>gunb.ai · workpad · primitives + concepts</title>
-  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=stoic-black-face" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -608,35 +608,33 @@
       background: var(--void);
       border: 1px solid var(--border-dark);
       border-radius: 4px;
-      padding: 0.85rem 1rem;
+      padding: 0.85rem 1rem 0.95rem;
     }
-    .lesson-code > summary {
-      font-family: var(--font-mono); font-size: 0.6rem;
-      letter-spacing: 0.18em; text-transform: uppercase;
+    .lesson-code-head {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-family: var(--font-mono); font-size: 0.58rem;
+      letter-spacing: 0.16em; text-transform: uppercase;
       color: var(--stone-faint);
-      cursor: pointer; user-select: none;
-      list-style: none;
-      display: flex; align-items: center; gap: 0.45rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px dashed var(--border-dark);
+      margin-bottom: 0.65rem;
     }
-    .lesson-code > summary::-webkit-details-marker { display: none; }
-    .lesson-code > summary::before {
-      content: "▸";
+    .lesson-code-head::before {
+      content: "●";
       color: var(--moss);
-      font-family: var(--font-mono);
-      font-size: 0.7rem;
-      transition: transform 0.12s ease;
+      font-size: 0.55rem;
+      vertical-align: 1px;
     }
-    .lesson-code[open] > summary::before { content: "▾"; }
-    .lesson-code > summary .src-name {
+    .lesson-code-head .src-name {
       color: var(--warm-white-dim);
       letter-spacing: 0.04em; text-transform: none;
-      font-size: 0.65rem;
+      font-size: 0.66rem;
     }
     .lesson-code pre {
       font-family: var(--font-mono); font-size: 0.74rem;
       line-height: 1.7;
       color: var(--warm-white-dim);
-      margin: 0.75rem 0 0;
+      margin: 0;
       padding: 0;
       white-space: pre;
       overflow-x: auto;
@@ -1430,14 +1428,14 @@ diagnostics: 0</div></div>
               <line x1="98" y1="92" x2="156" y2="92" stroke-opacity="0.3"/>
             </svg>
           </div>
-          <details class="lesson-code">
-            <summary><span class="src-name">examples/weather.dag</span></summary>
+          <div class="lesson-code">
+            <div class="lesson-code-head"><span class="src-name">examples/weather.dag</span></div>
 <pre><span class="com">-- a primitive: declare a variant type</span>
 <span class="kw">type</span> <span class="ty">Condition</span> =
   | <span class="ty">Sunny</span>
   | <span class="ty">Cloudy</span>
   | <span class="ty">Rainy</span></pre>
-          </details>
+          </div>
         </div>
         <p class="lesson-desc">
           The declaration creates one node in the graph: <code>Condition</code>. Inside the node lives the variant structure — three options that any reader of <code>Condition</code> will have to handle. The graph knows about the node and its shape. It doesn't yet know what to do with it.
@@ -1463,13 +1461,13 @@ diagnostics: 0</div></div>
               <rect x="150" y="94" width="80" height="28" rx="4"/>
             </svg>
           </div>
-          <details class="lesson-code">
-            <summary><span class="src-name">examples/weather.dag</span></summary>
+          <div class="lesson-code">
+            <div class="lesson-code-head"><span class="src-name">examples/weather.dag</span></div>
 <pre><span class="com">-- relate two nodes by referencing them</span>
 <span class="kw">record</span> <span class="ty">Observation</span> =
   condition   : <span class="ty">Condition</span>
   temperature : <span class="ty">Celsius</span></pre>
-          </details>
+          </div>
         </div>
         <p class="lesson-desc">
           <code>Observation</code> introduces a new node and two edges — one to <code>Condition</code>, one to <code>Celsius</code>. The edges aren't decorations; they're <strong>structural dependencies</strong>. Anything that reads <code>Observation</code> must reach the two referenced nodes. The dependency is now part of the graph, not folklore.
@@ -1506,15 +1504,15 @@ diagnostics: 0</div></div>
               <rect x="170" y="56" width="56" height="28" rx="4"/>
             </svg>
           </div>
-          <details class="lesson-code">
-            <summary><span class="src-name">examples/weather.dag</span></summary>
+          <div class="lesson-code">
+            <div class="lesson-code-head"><span class="src-name">examples/weather.dag</span></div>
 <pre><span class="com">-- name a result for every variant</span>
 <span class="kw">let</span> describe : <span class="ty">Condition</span> -> <span class="ty">String</span> =
   <span class="kw">fold</span>
     | <span class="ty">Sunny</span>  -> <span class="lit">"clear"</span>
     | <span class="ty">Cloudy</span> -> <span class="lit">"overcast"</span>
     | <span class="ty">Rainy</span>  -> <span class="lit">"wet"</span></pre>
-          </details>
+          </div>
         </div>
         <p class="lesson-desc">
           A fold reads the node by handling every variant. The bracket is the compiler's promise: <strong>every case will be named</strong>. The result of the fold becomes a new node in the graph — <code>describe</code> — that other nodes can reference. Composition continues.
@@ -1542,14 +1540,14 @@ diagnostics: 0</div></div>
               <path d="M120,102 L200,102 L214,116 L214,126 L120,126 Z"/>
             </svg>
           </div>
-          <details class="lesson-code">
-            <summary><span class="src-name">examples/weather.dag</span></summary>
+          <div class="lesson-code">
+            <div class="lesson-code-head"><span class="src-name">examples/weather.dag</span></div>
 <pre><span class="com">-- derive target artifacts from the same node</span>
 <span class="kw">project</span> <span class="ty">Observation</span> -> <span class="lit">rust</span>
 <span class="kw">project</span> <span class="ty">Observation</span> -> <span class="lit">typescript</span>
 <span class="kw">project</span> <span class="ty">Observation</span> -> <span class="lit">openapi</span>
 <span class="kw">project</span> <span class="ty">Observation</span> -> <span class="lit">tests</span></pre>
-          </details>
+          </div>
         </div>
         <p class="lesson-desc">
           A projection is a structure-preserving translation. The same <code>Observation</code> node becomes a Rust struct, a TypeScript type, an OpenAPI schema, an exhaustive test set. <strong>Every artifact is consistent with every other artifact</strong> because every artifact reads the same source. This is where the system feels different from hand-written glue.
@@ -1586,8 +1584,8 @@ diagnostics: 0</div></div>
               <rect x="176" y="56" width="56" height="28" rx="4" stroke-opacity="0.32" stroke-dasharray="3 3"/>
             </svg>
           </div>
-          <details class="lesson-code">
-            <summary><span class="src-name">examples/weather.dag</span></summary>
+          <div class="lesson-code">
+            <div class="lesson-code-head"><span class="src-name">examples/weather.dag</span></div>
 <pre><span class="kw">let</span> describe : <span class="ty">Condition</span> -> <span class="ty">String</span> =
   <span class="kw">fold</span>
     | <span class="ty">Sunny</span>  -> <span class="lit">"clear"</span>
@@ -1598,7 +1596,7 @@ diagnostics: 0</div></div>
   match on <span class="ty">Condition</span> is not exhaustive
   missing: <span class="ty">Rainy</span>
   result:  no artifact emitted</pre>
-          </details>
+          </div>
         </div>
         <p class="lesson-desc">
           The third variant never appears in the fold. The compiler reaches the missing case at typecheck time, not at runtime. No Rust struct, no TypeScript type, no test is emitted past this boundary — <strong>the compiler refuses to guess</strong>. The clay wall is the visible form of fail-closed.
@@ -1632,8 +1630,8 @@ diagnostics: 0</div></div>
               <path d="M232,8 L236,8 L236,132 L232,132" stroke="var(--moss-dim)" stroke-width="2"/>
             </svg>
           </div>
-          <details class="lesson-code">
-            <summary><span class="src-name">examples/weather.dag</span></summary>
+          <div class="lesson-code">
+            <div class="lesson-code-head"><span class="src-name">examples/weather.dag</span></div>
 <pre><span class="com">-- a rule that composes the previous lessons</span>
 <span class="kw">service</span> <span class="ty">WeatherStation</span> =
   read    : () -> <span class="ty">Observation</span>
@@ -1647,7 +1645,7 @@ diagnostics: 0</div></div>
 <span class="com">--   Observation projects to rust AND openapi</span>
 <span class="com">--   List&lt;Observation&gt; projects to rust AND openapi</span>
 <span class="com">--   every fold on Condition is exhaustive</span></pre>
-          </details>
+          </div>
         </div>
         <p class="lesson-desc">
           Projecting a service quietly propagates a constraint over every node it reaches. <strong>The rule isn't written; it's structural.</strong> Anything reachable from the projected node has to project too. Add a target later (say, TypeScript), and the same closure decides whether the rule still holds or whether you've discovered an unmodeled corner. Rules don't accumulate as comments — they accumulate as graph edges.
