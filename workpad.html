@@ -1394,7 +1394,270 @@ diagnostics: 0</div></div>
     </div>
   </section>
 
-__TUTORIAL_PLACEHOLDER__
+  <!-- ═══════════════════════ LESSONS ═══════════════════════ -->
+
+  <section class="pad-section" id="example">
+    <span class="pad-section-label">lessons · 14</span>
+    <h2 class="pad-section-title">From primitive concept to composition of rules</h2>
+    <p class="pad-section-note">
+      Six lessons. The <strong>source</strong> is canonical — real <code>.dag</code> code, expandable per card. The <strong>visualization</strong> is downstream — the SVG shows what the code produces in the graph. SVG carries intuition; code carries truth. Each lesson builds on the previous one, ending where rules (constraints) start to compose.
+    </p>
+
+    <!-- ─── Movement 1 — Atoms ─── -->
+    <div class="tut-movement">
+      <span class="tut-movement-eyebrow">movement 1 · atoms</span>
+      <h3 class="tut-movement-title">A declaration introduces a node</h3>
+      <p class="tut-story">
+        Everything starts with a declaration. A type with three variants creates a <strong>node</strong> with three internal options. Two declarations referencing each other create an <strong>edge</strong>. The graph grows one declaration at a time.
+      </p>
+
+      <!-- Lesson 01 — Node -->
+      <article class="lesson">
+        <div class="lesson-head">
+          <span class="lesson-num">01</span>
+          <span class="lesson-name">Node</span>
+          <span class="lesson-formal">vertex · variant type</span>
+        </div>
+        <div class="lesson-body">
+          <div class="lesson-vis">
+            <svg viewBox="0 0 240 140" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <rect x="60" y="22" width="120" height="96" rx="6"/>
+              <circle cx="84"  cy="48" r="3" fill="currentColor" stroke="none"/>
+              <circle cx="84"  cy="70" r="3" fill="currentColor" stroke="none"/>
+              <circle cx="84"  cy="92" r="3" fill="currentColor" stroke="none"/>
+              <line x1="98" y1="48" x2="156" y2="48" stroke-opacity="0.3"/>
+              <line x1="98" y1="70" x2="156" y2="70" stroke-opacity="0.3"/>
+              <line x1="98" y1="92" x2="156" y2="92" stroke-opacity="0.3"/>
+            </svg>
+          </div>
+          <details class="lesson-code">
+            <summary><span class="src-name">examples/weather.dag</span></summary>
+<pre><span class="com">-- a primitive: declare a variant type</span>
+<span class="kw">type</span> <span class="ty">Condition</span> =
+  | <span class="ty">Sunny</span>
+  | <span class="ty">Cloudy</span>
+  | <span class="ty">Rainy</span></pre>
+          </details>
+        </div>
+        <p class="lesson-desc">
+          The declaration creates one node in the graph: <code>Condition</code>. Inside the node lives the variant structure — three options that any reader of <code>Condition</code> will have to handle. The graph knows about the node and its shape. It doesn't yet know what to do with it.
+        </p>
+      </article>
+
+      <!-- Lesson 02 — Edge -->
+      <article class="lesson">
+        <div class="lesson-head">
+          <span class="lesson-num">02</span>
+          <span class="lesson-name">Edge</span>
+          <span class="lesson-formal">directed reference</span>
+        </div>
+        <div class="lesson-body">
+          <div class="lesson-vis">
+            <svg viewBox="0 0 240 140" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <rect x="10" y="56" width="80" height="28" rx="4"/>
+              <line x1="90" y1="62" x2="148" y2="32" stroke-linecap="round"/>
+              <polyline points="142,28 148,32 142,36" fill="none"/>
+              <line x1="90" y1="78" x2="148" y2="108" stroke-linecap="round"/>
+              <polyline points="142,104 148,108 142,112" fill="none"/>
+              <rect x="150" y="18" width="80" height="28" rx="4"/>
+              <rect x="150" y="94" width="80" height="28" rx="4"/>
+            </svg>
+          </div>
+          <details class="lesson-code">
+            <summary><span class="src-name">examples/weather.dag</span></summary>
+<pre><span class="com">-- relate two nodes by referencing them</span>
+<span class="kw">record</span> <span class="ty">Observation</span> =
+  condition   : <span class="ty">Condition</span>
+  temperature : <span class="ty">Celsius</span></pre>
+          </details>
+        </div>
+        <p class="lesson-desc">
+          <code>Observation</code> introduces a new node and two edges — one to <code>Condition</code>, one to <code>Celsius</code>. The edges aren't decorations; they're <strong>structural dependencies</strong>. Anything that reads <code>Observation</code> must reach the two referenced nodes. The dependency is now part of the graph, not folklore.
+        </p>
+      </article>
+    </div>
+
+    <!-- ─── Movement 2 — Composition ─── -->
+    <div class="tut-movement">
+      <span class="tut-movement-eyebrow">movement 2 · composition</span>
+      <h3 class="tut-movement-title">Folds read the structure; projections derive from it</h3>
+      <p class="tut-story">
+        Once the structure exists, the compiler can <strong>read it</strong>. A fold names a result for every variant; a projection maps that reading into a target language. The same graph becomes Rust, TypeScript, OpenAPI — every artifact stays consistent because every artifact comes from the same source.
+      </p>
+
+      <!-- Lesson 03 — Fold -->
+      <article class="lesson">
+        <div class="lesson-head">
+          <span class="lesson-num">03</span>
+          <span class="lesson-name">Fold</span>
+          <span class="lesson-formal">catamorphism</span>
+        </div>
+        <div class="lesson-body">
+          <div class="lesson-vis">
+            <svg viewBox="0 0 240 140" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <path d="M40,24 L30,24 L30,116 L40,116"/>
+              <path d="M134,24 L144,24 L144,116 L134,116"/>
+              <rect x="50" y="32" width="74" height="20" rx="4"/>
+              <rect x="50" y="60" width="74" height="20" rx="4"/>
+              <rect x="50" y="88" width="74" height="20" rx="4"/>
+              <line x1="124" y1="42" x2="170" y2="70" stroke-opacity="0.55"/>
+              <line x1="124" y1="70" x2="170" y2="70" stroke-opacity="0.55"/>
+              <line x1="124" y1="98" x2="170" y2="70" stroke-opacity="0.55"/>
+              <rect x="170" y="56" width="56" height="28" rx="4"/>
+            </svg>
+          </div>
+          <details class="lesson-code">
+            <summary><span class="src-name">examples/weather.dag</span></summary>
+<pre><span class="com">-- name a result for every variant</span>
+<span class="kw">let</span> describe : <span class="ty">Condition</span> -> <span class="ty">String</span> =
+  <span class="kw">fold</span>
+    | <span class="ty">Sunny</span>  -> <span class="lit">"clear"</span>
+    | <span class="ty">Cloudy</span> -> <span class="lit">"overcast"</span>
+    | <span class="ty">Rainy</span>  -> <span class="lit">"wet"</span></pre>
+          </details>
+        </div>
+        <p class="lesson-desc">
+          A fold reads the node by handling every variant. The bracket is the compiler's promise: <strong>every case will be named</strong>. The result of the fold becomes a new node in the graph — <code>describe</code> — that other nodes can reference. Composition continues.
+        </p>
+      </article>
+
+      <!-- Lesson 04 — Projection -->
+      <article class="lesson">
+        <div class="lesson-head">
+          <span class="lesson-num">04</span>
+          <span class="lesson-name">Projection</span>
+          <span class="lesson-formal">structure-preserving map</span>
+        </div>
+        <div class="lesson-body">
+          <div class="lesson-vis">
+            <svg viewBox="0 0 240 140" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <rect x="14" y="56" width="60" height="28" rx="4"/>
+              <line x1="74" y1="70" x2="120" y2="28" stroke-linecap="round"/>
+              <line x1="74" y1="70" x2="120" y2="56" stroke-linecap="round"/>
+              <line x1="74" y1="70" x2="120" y2="84" stroke-linecap="round"/>
+              <line x1="74" y1="70" x2="120" y2="112" stroke-linecap="round"/>
+              <path d="M120,18 L200,18 L214,32 L214,42 L120,42 Z"/>
+              <path d="M120,46 L200,46 L214,60 L214,70 L120,70 Z"/>
+              <path d="M120,74 L200,74 L214,88 L214,98 L120,98 Z"/>
+              <path d="M120,102 L200,102 L214,116 L214,126 L120,126 Z"/>
+            </svg>
+          </div>
+          <details class="lesson-code">
+            <summary><span class="src-name">examples/weather.dag</span></summary>
+<pre><span class="com">-- derive target artifacts from the same node</span>
+<span class="kw">project</span> <span class="ty">Observation</span> -> <span class="lit">rust</span>
+<span class="kw">project</span> <span class="ty">Observation</span> -> <span class="lit">typescript</span>
+<span class="kw">project</span> <span class="ty">Observation</span> -> <span class="lit">openapi</span>
+<span class="kw">project</span> <span class="ty">Observation</span> -> <span class="lit">tests</span></pre>
+          </details>
+        </div>
+        <p class="lesson-desc">
+          A projection is a structure-preserving translation. The same <code>Observation</code> node becomes a Rust struct, a TypeScript type, an OpenAPI schema, an exhaustive test set. <strong>Every artifact is consistent with every other artifact</strong> because every artifact reads the same source. This is where the system feels different from hand-written glue.
+        </p>
+      </article>
+    </div>
+
+    <!-- ─── Movement 3 — Rules ─── -->
+    <div class="tut-movement">
+      <span class="tut-movement-eyebrow">movement 3 · rules</span>
+      <h3 class="tut-movement-title">Rules compose; the compiler refuses to guess</h3>
+      <p class="tut-story">
+        Rules are not annotations. They're <strong>compositions of fold + projection</strong> that the compiler can check. If a fold misses a variant, no artifact emits. If a service is projected, every node it reaches inherits the projection requirement. These behaviors don't have to be added — they fall out of structure being load-bearing.
+      </p>
+
+      <!-- Lesson 05 — Boundary -->
+      <article class="lesson">
+        <div class="lesson-head">
+          <span class="lesson-num">05</span>
+          <span class="lesson-name">Boundary</span>
+          <span class="lesson-formal">fails closed</span>
+        </div>
+        <div class="lesson-body">
+          <div class="lesson-vis">
+            <svg viewBox="0 0 240 140" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <path d="M40,24 L30,24 L30,116 L40,116"/>
+              <path d="M134,24 L144,24 L144,116 L134,116"/>
+              <rect x="50" y="32" width="74" height="20" rx="4"/>
+              <rect x="50" y="60" width="74" height="20" rx="4"/>
+              <rect x="50" y="88" width="74" height="20" rx="4" stroke="var(--clay)" stroke-dasharray="4 3"/>
+              <line x1="124" y1="42" x2="160" y2="70" stroke-opacity="0.55"/>
+              <line x1="124" y1="70" x2="160" y2="70" stroke-opacity="0.55"/>
+              <line x1="160" y1="14" x2="160" y2="126" stroke="var(--clay)" stroke-dasharray="5 4"/>
+              <rect x="176" y="56" width="56" height="28" rx="4" stroke-opacity="0.32" stroke-dasharray="3 3"/>
+            </svg>
+          </div>
+          <details class="lesson-code">
+            <summary><span class="src-name">examples/weather.dag</span></summary>
+<pre><span class="kw">let</span> describe : <span class="ty">Condition</span> -> <span class="ty">String</span> =
+  <span class="kw">fold</span>
+    | <span class="ty">Sunny</span>  -> <span class="lit">"clear"</span>
+    | <span class="ty">Cloudy</span> -> <span class="lit">"overcast"</span>
+    <span class="com">-- Rainy missing</span>
+
+<span class="err">Invariant —</span>
+  match on <span class="ty">Condition</span> is not exhaustive
+  missing: <span class="ty">Rainy</span>
+  result:  no artifact emitted</pre>
+          </details>
+        </div>
+        <p class="lesson-desc">
+          The third variant never appears in the fold. The compiler reaches the missing case at typecheck time, not at runtime. No Rust struct, no TypeScript type, no test is emitted past this boundary — <strong>the compiler refuses to guess</strong>. The clay wall is the visible form of fail-closed.
+        </p>
+      </article>
+
+      <!-- Lesson 06 — Composition of rules -->
+      <article class="lesson">
+        <div class="lesson-head">
+          <span class="lesson-num">06</span>
+          <span class="lesson-name">Composition of rules</span>
+          <span class="lesson-formal">constraint propagation</span>
+        </div>
+        <div class="lesson-body">
+          <div class="lesson-vis">
+            <svg viewBox="0 0 240 140" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <rect x="14" y="20" width="64" height="22" rx="4"/>
+              <rect x="14" y="58" width="64" height="22" rx="4"/>
+              <rect x="14" y="96" width="64" height="22" rx="4"/>
+              <line x1="78" y1="30" x2="106" y2="70"/>
+              <line x1="78" y1="70" x2="106" y2="70"/>
+              <line x1="78" y1="106" x2="106" y2="70"/>
+              <rect x="106" y="56" width="44" height="28" rx="4"/>
+              <line x1="150" y1="70" x2="178" y2="36"/>
+              <line x1="150" y1="70" x2="178" y2="70"/>
+              <line x1="150" y1="70" x2="178" y2="104"/>
+              <path d="M178,26 L216,26 L226,36 L226,46 L178,46 Z"/>
+              <path d="M178,60 L216,60 L226,70 L226,80 L178,80 Z"/>
+              <path d="M178,94 L216,94 L226,104 L226,114 L178,114 Z"/>
+              <path d="M8,8  L4,8  L4,132 L8,132" stroke="var(--moss-dim)" stroke-width="2"/>
+              <path d="M232,8 L236,8 L236,132 L232,132" stroke="var(--moss-dim)" stroke-width="2"/>
+            </svg>
+          </div>
+          <details class="lesson-code">
+            <summary><span class="src-name">examples/weather.dag</span></summary>
+<pre><span class="com">-- a rule that composes the previous lessons</span>
+<span class="kw">service</span> <span class="ty">WeatherStation</span> =
+  read    : () -> <span class="ty">Observation</span>
+  history : () -> <span class="ty">List</span>&lt;<span class="ty">Observation</span>&gt;
+
+<span class="com">-- projecting the service projects every field</span>
+<span class="kw">project</span> <span class="ty">WeatherStation</span> -> <span class="lit">rust</span>
+<span class="kw">project</span> <span class="ty">WeatherStation</span> -> <span class="lit">openapi</span>
+
+<span class="com">-- the compiler now requires:</span>
+<span class="com">--   Observation projects to rust AND openapi</span>
+<span class="com">--   List&lt;Observation&gt; projects to rust AND openapi</span>
+<span class="com">--   every fold on Condition is exhaustive</span></pre>
+          </details>
+        </div>
+        <p class="lesson-desc">
+          Projecting a service quietly propagates a constraint over every node it reaches. <strong>The rule isn't written; it's structural.</strong> Anything reachable from the projected node has to project too. Add a target later (say, TypeScript), and the same closure decides whether the rule still holds or whether you've discovered an unmodeled corner. Rules don't accumulate as comments — they accumulate as graph edges.
+        </p>
+      </article>
+    </div>
+
+    <p class="lesson-closer">Six lessons. Two atoms compose into a structure. Two operations read that structure into target artifacts. Two rules emerge — fail-closed, and constraint propagation — without anyone writing an extra annotation. The structure is the contract.</p>
+  </section>
+
   <!-- ═══════════════════════ CONCEPTS ═══════════════════════ -->
 
   <section class="pad-section" id="concepts">
