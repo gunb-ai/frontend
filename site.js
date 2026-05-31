@@ -34,10 +34,12 @@
     });
   });
 
-  var hash = location.hash.replace(/^#/, "");
-  if (hash && document.getElementById("panel-" + hash)) {
-    selectTab(hash);
+  function activateFromHash() {
+    var id = location.hash.replace(/^#/, "");
+    if (id && document.getElementById("panel-" + id)) selectTab(id);
   }
+  window.addEventListener("hashchange", activateFromHash);
+  activateFromHash();
 })();
 
 /* ─── Hero mark idle cursor-follow ──────────────── */
@@ -191,6 +193,17 @@
   });
   if (slider) {
     slider.addEventListener("input", placeDot);
+  }
+
+  // Redraw on resize so curve geometry tracks the SVG's actual rendered size.
+  if ("ResizeObserver" in window) {
+    new ResizeObserver(function () {
+      ["O1", "On", "OnlogN", "On2", "OQ"].forEach(function (k) {
+        var el = document.getElementById("curve-" + k);
+        if (el) el.setAttribute("d", pathFor(k));
+      });
+      placeDot();
+    }).observe(plot);
   }
 
   updateActive();

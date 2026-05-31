@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>daglang · showcase — every feature on one circuit</title>
+  <meta name="description" content="Walk every daglang feature on one protagonist — a low-pass RC filter. One slider drives every projection of the graph: schematic, Bode plot, SPICE netlist, TypeScript UI, Rust handler, lens gate, agent SDK. Same source, every artifact in lockstep." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="site.css" />
+  <style>
+    /* ─── Sticky parameter rail ─────────────────────────── */
+    .sc-rail {
+      position: sticky; top: 3.5rem; z-index: 30;
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid;
+      padding: 0.85rem 1.5rem;
+    }
+    [data-mode="dark"] .sc-rail { background: hsla(var(--hue-warm), 0%, 5%, 0.82); border-bottom-color: var(--border-dark); }
+    [data-mode="light"] .sc-rail { background: hsla(var(--hue-warm), 27%, 94%, 0.85); border-bottom-color: var(--border-light); }
+
+    .sc-rail-inner {
+      max-width: var(--max); margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 1.5rem;
+      align-items: center;
+    }
+    .sc-knob { display: flex; flex-direction: column; gap: 0.3rem; }
+    .sc-knob label {
+      font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.14em;
+      text-transform: uppercase; opacity: 0.65;
+    }
+    .sc-knob .sc-knob-row {
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+    .sc-knob input[type="range"] {
+      flex: 1; appearance: none; height: 3px;
+      background: currentColor; opacity: 0.4; border-radius: 2px;
+    }
+    .sc-knob input[type="range"]::-webkit-slider-thumb {
+      appearance: none; width: 14px; height: 14px; border-radius: 50%;
+      background: var(--tier-now); cursor: pointer; border: 0;
+    }
+    .sc-knob input[type="range"]::-moz-range-thumb {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--tier-now); cursor: pointer; border: 0;
+    }
+    .sc-knob output {
+      font-family: var(--font-mono); font-size: 0.82rem; font-weight: 500;
+      min-width: 4.5rem; text-align: right;
+    }
+    .sc-derived {
+      font-family: var(--font-mono); font-size: 0.78rem;
+      display: flex; flex-direction: column; gap: 0.3rem;
+      padding: 0.45rem 0.8rem; border-left: 1px solid;
+    }
+    [data-mode="dark"] .sc-derived { border-left-color: var(--border-dark); }
+    [data-mode="light"] .sc-derived { border-left-color: var(--border-light); }
+    .sc-derived-label {
+      font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.6;
+    }
+    .sc-fc { font-size: 1.05rem; font-weight: 600; color: var(--tier-now); }
+    .sc-fc.is-fail { color: var(--diag-fail); }
+
+    /* ─── Step containers ───────────────────────────────── */
+    .sc-step { padding: 4.5rem 0; border-top: 1px solid; }
+    [data-mode="dark"] .sc-step { border-top-color: var(--border-dark); }
+    [data-mode="light"] .sc-step { border-top-color: var(--border-light); }
+    .sc-step:first-of-type { border-top: 0; padding-top: 3rem; }
+    .sc-step-num {
+      font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.22em;
+      text-transform: uppercase; opacity: 0.5; margin: 0 0 0.45rem;
+    }
+    .sc-step-title { font-size: 1.7rem; margin: 0 0 0.6rem; letter-spacing: -0.02em; }
+    .sc-step-lead { max-width: 44em; margin: 0 0 1.75rem; font-size: 1rem; }
+
+    /* ─── Step 1: graph + schematic ─────────────────────── */
+    .sc-protagonist {
+      display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 1.5rem;
+    }
+    .sc-source {
+      border: 1px solid; border-radius: 6px; overflow: hidden;
+    }
+    [data-mode="dark"] .sc-source { background: var(--void-up); border-color: var(--border-dark); }
+    [data-mode="light"] .sc-source { background: var(--warm-white-up); border-color: var(--border-light); }
+    .sc-source header {
+      padding: 0.75rem 1rem; font-family: var(--font-mono); font-size: 0.72rem;
+      border-bottom: 1px solid; display: flex; justify-content: space-between; align-items: center;
+    }
+    [data-mode="dark"] .sc-source header { background: var(--void-up2); border-bottom-color: var(--border-dark); }
+    [data-mode="light"] .sc-source header { background: var(--warm-white); border-bottom-color: var(--border-light); }
+    .sc-source pre { margin: 0; padding: 1rem; font-size: 0.74rem; line-height: 1.65; overflow-x: auto; }
+    .sc-source .live { color: var(--tier-now); font-weight: 500; }
+
+    /* ─── Schematic artwork (bespoke) ───────────────────── */
+    .sc-art-wrap {
+      border: 1px solid; border-radius: 6px;
+      padding: 1rem; aspect-ratio: 16/11; position: relative; overflow: hidden;
+    }
+    [data-mode="dark"] .sc-art-wrap { background: var(--void-up2); border-color: var(--border-dark); }
+    [data-mode="light"] .sc-art-wrap { background: var(--warm-white); border-color: var(--border-light); }
+    .sc-art { width: 100%; height: 100%; display: block; overflow: visible; }
+    /* Subtle grid-paper background (engineer's pad) */
+    .sc-art-wrap::before {
+      content: ""; position: absolute; inset: 0;
+      background-image:
+        linear-gradient(currentColor 1px, transparent 1px),
+        linear-gradient(90deg, currentColor 1px, transparent 1px);
+      background-size: 24px 24px;
+      opacity: 0.05;
+      pointer-events: none;
+    }
+    .sc-art .wire { stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; fill: none; }
+    .sc-art .comp { stroke: currentColor; stroke-width: 1.5; fill: none; stroke-linejoin: round; }
+    .sc-art .comp-body { fill: var(--void-up); }
+    [data-mode="light"] .sc-art .comp-body { fill: var(--warm-white-up); }
+    .sc-art .node-pt { fill: currentColor; }
+    .sc-art .node-out { stroke: currentColor; stroke-width: 1.6; fill: var(--tier-now-soft); }
+    .sc-art .label { font-family: var(--font-mono); font-size: 9px; fill: currentColor; opacity: 0.95; }
+    .sc-art .label-sub { font-family: var(--font-mono); font-size: 7px; fill: currentColor; opacity: 0.55; }
+    .sc-art .label-live { font-family: var(--font-mono); font-size: 10px; font-weight: 600; fill: var(--tier-now); }
+    .sc-art .ground { stroke: currentColor; stroke-width: 1.4; fill: none; }
+    .sc-art .polarity-dot { fill: var(--tier-now); }
+    .sc-art .bracket { stroke: currentColor; stroke-width: 0.7; opacity: 0.5; fill: none; }
+
+    /* ─── Step 2: artifact tile grid ────────────────────── */
+    .sc-tiles {
+      display: grid; gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+    }
+    .sc-tile {
+      border: 1px solid; border-radius: 6px; overflow: hidden;
+      transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+      position: relative;
+    }
+    [data-mode="dark"] .sc-tile { background: var(--void-up); border-color: var(--border-dark); }
+    [data-mode="light"] .sc-tile { background: var(--warm-white-up); border-color: var(--border-light); }
+    .sc-tile:hover { transform: translateY(-2px); }
+
+    /* affected-set pulse */
+    .sc-tile.is-affected {
+      border-color: var(--tier-next-line);
+      box-shadow: 0 0 0 3px var(--tier-next-soft);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .sc-tile.is-affected::after {
+      content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: var(--tier-next);
+      animation: sc-affected-sweep 0.7s ease;
+    }
+    @keyframes sc-affected-sweep {
+      from { transform: translateX(-100%); }
+      to   { transform: translateX(100%); }
+    }
+
+    .sc-tile header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.7rem 0.9rem; font-family: var(--font-mono); font-size: 0.72rem;
+      border-bottom: 1px solid; gap: 0.5rem;
+    }
+    [data-mode="dark"] .sc-tile header { background: var(--void-up2); border-bottom-color: var(--border-dark); }
+    [data-mode="light"] .sc-tile header { background: var(--warm-white); border-bottom-color: var(--border-light); }
+    .sc-tile-title { font-weight: 600; display: flex; align-items: center; gap: 0.45rem; }
+    .sc-tile-icon { width: 14px; height: 14px; opacity: 0.85; }
+    .sc-tile pre {
+      margin: 0; padding: 0.85rem 0.95rem; font-size: 0.7rem; line-height: 1.55;
+      overflow-x: auto; min-height: 9rem; max-height: 11rem;
+    }
+    .sc-tile .live { color: var(--tier-now); font-weight: 500; }
+    .sc-tile-foot {
+      padding: 0.5rem 0.9rem; font-family: var(--font-mono); font-size: 0.66rem;
+      opacity: 0.6; border-top: 1px solid;
+    }
+    [data-mode="dark"] .sc-tile-foot { border-top-color: var(--border-dark); }
+    [data-mode="light"] .sc-tile-foot { border-top-color: var(--border-light); }
+
+    /* TS UI tile (mock control surface) */
+    .sc-tile-ui {
+      padding: 0.95rem; min-height: 9rem; max-height: 11rem;
+      display: flex; flex-direction: column; gap: 0.55rem;
+      font-family: var(--font-mono); font-size: 0.7rem;
+    }
+    .sc-mock-row {
+      display: grid; grid-template-columns: 4rem 1fr 3.5rem; gap: 0.6rem; align-items: center;
+    }
+    .sc-mock-row-label { opacity: 0.7; }
+    .sc-mock-row-track {
+      position: relative; height: 6px; border-radius: 3px;
+      background: var(--border-dark-strong);
+    }
+    [data-mode="light"] .sc-mock-row-track { background: var(--border-light-strong); }
+    .sc-mock-row-fill {
+      position: absolute; top: 0; bottom: 0; left: 0;
+      background: var(--tier-now); border-radius: 3px;
+      transition: width 0.15s ease;
+    }
+    .sc-mock-row-value { text-align: right; color: var(--tier-now); font-weight: 500; }
+    .sc-mock-fc {
+      margin-top: auto; padding-top: 0.5rem;
+      border-top: 1px dashed var(--border-dark-strong);
+      display: flex; justify-content: space-between; align-items: baseline;
+    }
+    [data-mode="light"] .sc-mock-fc { border-top-color: var(--border-light-strong); }
+    .sc-mock-fc-label { opacity: 0.55; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; }
+    .sc-mock-fc-value { color: var(--tier-now); font-weight: 600; }
+
+    /* Bode tile */
+    .sc-bode { width: 100%; min-height: 9rem; max-height: 11rem; display: block; padding: 0.5rem; }
+    .sc-bode .axis { stroke: currentColor; stroke-width: 0.6; opacity: 0.45; }
+    .sc-bode .grid-line { stroke: currentColor; stroke-width: 0.4; opacity: 0.08; stroke-dasharray: 2 3; }
+    .sc-bode .curve {
+      fill: none; stroke: var(--tier-now); stroke-width: 1.8;
+      stroke-linecap: round; stroke-linejoin: round;
+      transition: d 0.25s ease;
+    }
+    .sc-bode .curve-fill {
+      fill: var(--tier-now-soft); stroke: none; opacity: 0.85;
+      transition: d 0.25s ease;
+    }
+    .sc-bode .cutoff-line {
+      stroke: var(--tier-next); stroke-width: 1; opacity: 0.7;
+      stroke-dasharray: 3 3;
+    }
+    .sc-bode .cutoff-dot { fill: var(--tier-next); }
+    .sc-bode .cutoff-label { font-family: var(--font-mono); font-size: 8px; fill: var(--tier-next); font-weight: 600; }
+    .sc-bode .axis-label { font-family: var(--font-mono); font-size: 7px; fill: currentColor; opacity: 0.6; }
+
+    /* ─── Step 3: affected propagation visual ───────────── */
+    .sc-affected-strip {
+      display: grid; grid-template-columns: 1fr; gap: 1rem;
+    }
+    .sc-affected-receipt {
+      padding: 1rem 1.25rem; border: 1px solid; border-radius: 5px;
+      font-family: var(--font-mono); font-size: 0.74rem;
+      display: grid; gap: 0.4rem;
+    }
+    [data-mode="dark"] .sc-affected-receipt { background: var(--void-up2); border-color: var(--border-dark); }
+    [data-mode="light"] .sc-affected-receipt { background: var(--warm-white); border-color: var(--border-light); }
+    .sc-affected-receipt strong { color: var(--tier-next); font-weight: 600; }
+
+    /* ─── Step 4: lens panel ────────────────────────────── */
+    .sc-lens {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;
+    }
+    .sc-lens-card {
+      padding: 1.25rem 1.4rem; border: 1px solid; border-radius: 6px;
+      transition: border-color 0.25s ease, background 0.25s ease;
+    }
+    [data-mode="dark"] .sc-lens-card { background: var(--void-up); border-color: var(--border-dark); }
+    [data-mode="light"] .sc-lens-card { background: var(--warm-white-up); border-color: var(--border-light); }
+    .sc-lens-card.is-pass { border-color: var(--tier-now-line); background: var(--tier-now-soft); }
+    .sc-lens-card.is-fail { border-color: var(--diag-fail); background: var(--diag-fail-soft); }
+    .sc-lens-title {
+      font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.12em;
+      text-transform: uppercase; margin: 0 0 0.55rem; opacity: 0.7;
+    }
+    .sc-lens-state {
+      font-family: var(--font-mono); font-size: 1.05rem; font-weight: 600;
+      margin: 0 0 0.55rem;
+    }
+    .sc-lens-card.is-pass .sc-lens-state { color: var(--tier-now); }
+    .sc-lens-card.is-fail .sc-lens-state { color: var(--diag-fail); }
+    .sc-lens-body { font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.6; }
+    .sc-lens-body code { opacity: 0.9; }
+
+    /* ─── Step 5/6: code panels ─────────────────────────── */
+    .sc-code-panel { border: 1px solid; border-radius: 6px; overflow: hidden; }
+    [data-mode="dark"] .sc-code-panel { background: var(--void-up); border-color: var(--border-dark); }
+    [data-mode="light"] .sc-code-panel { background: var(--warm-white-up); border-color: var(--border-light); }
+    .sc-code-panel header {
+      padding: 0.75rem 1rem; font-family: var(--font-mono); font-size: 0.72rem;
+      border-bottom: 1px solid;
+      display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;
+    }
+    [data-mode="dark"] .sc-code-panel header { background: var(--void-up2); border-bottom-color: var(--border-dark); }
+    [data-mode="light"] .sc-code-panel header { background: var(--warm-white); border-bottom-color: var(--border-light); }
+    .sc-code-panel pre { margin: 0; padding: 1rem; font-size: 0.74rem; line-height: 1.65; overflow-x: auto; }
+
+    /* ─── Step 7: tier badges for the whole walk ────────── */
+    .sc-recap {
+      display: grid; gap: 0.65rem;
+    }
+    .sc-recap-row {
+      display: grid; grid-template-columns: 2.6rem 9rem 1fr 7rem; gap: 1rem;
+      align-items: center;
+      padding: 0.7rem 1rem; border: 1px solid; border-radius: 4px;
+      font-family: var(--font-mono); font-size: 0.74rem;
+    }
+    [data-mode="dark"] .sc-recap-row { background: var(--void-up); border-color: var(--border-dark); }
+    [data-mode="light"] .sc-recap-row { background: var(--warm-white-up); border-color: var(--border-light); }
+    .sc-recap-step { font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.55; }
+    .sc-recap-title { font-weight: 600; }
+    .sc-recap-detail { opacity: 0.7; font-size: 0.7rem; }
+
+    /* ─── Responsive ────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .sc-rail-inner { grid-template-columns: 1fr 1fr; gap: 1rem; }
+      .sc-derived { grid-column: 1 / -1; border-left: 0; border-top: 1px dashed; padding-top: 0.5rem; padding-left: 0; }
+      .sc-protagonist { grid-template-columns: 1fr; }
+      .sc-lens { grid-template-columns: 1fr; }
+      .sc-recap-row { grid-template-columns: 2rem 1fr 5.5rem; }
+      .sc-recap-detail { grid-column: 2 / -1; }
+    }
+  </style>
+</head>
+<body>
+
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
+  <symbol id="stoic-idle" viewBox="0 0 120 120">
+    <path fill-rule="evenodd" fill="currentColor" d="
+      M40,20 H80 A30,30 0 0,1 110,50 V70 A30,30 0 0,1 80,100 H40 A30,30 0 0,1 10,70 V50 A30,30 0 0,1 40,20 Z
+      M35,40 A8,8 0 0,1 35,56 A8,8 0 0,1 35,40 Z
+      M85,40 A8,8 0 0,1 85,56 A8,8 0 0,1 85,40 Z
+      M54,54 H66 A2,2 0 0,1 68,56 V58 A2,2 0 0,1 66,60 H54 A2,2 0 0,1 52,58 V56 A2,2 0 0,1 54,54 Z
+    "/>
+  </symbol>
+</svg>
+
+<nav class="nav">
+  <a href="/" class="nav-left">
+    <svg class="nav-logo" viewBox="0 0 120 120"><use href="#stoic-idle"/></svg>
+    <span class="wordmark">daglang</span>
+  </a>
+  <div class="nav-right">
+    <div class="nav-links">
+      <a href="showcase.html" class="nav-link active">Showcase</a>
+      <a href="examples.html" class="nav-link">Examples</a>
+      <a href="affected-set.html" class="nav-link">Affected-set</a>
+      <a href="/#roadmap" class="nav-link">Roadmap</a>
+    </div>
+    <button class="mode-toggle" id="mode-toggle" type="button" aria-label="Toggle light/dark mode">
+      <span class="indicator"></span>
+      <span id="mode-label-text">Dark</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ─────────────── Sticky parameter rail ─────────────── -->
+<div class="sc-rail">
+  <div class="sc-rail-inner">
+    <div class="sc-knob">
+      <label for="sc-r">R · resistance</label>
+      <div class="sc-knob-row">
+        <input id="sc-r" type="range" min="100" max="10000" value="1000" step="50" />
+        <output id="sc-r-out">1.0 kΩ</output>
+      </div>
+    </div>
+    <div class="sc-knob">
+      <label for="sc-c">C · capacitance</label>
+      <div class="sc-knob-row">
+        <input id="sc-c" type="range" min="10" max="1000" value="100" step="5" />
+        <output id="sc-c-out">100 nF</output>
+      </div>
+    </div>
+    <div class="sc-knob">
+      <label>Spec band</label>
+      <div class="sc-knob-row">
+        <span style="font-family:var(--font-mono);font-size:0.74rem;opacity:0.75">800 Hz &lt; f_c &lt; 3.2 kHz</span>
+      </div>
+    </div>
+    <div class="sc-derived">
+      <span class="sc-derived-label">derived · cutoff</span>
+      <span class="sc-fc" id="sc-fc">f_c = 1.59 kHz</span>
+    </div>
+  </div>
+</div>
+
+<main class="wrap" style="padding:2.5rem 0 5rem">
+  <p class="section-eyebrow">Showcase</p>
+  <h1 style="font-size:2.2rem;margin:0 0 0.6rem;letter-spacing:-0.024em">Every feature, on one circuit.</h1>
+  <p class="muted" style="max-width:46em;margin:0 0 0.5rem;font-size:1.05rem">
+    One protagonist — a low-pass RC filter — walked through every daglang feature so a developer who's never
+    touched an oscilloscope can see why "code as graph" matters. The sliders above drive the graph.
+    Every artifact on this page is a projection of that same graph and updates in lockstep.
+  </p>
+
+  <!-- ─────────────── Step 1: the protagonist ─────────────── -->
+  <section class="sc-step" id="step-graph">
+    <p class="sc-step-num">Step 1 · the graph</p>
+    <h2 class="sc-step-title">A 27-line <code>.dag</code> file. That's it.</h2>
+    <p class="muted sc-step-lead">
+      The developer writes typed components and how they connect — same vocabulary the
+      <a href="https://github.com/gunb-ai/daglang/blob/main/src/v4/extdeps/formats/spice.dag">v4 SPICE substrate</a>
+      uses internally. No SPICE syntax. No graphics code. The graph is the single source of truth.
+    </p>
+    <div class="sc-protagonist">
+      <div class="sc-source">
+        <header>
+          <span>low_pass.dag</span>
+          <span class="badge badge-now">your code · single source of truth</span>
+        </header>
+<pre>module examples.low_pass
+
+import v4.extdeps.formats.spice {
+  Component, DeckStatement, Directive,
+  NodeRef, SpiceNetlist, SpiceValue
+}
+
+data n_in:  NodeRef = Named { name: "in"  }
+data n_out: NodeRef = Named { name: "out" }
+data gnd:   NodeRef = Ground
+
+circuit LowPassFilter {
+  spec  cutoff_band: (800 Hz, 3.2 kHz)
+
+  vin: VoltageSource { ac: 1.0V,           // drives "in"
+                       n_plus: n_in, n_minus: gnd }
+  r1:  Resistor      { value: <span class="live" id="src-r">1.0 kΩ</span>,
+                       n_plus: n_in, n_minus: n_out }
+  c1:  Capacitor     { value: <span class="live" id="src-c">100 nF</span>,
+                       n_plus: n_out, n_minus: gnd }
+  output vout = n_out
+}</pre>
+      </div>
+
+      <div class="sc-art-wrap">
+        <svg class="sc-art" viewBox="0 0 360 220" aria-label="Low-pass RC filter schematic">
+          <!-- title bracket -->
+          <path class="bracket" d="M14,18 L14,12 L60,12 M300,12 L346,12 L346,18"/>
+          <text class="label-sub" x="180" y="11" text-anchor="middle">low_pass.dag · LowPassFilter</text>
+
+          <!-- input rail -->
+          <text class="label" x="34" y="60" text-anchor="end">in</text>
+          <circle class="node-pt" cx="40" cy="60" r="2.8"/>
+          <line class="wire" x1="40" y1="60" x2="160" y2="60"/>
+
+          <!-- V1 source (circle with sine + polarity dot) -->
+          <circle class="comp comp-body" cx="40" cy="120" r="16"/>
+          <path class="comp" d="M30,120 q5,-9 10,0 t10,0"/>
+          <circle class="polarity-dot" cx="40" cy="106" r="2"/>
+          <line class="wire" x1="40" y1="60" x2="40" y2="104"/>
+          <line class="wire" x1="40" y1="136" x2="40" y2="180"/>
+          <text class="label" x="58" y="118">V1</text>
+          <text class="label-sub" x="58" y="128">AC 1V</text>
+
+          <!-- R1 resistor (filled rectangle body, US-style alt for variety) -->
+          <rect class="comp comp-body" x="170" y="50" width="60" height="20" rx="2"/>
+          <text class="label-live" x="200" y="42" text-anchor="middle" id="art-r-value">R1 = 1.0 kΩ</text>
+          <text class="label-sub" x="200" y="83" text-anchor="middle">R1</text>
+
+          <!-- continuation wire to out -->
+          <line class="wire" x1="230" y1="60" x2="300" y2="60"/>
+          <!-- out node (accent ring) -->
+          <circle class="node-out" cx="300" cy="60" r="4.5"/>
+          <text class="label" x="312" y="60">out (vout)</text>
+
+          <!-- C1 capacitor (two plates), vertical from out to ground -->
+          <line class="wire" x1="300" y1="60" x2="300" y2="118"/>
+          <line class="comp" x1="282" y1="122" x2="318" y2="122"/>
+          <line class="comp" x1="282" y1="130" x2="318" y2="130"/>
+          <line class="wire" x1="300" y1="130" x2="300" y2="180"/>
+          <text class="label-live" x="328" y="126" id="art-c-value">C1 = 100 nF</text>
+          <text class="label-sub" x="328" y="138">C1</text>
+
+          <!-- ground rail -->
+          <line class="wire" x1="20" y1="180" x2="320" y2="180"/>
+          <!-- ground triangle -->
+          <line class="ground" x1="155" y1="180" x2="185" y2="180"/>
+          <line class="ground" x1="160" y1="186" x2="180" y2="186"/>
+          <line class="ground" x1="166" y1="192" x2="174" y2="192"/>
+          <text class="label-sub" x="170" y="206" text-anchor="middle">GND</text>
+
+          <!-- cutoff annotation (a small inline math callout) -->
+          <text class="label-sub" x="345" y="180" text-anchor="end">f_c = 1 / (2π·R·C)</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── Step 2: artifact fan-out ─────────────── -->
+  <section class="sc-step" id="step-artifacts">
+    <p class="sc-step-num">Step 2 · projections</p>
+    <h2 class="sc-step-title">One graph. Six artifacts. Always in lockstep.</h2>
+    <p class="muted sc-step-lead">
+      Drag a slider — every tile below updates from the same <code>CoreNode</code>. Nothing's hand-edited
+      to agree; they're projections of the same structural facts, dispatched to different language specs and
+      data-format emitters.
+    </p>
+    <div class="sc-tiles" id="sc-tiles">
+
+      <!-- Tile: SPICE netlist (Shape B) -->
+      <article class="sc-tile" data-uses="R,C">
+        <header>
+          <span class="sc-tile-title">
+            <svg class="sc-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg>
+            SPICE netlist
+          </span>
+          <span class="badge badge-vision">Vision · Shape B</span>
+        </header>
+<pre>* LowPassFilter — emitted from low_pass.dag
+V1 in  0   AC 1
+R1 in  out <span class="live" id="spice-r">1k</span>
+C1 out 0   <span class="live" id="spice-c">100n</span>
+.ac dec 20 10 1Meg
+.end</pre>
+        <div class="sc-tile-foot">ngspice -b low_pass.cir → frequency-domain probe</div>
+      </article>
+
+      <!-- Tile: TS UI mock (Shape A · TypeScript) -->
+      <article class="sc-tile" data-uses="R,C">
+        <header>
+          <span class="sc-tile-title">
+            <svg class="sc-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg>
+            TypeScript UI · &lt;FilterEditor /&gt;
+          </span>
+          <span class="badge badge-next">Building next · Shape A</span>
+        </header>
+        <div class="sc-tile-ui">
+          <div class="sc-mock-row">
+            <span class="sc-mock-row-label">R</span>
+            <div class="sc-mock-row-track"><div class="sc-mock-row-fill" id="mock-r-fill" style="width:10%"></div></div>
+            <span class="sc-mock-row-value" id="mock-r-val">1.0 kΩ</span>
+          </div>
+          <div class="sc-mock-row">
+            <span class="sc-mock-row-label">C</span>
+            <div class="sc-mock-row-track"><div class="sc-mock-row-fill" id="mock-c-fill" style="width:10%"></div></div>
+            <span class="sc-mock-row-value" id="mock-c-val">100 nF</span>
+          </div>
+          <div class="sc-mock-fc">
+            <span class="sc-mock-fc-label">Cutoff</span>
+            <span class="sc-mock-fc-value" id="mock-fc">1.59 kHz</span>
+          </div>
+        </div>
+        <div class="sc-tile-foot">Knobs bound to graph params · derived f_c read-only</div>
+      </article>
+
+      <!-- Tile: Bode plot (derived) -->
+      <article class="sc-tile" data-uses="R,C">
+        <header>
+          <span class="sc-tile-title">
+            <svg class="sc-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 5v15h18"/><path d="M5 18l4-1 4-7 4 1 4-8"/></svg>
+            Bode plot · |H(f)|
+          </span>
+          <span class="badge badge-vision">Vision · simulated</span>
+        </header>
+        <svg class="sc-bode" viewBox="0 0 320 150" preserveAspectRatio="none" aria-hidden="true">
+          <!-- grid -->
+          <line class="grid-line" x1="30" y1="30"  x2="310" y2="30"/>
+          <line class="grid-line" x1="30" y1="60"  x2="310" y2="60"/>
+          <line class="grid-line" x1="30" y1="90"  x2="310" y2="90"/>
+          <line class="grid-line" x1="30" y1="120" x2="310" y2="120"/>
+          <line class="grid-line" x1="100" y1="20" x2="100" y2="130"/>
+          <line class="grid-line" x1="170" y1="20" x2="170" y2="130"/>
+          <line class="grid-line" x1="240" y1="20" x2="240" y2="130"/>
+          <!-- axes -->
+          <line class="axis" x1="30" y1="120" x2="310" y2="120"/>
+          <line class="axis" x1="30" y1="20"  x2="30"  y2="120"/>
+          <text class="axis-label" x="30"  y="138">10 Hz</text>
+          <text class="axis-label" x="170" y="138" text-anchor="middle">10 kHz</text>
+          <text class="axis-label" x="310" y="138" text-anchor="end">10 MHz</text>
+          <text class="axis-label" x="26"  y="32" text-anchor="end">0 dB</text>
+          <text class="axis-label" x="26"  y="92" text-anchor="end">−40 dB</text>
+          <!-- response (fill + stroke) — paths set by JS -->
+          <path class="curve-fill" id="bode-fill" d=""/>
+          <path class="curve"      id="bode-curve" d=""/>
+          <!-- cutoff marker — moved by JS -->
+          <line  class="cutoff-line" id="bode-cutoff-line" x1="100" y1="20" x2="100" y2="120"/>
+          <circle class="cutoff-dot"  id="bode-cutoff-dot"  cx="100" cy="42" r="3"/>
+          <text   class="cutoff-label" id="bode-cutoff-label" x="106" y="38">f_c</text>
+        </svg>
+        <div class="sc-tile-foot">−3 dB marker at f_c · −20 dB / decade rolloff</div>
+      </article>
+
+      <!-- Tile: Rust handler (Shape A · simulation service) -->
+      <article class="sc-tile" data-uses="R,C">
+        <header>
+          <span class="sc-tile-title">
+            <svg class="sc-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>
+            Rust simulation service
+          </span>
+          <span class="badge badge-now">Available now · Shape A</span>
+        </header>
+<pre>#[axum::handler]
+pub async fn simulate(
+    Json(p): Json&lt;FilterParams&gt;,
+) -&gt; Json&lt;BodePoints&gt; {
+    let r = <span class="live" id="rust-r">1_000.0</span>; // Ω
+    let c = <span class="live" id="rust-c">100e-9</span>;  // F
+    Json(low_pass_response(r, c))
+}</pre>
+        <div class="sc-tile-foot">--target rust · structs generated from the graph</div>
+      </article>
+
+      <!-- Tile: OpenAPI -->
+      <article class="sc-tile" data-uses="R,C">
+        <header>
+          <span class="sc-tile-title">
+            <svg class="sc-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 7l8-3 8 3v6c0 4-4 7-8 8-4-1-8-4-8-8V7z"/></svg>
+            OpenAPI · save-config
+          </span>
+          <span class="badge badge-next">Building next · Shape B</span>
+        </header>
+<pre>components:
+  schemas:
+    FilterParams:
+      type: object
+      properties:
+        r_ohms:
+          type: number
+          default: <span class="live" id="oa-r">1000</span>
+        c_farads:
+          type: number
+          default: <span class="live" id="oa-c">1.0e-7</span></pre>
+        <div class="sc-tile-foot">Generated from the same param defaults</div>
+      </article>
+
+      <!-- Tile: Markdown docs (only re-emits on topology change, not param change) -->
+      <article class="sc-tile" data-uses="topology">
+        <header>
+          <span class="sc-tile-title">
+            <svg class="sc-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 4h16v16H4z"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>
+            Generated docs · LowPassFilter
+          </span>
+          <span class="badge badge-vision">Vision · Shape B</span>
+        </header>
+<pre># LowPassFilter
+
+A first-order RC low-pass filter.
+
+**Components**
+- V1 — AC voltage source
+- R1 — series resistor
+- C1 — shunt capacitor to ground
+
+**Probes**
+- vout (at node `out`)</pre>
+        <div class="sc-tile-foot">Not affected by R/C value changes · only by topology edits</div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ─────────────── Step 3: affected_set in motion ─────────────── -->
+  <section class="sc-step" id="step-affected">
+    <p class="sc-step-num">Step 3 · affected_set</p>
+    <h2 class="sc-step-title">Touch a value. Watch which artifacts must re-emit.</h2>
+    <p class="muted sc-step-lead">
+      The amber sweep across a tile means the graph's <code>affected_set</code> primitive returned that
+      artifact's emit-path for the current edit. Move the R slider — five of six tiles light up. Notice that
+      <strong>generated docs</strong> stays cold: the topology didn't change, only a parameter value, so the
+      Markdown projection is structurally unaffected. That's the difference between a build-graph and a glob.
+    </p>
+    <div class="sc-affected-strip">
+      <div class="sc-affected-receipt" id="sc-affected-receipt">
+        <div>
+          <span style="opacity:0.55">edit · </span>
+          <strong>r1.value</strong> 1.0 kΩ → <span id="receipt-r">1.0 kΩ</span>
+          &nbsp;·&nbsp;
+          <strong>c1.value</strong> 100 nF → <span id="receipt-c">100 nF</span>
+        </div>
+        <div>
+          <span style="opacity:0.55">affected_set · </span>
+          <span id="receipt-affected">SPICE netlist · TS UI · Bode plot · Rust handler · OpenAPI</span>
+        </div>
+        <div>
+          <span style="opacity:0.55">skipped · </span>
+          <span id="receipt-skipped">generated docs (no topology change)</span>
+        </div>
+      </div>
+      <p class="muted" style="font-size:0.78rem;margin:0">
+        Real <code>affected_set(root, { at })</code> walks the typed CoreNode graph and returns the closure
+        of dependent nodes. CI re-runs only the lenses whose scope intersects this set; cached results carry
+        their content-hash receipt forward for everything else.
+      </p>
+    </div>
+  </section>
+
+  <!-- ─────────────── Step 4: lens gate ─────────────── -->
+  <section class="sc-step" id="step-lens">
+    <p class="sc-step-num">Step 4 · lens gate</p>
+    <h2 class="sc-step-title">Structural facts checked before any artifact ships.</h2>
+    <p class="muted sc-step-lead">
+      The <code>circuit</code> declared a cutoff spec: 800 Hz &lt; f_c &lt; 3.2 kHz. A spec-band lens folds
+      across the graph, computes f_c symbolically (not from a simulator run), and either passes or fails
+      closed. Drive R below ~250 Ω or above ~6 kΩ — the lens turns red. Nothing emits when it's red.
+    </p>
+    <div class="sc-lens">
+      <div class="sc-lens-card is-pass" id="lens-spec">
+        <p class="sc-lens-title">spec_band_lens · cutoff</p>
+        <p class="sc-lens-state" id="lens-spec-state">PASS</p>
+        <div class="sc-lens-body">
+          <div>derived f_c = <code id="lens-spec-fc">1.59 kHz</code></div>
+          <div>required band = <code>800 Hz … 3.2 kHz</code></div>
+          <div style="margin-top:0.6rem;opacity:0.7" id="lens-spec-note">within band · all five artifact emit-paths run</div>
+        </div>
+      </div>
+      <div class="sc-lens-card is-pass" id="lens-cx">
+        <p class="sc-lens-title">complexity_lens · response evaluator</p>
+        <p class="sc-lens-state">PASS · O(log n) per probe</p>
+        <div class="sc-lens-body">
+          <div><code>low_pass_response</code> · structural cost class</div>
+          <div style="margin-top:0.6rem;opacity:0.7">analytical closed-form — no inner loop · no sample-by-sample integration on the hot path</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── Step 5: agent does the same ─────────────── -->
+  <section class="sc-step" id="step-agent">
+    <p class="sc-step-num">Step 5 · the agent path</p>
+    <h2 class="sc-step-title">An agent makes the same edit. Same gates. Same receipt.</h2>
+    <p class="muted sc-step-lead">
+      The slider was a UI affordance. Underneath, it's a typed <code>Diff</code> against the
+      <code>CoreNode</code>. An agent can call exactly the same primitives — no special path, no
+      "agent mode" — and the same lens either gates the edit or admits it. Reads are
+      <code>fold_node</code>; writes are <code>apply_diff</code>; emission is the last step.
+    </p>
+    <div class="sc-code-panel">
+      <header>
+        <span>agent.ts — same path as the slider above</span>
+        <span class="badge badge-next">Building next · v4 SDK</span>
+      </header>
+<pre>import {
+  ingestText, foldNode, affectedSet,
+  applyDiff, emit, replaceNode,
+  type CoreNode, type Diff, type Outcome,
+} from "@gunb-ai/gunbc";
+
+const root: CoreNode = await ingestText(
+  await Deno.readTextFile("examples/low_pass.dag"),
+  { inputLang: "dag" },
+);
+
+// 1 · Diff: same shape as moving the R slider in the UI
+const diff: Diff = {
+  edits: [
+    replaceNode("circuit:LowPassFilter/r1/value",
+                SpiceValue({ lexeme: "470" })),  // was "1k"
+  ],
+};
+
+// 2 · Candidate: apply_diff sequentially folds substitutions through.
+//     Any unresolved Path = whole Diff fails closed (P3).
+const candidate: Outcome&lt;CoreNode&gt; = applyDiff(root, diff);
+if (!candidate.ok) throw candidate.diagnostics;
+
+// 3 · Affected: surgical re-check, not whole-program rebuild
+const affected = affectedSet(candidate.value, {
+  at: "circuit:LowPassFilter/r1/value",
+});
+//   → ["spice:netlist", "ts:FilterEditor", "openapi:FilterParams",
+//      "rust:simulate", "bode:H(f)"]   // docs not in set · topology unchanged
+
+// 4 · Gate: spec_band_lens folds across the graph, compares to declared band
+const gated = foldNode(candidate.value, specBandLens);
+//   → { spec_band: "FAIL · f_c = 3.39 kHz · outside 800–3200 Hz" }
+//   ⇒ emit() refuses · no artifact files written</pre>
+    </div>
+    <p class="muted" style="margin-top:1rem;font-size:0.78rem">
+      The agent never wrote a string. It walked the typed graph, proposed a structural <code>Diff</code>,
+      and the lens caught the spec violation before any SPICE deck or TS file changed. Same surface a future
+      query-driven rewrite or self-modification path uses.
+    </p>
+  </section>
+
+  <!-- ─────────────── Step 6: omni-ingestion ─────────────── -->
+  <section class="sc-step" id="step-ingest">
+    <p class="sc-step-num">Step 6 · omni-ingestion</p>
+    <h2 class="sc-step-title">Reality changes the SPICE deck. The graph absorbs it.</h2>
+    <p class="muted sc-step-lead">
+      An EE on the team hand-edits the netlist on the bench — replaces R1 with a 470 Ω resistor they had on
+      hand. That edit shouldn't strand the rest of the system. Omni-ingestion runs the SPICE grammar in
+      reverse, lifts the deck back to a <code>SpiceNetlist</code> value, derives the resulting
+      <code>CoreNode</code> diff, and propagates it — the UI knob settles to 470 Ω, the Bode plot moves, and
+      the same lens runs.
+    </p>
+    <div class="sc-code-panel">
+      <header>
+        <span>ingest_from_spice.ts — the inverse arrow of emit</span>
+        <span class="badge badge-next">Building next · round-trip translate</span>
+      </header>
+<pre>import { ingestText, foldNode, diffAgainst, emit }
+  from "@gunb-ai/gunbc";
+
+// Bench engineer hand-edited the deck:
+//   R1 in out 470     ← was 1k
+const handEdited = await Deno.readTextFile("/bench/low_pass.cir");
+
+// 1 · Parse SPICE → SpiceNetlist (Shape B inverse) → lift to CoreNode.
+//     Same shim machinery as ingestText — different input grammar.
+const lifted = await ingestText(handEdited, { inputLang: "spice" });
+
+// 2 · Compute the structural diff against the canonical graph.
+const original = await ingestText(
+  await Deno.readTextFile("examples/low_pass.dag"),
+  { inputLang: "dag" },
+);
+const diff = diffAgainst(original, lifted);
+//   → 1 edit · path = "circuit:LowPassFilter/r1/value" · 1k → 470
+
+// 3 · Re-emit the sibling artifacts from the lifted graph.
+//     The TS UI redraws with the slider at 470Ω; the Bode plot moves;
+//     the lens runs over the same band. No artifact diverges.
+await emit(lifted, { target: "typescript", outDir: "./ui/src" });
+await emit(lifted, { target: "rust",       outDir: "./svc/src" });</pre>
+    </div>
+    <p class="muted" style="margin-top:1rem;font-size:0.78rem">
+      Same primitives, opposite direction. <em>omni-emission</em> projects the graph outward; <em>omni-ingestion</em>
+      pulls reality back in. Together they make every artifact a peer of the source — no canonical-format
+      tyranny, no manual reconciliation.
+    </p>
+  </section>
+
+  <!-- ─────────────── Step 7: honest recap ─────────────── -->
+  <section class="sc-step" id="step-recap">
+    <p class="sc-step-num">Step 7 · what's real today</p>
+    <h2 class="sc-step-title">The honesty layer.</h2>
+    <p class="muted sc-step-lead">
+      This page demoed every daglang feature on one circuit. Tier-tagging each step so the demo
+      doesn't quietly overpromise:
+    </p>
+    <div class="sc-recap">
+      <div class="sc-recap-row">
+        <span class="sc-recap-step">1</span>
+        <span class="sc-recap-title">The graph</span>
+        <span class="sc-recap-detail"><code>.dag</code> parser, <code>v4.extdeps.formats.spice</code> types, <code>CoreNode</code> substrate</span>
+        <span class="badge badge-now">Available now</span>
+      </div>
+      <div class="sc-recap-row">
+        <span class="sc-recap-step">2a</span>
+        <span class="sc-recap-title">Rust artifact</span>
+        <span class="sc-recap-detail"><code>gunbc compile --target rust</code> verified end-to-end</span>
+        <span class="badge badge-now">Available now</span>
+      </div>
+      <div class="sc-recap-row">
+        <span class="sc-recap-step">2b</span>
+        <span class="sc-recap-title">TS / OpenAPI / SQL artifacts</span>
+        <span class="sc-recap-detail">Shape A TypeScript target + Shape B OpenAPI/SQL emitters</span>
+        <span class="badge badge-next">Building next</span>
+      </div>
+      <div class="sc-recap-row">
+        <span class="sc-recap-step">2c</span>
+        <span class="sc-recap-title">SPICE / docs / Bode artifacts</span>
+        <span class="sc-recap-detail">Shape B SPICE substrate modeled (T-4.10 · 2026-05-16); end-to-end <code>--target spice</code> path is roadmap</span>
+        <span class="badge badge-vision">Vision</span>
+      </div>
+      <div class="sc-recap-row">
+        <span class="sc-recap-step">3</span>
+        <span class="sc-recap-title"><code>affected_set</code> propagation</span>
+        <span class="sc-recap-detail">Primitive named in v4 design doc; CI-side per-step selection is the gap</span>
+        <span class="badge badge-next">Building next</span>
+      </div>
+      <div class="sc-recap-row">
+        <span class="sc-recap-step">4</span>
+        <span class="sc-recap-title">Lens-gated emission</span>
+        <span class="sc-recap-detail"><code>fold_node</code> with lens algebras, candidate-state gating</span>
+        <span class="badge badge-next">Building next</span>
+      </div>
+      <div class="sc-recap-row">
+        <span class="sc-recap-step">5</span>
+        <span class="sc-recap-title">Agent <code>apply_diff</code> + SDK</span>
+        <span class="sc-recap-detail">Substrate primitive specified; programmatic SDK ships with the v4 cut</span>
+        <span class="badge badge-next">Building next</span>
+      </div>
+      <div class="sc-recap-row">
+        <span class="sc-recap-step">6</span>
+        <span class="sc-recap-title">Omni-ingestion (SPICE → graph)</span>
+        <span class="sc-recap-detail">Inverse direction of language-spec grammars; round-trip workflow is roadmap</span>
+        <span class="badge badge-next">Building next</span>
+      </div>
+    </div>
+    <p style="margin-top:2rem;display:flex;gap:0.6rem;flex-wrap:wrap">
+      <a href="/" class="hero-cta-secondary">← Home</a>
+      <a href="examples.html" class="hero-cta-secondary">Per-feature examples</a>
+      <a href="affected-set.html" class="hero-cta-secondary">Standalone affected-set</a>
+      <a href="roadmap-concepts.html" class="hero-cta-secondary">Roadmap viz candidates</a>
+    </p>
+  </section>
+</main>
+
+<footer class="footer">
+  <p>Built by <a href="https://gunb.ai">Gunb.ai</a> · <a href="https://github.com/gunb-ai/daglang">gunb-ai/daglang</a></p>
+</footer>
+
+<script src="site.js"></script>
+<script>
+/* ─── Showcase: one slider, every projection ─────────── */
+(function () {
+  var rSlider = document.getElementById("sc-r");
+  var cSlider = document.getElementById("sc-c");
+  if (!rSlider || !cSlider) return;
+
+  // Live targets
+  var TARGETS = {
+    rOut:        document.getElementById("sc-r-out"),
+    cOut:        document.getElementById("sc-c-out"),
+    fcOut:       document.getElementById("sc-fc"),
+    srcR:        document.getElementById("src-r"),
+    srcC:        document.getElementById("src-c"),
+    artR:        document.getElementById("art-r-value"),
+    artC:        document.getElementById("art-c-value"),
+    spiceR:      document.getElementById("spice-r"),
+    spiceC:      document.getElementById("spice-c"),
+    mockRFill:   document.getElementById("mock-r-fill"),
+    mockRVal:    document.getElementById("mock-r-val"),
+    mockCFill:   document.getElementById("mock-c-fill"),
+    mockCVal:    document.getElementById("mock-c-val"),
+    mockFc:      document.getElementById("mock-fc"),
+    rustR:       document.getElementById("rust-r"),
+    rustC:       document.getElementById("rust-c"),
+    oaR:         document.getElementById("oa-r"),
+    oaC:         document.getElementById("oa-c"),
+    bodeCurve:   document.getElementById("bode-curve"),
+    bodeFill:    document.getElementById("bode-fill"),
+    bodeCutoffL: document.getElementById("bode-cutoff-line"),
+    bodeCutoffD: document.getElementById("bode-cutoff-dot"),
+    bodeCutoffT: document.getElementById("bode-cutoff-label"),
+    lensSpec:    document.getElementById("lens-spec"),
+    lensSpecState: document.getElementById("lens-spec-state"),
+    lensSpecFc:  document.getElementById("lens-spec-fc"),
+    lensSpecNote:document.getElementById("lens-spec-note"),
+    receiptR:    document.getElementById("receipt-r"),
+    receiptC:    document.getElementById("receipt-c"),
+  };
+
+  // Spec band (Hz)
+  var SPEC_LOW = 800;
+  var SPEC_HIGH = 3200;
+
+  /** Format helpers — keep the visible numbers tidy. */
+  function fmtOhms(r) {
+    if (r >= 1000) return (r / 1000).toFixed(r >= 10000 ? 0 : 2) + " kΩ";
+    return Math.round(r) + " Ω";
+  }
+  function fmtFarads_nF(cnF) {
+    if (cnF >= 1000) return (cnF / 1000).toFixed(2) + " µF";
+    return Math.round(cnF) + " nF";
+  }
+  function fmtHz(hz) {
+    if (hz >= 1000) return (hz / 1000).toFixed(2) + " kHz";
+    return Math.round(hz) + " Hz";
+  }
+  function spiceR(r) {
+    if (r >= 1000) return (r / 1000) % 1 === 0
+      ? (r / 1000) + "k" : (r / 1000).toFixed(2).replace(/0+$/, "").replace(/\.$/, "") + "k";
+    return Math.round(r) + "";
+  }
+  function spiceC(cnF) {
+    if (cnF >= 1000) return (cnF / 1000) + "u";
+    return Math.round(cnF) + "n";
+  }
+
+  // Slider → log-shaped fill for the UI mock so 100Ω vs 10kΩ feels intuitive.
+  function logFillPct(value, min, max) {
+    var lv = Math.log(value), lmin = Math.log(min), lmax = Math.log(max);
+    return Math.max(0, Math.min(100, ((lv - lmin) / (lmax - lmin)) * 100));
+  }
+
+  /** Bode plot geometry: rolloff from f_c at −20 dB/decade, flat above. */
+  function bodePath(fc) {
+    var X0 = 30, X1 = 310, Y0 = 30, Y1 = 120;
+    // log10(f) from 1 (=10Hz) to 7 (=10MHz), 6 decades over X1-X0.
+    var DEC = 6;
+    function fToX(f) { return X0 + ((Math.log10(f) - 1) / DEC) * (X1 - X0); }
+    function dBToY(dB) {
+      // Plot from 0 dB (top) to −60 dB (bottom of grid at Y=120 = -60dB).
+      var clamp = Math.max(-60, Math.min(0, dB));
+      return Y0 + (-clamp / 60) * (Y1 - Y0);
+    }
+    // First-order low-pass: |H(f)| dB ≈ -10·log10(1 + (f/fc)^2)
+    var pts = [];
+    var fillPts = [];
+    var SAMPLES = 60;
+    for (var i = 0; i <= SAMPLES; i++) {
+      var f = Math.pow(10, 1 + (i / SAMPLES) * DEC);
+      var dB = -10 * Math.log10(1 + Math.pow(f / fc, 2));
+      var x = fToX(f), y = dBToY(dB);
+      pts.push((i === 0 ? "M" : "L") + x.toFixed(2) + "," + y.toFixed(2));
+      fillPts.push(x.toFixed(2) + "," + y.toFixed(2));
+    }
+    var fillD = "M" + X0 + "," + Y1 + " L" + fillPts.join(" L") + " L" + X1 + "," + Y1 + " Z";
+    return { stroke: pts.join(" "), fill: fillD, fToX: fToX, dBToY: dBToY };
+  }
+
+  /** Affected-set sweep: pulse every tile whose data-uses includes the changed axis. */
+  function pulseAffected(axis) {
+    var tiles = document.querySelectorAll(".sc-tile");
+    tiles.forEach(function (t) {
+      var uses = (t.getAttribute("data-uses") || "").split(",");
+      if (uses.indexOf(axis) !== -1) {
+        // restart animation by toggling the class
+        t.classList.remove("is-affected");
+        void t.offsetWidth;
+        t.classList.add("is-affected");
+        setTimeout(function () { t.classList.remove("is-affected"); }, 700);
+      }
+    });
+  }
+
+  function update(changedAxis) {
+    var r = parseFloat(rSlider.value);           // ohms
+    var cnF = parseFloat(cSlider.value);          // nF
+    var c = cnF * 1e-9;                           // farads
+    var fc = 1 / (2 * Math.PI * r * c);
+
+    // Rail + readouts
+    TARGETS.rOut.textContent = fmtOhms(r);
+    TARGETS.cOut.textContent = fmtFarads_nF(cnF);
+    TARGETS.fcOut.textContent = "f_c = " + fmtHz(fc);
+
+    // Source code live spans
+    TARGETS.srcR.textContent = fmtOhms(r);
+    TARGETS.srcC.textContent = fmtFarads_nF(cnF);
+
+    // Schematic labels
+    TARGETS.artR.textContent = "R1 = " + fmtOhms(r);
+    TARGETS.artC.textContent = "C1 = " + fmtFarads_nF(cnF);
+
+    // SPICE netlist
+    TARGETS.spiceR.textContent = spiceR(r);
+    TARGETS.spiceC.textContent = spiceC(cnF);
+
+    // TS UI mock
+    TARGETS.mockRFill.style.width = logFillPct(r, 100, 10000) + "%";
+    TARGETS.mockRVal.textContent = fmtOhms(r);
+    TARGETS.mockCFill.style.width = logFillPct(cnF, 10, 1000) + "%";
+    TARGETS.mockCVal.textContent = fmtFarads_nF(cnF);
+    TARGETS.mockFc.textContent = fmtHz(fc);
+
+    // Rust + OpenAPI
+    TARGETS.rustR.textContent = r.toFixed(0) + ".0";
+    TARGETS.rustC.textContent = c.toExponential(0).replace("+", "");
+    TARGETS.oaR.textContent = Math.round(r);
+    TARGETS.oaC.textContent = c.toExponential(1);
+
+    // Bode plot
+    var b = bodePath(fc);
+    TARGETS.bodeCurve.setAttribute("d", b.stroke);
+    TARGETS.bodeFill.setAttribute("d", b.fill);
+    var cxX = b.fToX(fc), cxY = b.dBToY(-3);
+    TARGETS.bodeCutoffL.setAttribute("x1", cxX); TARGETS.bodeCutoffL.setAttribute("x2", cxX);
+    TARGETS.bodeCutoffD.setAttribute("cx", cxX); TARGETS.bodeCutoffD.setAttribute("cy", cxY);
+    TARGETS.bodeCutoffT.setAttribute("x", cxX + 5); TARGETS.bodeCutoffT.setAttribute("y", cxY - 4);
+    TARGETS.bodeCutoffT.textContent = "f_c ≈ " + fmtHz(fc);
+
+    // Lens
+    var inBand = fc >= SPEC_LOW && fc <= SPEC_HIGH;
+    TARGETS.lensSpec.classList.toggle("is-pass", inBand);
+    TARGETS.lensSpec.classList.toggle("is-fail", !inBand);
+    TARGETS.lensSpecState.textContent = inBand ? "PASS" : "FAIL";
+    TARGETS.lensSpecFc.textContent = fmtHz(fc);
+    TARGETS.lensSpecNote.textContent = inBand
+      ? "within band · all five artifact emit-paths run"
+      : "outside band · emit() refuses · no artifact files written";
+
+    // Receipt
+    TARGETS.receiptR.textContent = fmtOhms(r);
+    TARGETS.receiptC.textContent = fmtFarads_nF(cnF);
+
+    // Pulse the affected tiles for the axis that changed
+    if (changedAxis) pulseAffected(changedAxis);
+  }
+
+  rSlider.addEventListener("input", function () { update("R"); });
+  cSlider.addEventListener("input", function () { update("C"); });
+
+  // Re-render Bode geometry on resize (no-op for path d, but cheap)
+  if ("ResizeObserver" in window) {
+    new ResizeObserver(function () { update(null); }).observe(document.body);
+  }
+
+  update(null);
+})();
+</script>
+</body>
+</html>
