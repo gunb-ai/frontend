@@ -244,6 +244,7 @@
   </style>
 </head>
 <body>
+<a href="#main" class="skip-link">Skip to main content</a>
 
 <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
   <symbol id="stoic-idle" viewBox="0 0 120 120">
@@ -258,13 +259,13 @@
 
 <nav class="nav">
   <a href="/" class="nav-left">
-    <svg class="nav-logo" viewBox="0 0 120 120"><use href="#stoic-idle"/></svg>
+    <svg class="nav-logo" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><use href="#stoic-idle"/></svg>
     <span class="wordmark">daglang</span>
   </a>
   <div class="nav-right">
     <div class="nav-links">
       <a href="showcase.html" class="nav-link" style="color:var(--tier-now)">Showcase</a>
-      <a href="showcase-backend.html" class="nav-link active" style="color:var(--tier-next)">Showcase · backend</a>
+      <a href="showcase-backend.html" class="nav-link active" aria-current="page" style="color:var(--tier-next)">Showcase · backend</a>
       <a href="examples.html" class="nav-link">Examples</a>
       <a href="affected-set.html" class="nav-link">Affected-set</a>
       <a href="roadmap.html" class="nav-link">Roadmap</a>
@@ -277,7 +278,7 @@
   </div>
 </nav>
 
-<main class="wrap" style="padding:2.5rem 0 5rem">
+<main id="main" class="wrap" style="padding:2.5rem 0 5rem">
   <p class="section-eyebrow">Showcase · backend dev</p>
   <h1 style="font-size:2.2rem;margin:0 0 0.6rem;letter-spacing:-0.024em">Every feature, on one CRUD service.</h1>
   <p class="muted" style="max-width:46em;margin:0 0 0.5rem;font-size:1.05rem">
@@ -353,7 +354,8 @@ app TodoApp {
       </div>
 
       <div class="sb-topo-wrap">
-        <svg class="sb-topo" viewBox="0 0 360 240" aria-label="TodoApp service topology">
+        <svg class="sb-topo" viewBox="0 0 360 240" aria-labelledby="sb-topo-title">
+          <title id="sb-topo-title">TodoApp service topology: data Todo entity, TodoApi service handlers, TodoList UI, and HTTP edges</title>
           <defs>
             <marker id="sb-arr-now"    viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,1 L7,4 L0,7 z" fill="var(--tier-now)"/></marker>
             <marker id="sb-arr-stable" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,1 L7,4 L0,7 z" fill="var(--tier-stable)"/></marker>

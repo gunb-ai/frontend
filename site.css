@@ -78,6 +78,15 @@
   --text-faint:     var(--stone-faint);
   --border-subtle:  var(--border-dark);
   --border-strong:  var(--border-dark-strong);
+  /* Lift tier hues for ≥4.5:1 text on --void / --void-up */
+  --tier-now:        hsl(134, 48%, 62%);
+  --tier-now-line:   hsla(134, 48%, 62%, 0.5);
+  --tier-stable:     hsl(158, 36%, 62%);
+  --tier-stable-line:hsla(158, 36%, 62%, 0.48);
+  --tier-next:       hsl(38, 78%, 62%);
+  --tier-next-line:  hsla(38, 78%, 62%, 0.5);
+  --tier-vision:     hsl(265, 48%, 72%);
+  --tier-vision-line:hsla(265, 48%, 72%, 0.5);
 }
 [data-mode="light"] {
   --surface-page:   var(--warm-white);
@@ -126,6 +135,7 @@ body { background: var(--surface-page); color: var(--text-primary); }
 .hero-cta-secondary:hover { border-color: var(--tier-now); color: var(--tier-now); }
 
 .mode-toggle { background: var(--surface-panel); color: var(--text-faint); border: 1px solid var(--border-subtle); }
+[data-mode="dark"] .mode-toggle { color: var(--stone-dim); }
 
 [data-mode="dark"] pre { background: var(--void-up2); color: var(--warm-white-dim); }
 [data-mode="light"] pre { background: var(--warm-white-up); color: var(--text-dark-dim); }
@@ -135,6 +145,55 @@ body { background: var(--surface-page); color: var(--text-primary); }
 [data-mode="light"] .diag-fail { color: hsl(0, 55%, 42%); }
 [data-mode="dark"] .diag-ok { color: var(--tier-now); }
 [data-mode="light"] .diag-ok { color: hsl(134, 42%, 32%); }
+
+/* ─── Skip link + visually hidden helpers ─────────── */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.skip-link {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+  z-index: 100;
+}
+.skip-link:focus {
+  position: fixed;
+  top: 0.65rem;
+  left: 1rem;
+  width: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  padding: 0.45rem 0.85rem;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-decoration: none;
+  background: var(--warm-white);
+  color: var(--void);
+  border: 1px solid var(--border-light-strong);
+  outline: 2px solid var(--tier-now);
+  outline-offset: 2px;
+}
+[data-mode="light"] .skip-link:focus {
+  background: var(--void);
+  color: var(--warm-white);
+}
 
 /* ─── Nav ─────────────────────────────────────────── */
 .nav {
@@ -177,9 +236,6 @@ body { background: var(--surface-page); color: var(--text-primary); }
   transition: transform 3.6s cubic-bezier(.22, .61, .36, 1);
 }
 .hero-logo .features.is-snap { transition: none; }
-@media (prefers-reduced-motion: reduce) {
-  .hero-logo .features { transform: none !important; transition: none !important; }
-}
 .hero-eyebrow {
   font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.18em;
   text-transform: uppercase; color: var(--tier-now);
@@ -204,12 +260,6 @@ body { background: var(--surface-page); color: var(--text-primary); }
   font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.02em;
 }
 .hero-foot span { opacity: 0.55; }
-
-/* ─── Hero diagram (LangGraph-style) ──────────────── */
-.hero-diagram {
-  width: 100%; aspect-ratio: 340 / 320;
-  display: block;
-}
 
 /* ─── HTML+SVG hero pipeline ─────────────────────────
    Boxes and labels are normal HTML (no SVG baseline pitfalls).
@@ -259,7 +309,7 @@ body { background: var(--surface-page); color: var(--text-primary); }
 .hp-cap {
   font-family: var(--font-mono); font-size: 0.6rem;
   letter-spacing: 0.2em; text-transform: uppercase;
-  opacity: 0.55; text-align: center; margin-bottom: 0.5rem;
+  opacity: 0.72; text-align: center; margin-bottom: 0.5rem;
   white-space: nowrap;  /* a wrapped cap makes its column taller, which
                            pushes the node down and tilts the
                            source→compiler line into a diagonal */
@@ -338,69 +388,6 @@ body { background: var(--surface-page); color: var(--text-primary); }
   }
   .hp-col-runtime { display: none; }
   .hp-bus-label { display: none; }
-}
-.hero-diagram .edge {
-  fill: none; stroke-width: 1.2;
-  stroke-dasharray: 280;
-  stroke-dashoffset: 280;
-  animation: edge-draw 1.4s ease forwards;
-}
-.hero-diagram .edge.e-now { stroke: var(--tier-now); animation-delay: 0.05s; }
-.hero-diagram .edge.e-stable { stroke: var(--tier-stable); animation-delay: 0.18s; }
-.hero-diagram .edge.e-next { stroke: var(--tier-next); animation-delay: 0.31s; }
-.hero-diagram .edge.e-vision { stroke: var(--tier-vision); animation-delay: 0.44s; }
-.hero-diagram .node-core {
-  fill: var(--void-up2); stroke: var(--warm-white); stroke-width: 1.4;
-}
-[data-mode="light"] .hero-diagram .node-core { fill: var(--warm-white-up); stroke: var(--void); }
-.hero-diagram .node {
-  stroke-width: 1.2;
-  opacity: 0;
-  animation: node-in 0.45s ease forwards;
-}
-.hero-diagram .node.n-now { fill: var(--tier-now-soft); stroke: var(--tier-now); animation-delay: 0.5s; }
-.hero-diagram .node.n-stable { fill: var(--tier-stable-soft); stroke: var(--tier-stable); animation-delay: 0.62s; }
-.hero-diagram .node.n-next { fill: var(--tier-next-soft); stroke: var(--tier-next); animation-delay: 0.74s; }
-.hero-diagram .node.n-vision { fill: var(--tier-vision-soft); stroke: var(--tier-vision); animation-delay: 0.86s; }
-.hero-diagram text {
-  font-family: var(--font-mono); font-size: 8px; font-weight: 500;
-  text-anchor: middle; dominant-baseline: middle;
-  opacity: 0;
-  animation: node-in 0.45s ease forwards;
-}
-.hero-diagram text.t-now { fill: var(--tier-now); animation-delay: 0.55s; }
-.hero-diagram text.t-stable { fill: var(--tier-stable); animation-delay: 0.67s; }
-.hero-diagram text.t-next { fill: var(--tier-next); animation-delay: 0.79s; }
-.hero-diagram text.t-vision { fill: var(--tier-vision); animation-delay: 0.91s; }
-.hero-diagram text.t-core {
-  fill: currentColor; font-weight: 600; font-size: 10px;
-  opacity: 1; animation: none;
-}
-
-/* Runtime topology — shared-bus brackets showing that the artifacts
-   are wired together at runtime through a shared interface (HTTP/OpenAPI
-   for the web stack; mixed-signal co-sim for the HDL stack). Solid bus
-   lines (these connections exist in the running system); tier-coded. */
-.hero-diagram .topo {
-  fill: none; stroke-width: 1.2;
-  stroke-linecap: round; opacity: 0.85;
-}
-.hero-diagram .topo.topo-web { stroke: var(--tier-now); }
-.hero-diagram .topo.topo-hw  { stroke: var(--tier-vision); }
-.hero-diagram .topo-label-web { fill: var(--tier-now);    opacity: 0.95; }
-.hero-diagram .topo-label-hw  { fill: var(--tier-vision); opacity: 0.95; }
-
-@keyframes edge-draw {
-  to { stroke-dashoffset: 0; }
-}
-@keyframes node-in {
-  from { opacity: 0; transform: scale(0.85); }
-  to { opacity: 1; transform: scale(1); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero-diagram .edge, .hero-diagram .node, .hero-diagram text {
-    animation: none !important; opacity: 1 !important; stroke-dashoffset: 0 !important;
-  }
 }
 
 /* ─── Roadmap strip ───────────────────────────────── */
@@ -760,7 +747,6 @@ body { background: var(--surface-page); color: var(--text-primary); }
 .tile-body {
   font-family: var(--font-mono); font-size: 0.66rem; line-height: 1.55;
   white-space: pre; overflow: hidden; flex: 1;
-  opacity: 0.85;
 }
 .tile-body { color: var(--text-muted); }
 .tile-mock {
@@ -789,7 +775,6 @@ body { background: var(--surface-page); color: var(--text-primary); }
 /* ─── Responsive ─────────────────────────────────── */
 @media (max-width: 880px) {
   .hero-grid { grid-template-columns: 1fr; gap: 2rem; }
-  .hero-diagram { max-width: 22rem; margin: 0 auto; }
   .playground-grid { grid-template-columns: 1fr; }
   .omni-layout { grid-template-columns: 1fr; }
   .tile-grid { grid-template-columns: 1fr 1fr; }
@@ -815,4 +800,28 @@ body { background: var(--surface-page); color: var(--text-primary); }
   .nav-link { white-space: nowrap; flex-shrink: 0; }
 
   .tile-grid { grid-template-columns: 1fr; }
+}
+
+/* ─── Reduced motion (site-wide) ──────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .hero-logo .features {
+    transform: none !important;
+    transition: none !important;
+  }
+  .hero-cta, .hero-cta-secondary,
+  .card, .tile, .beyond-tile, .pg-fn, .tab,
+  .cx-row,
+  .sc-tile, .sb-tile, .sb-handler, .sb-scenario {
+    transition: none !important;
+    animation: none !important;
+  }
+  .hero-cta:hover, .card:hover, .tile:hover, .beyond-tile:hover,
+  .sc-tile:hover, .sb-tile:hover {
+    transform: none !important;
+  }
+  .sc-tile.is-affected::after {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1;
+  }
 }
