@@ -600,37 +600,76 @@ await candidate.emit({ target: "rust", outDir: "/tmp/weather-out" });</pre>
   <section class="tab-panel" id="panel-beyond" role="tabpanel" hidden>
     <h2 style="margin:0.5rem 0 0.4rem">Beyond programming languages</h2>
     <p class="section-lead muted">
-      A target doesn't have to be a language. If the artifact has structure — a circuit, a schema, a protocol —
-      it can be modeled and kept in lockstep with the rest of the graph. Both examples below are
-      <span class="badge badge-vision" style="margin:0 0.2rem">Vision</span> tier; the <code>.dag</code> shapes are illustrative.
+      A target doesn't have to be a language. Verilog is a Shape A language target — the compiler emits it
+      through the same path as Rust, against the spec at
+      <a href="https://github.com/gunb-ai/daglang/blob/main/src/v4/extdeps/languages/verilog.dag">v4/extdeps/languages/verilog.dag</a>.
+      SPICE is a Shape B data format — a flat component + connection graph emitted by user <code>.dag</code> programs
+      folding over typed <code>Component</code> values, modeled at
+      <a href="https://github.com/gunb-ai/daglang/blob/main/src/v4/extdeps/formats/spice.dag">v4/extdeps/formats/spice.dag</a>
+      (T-4.10 omni-emission probe, modeled 2026-05-16). End-to-end <code>gunbc compile --target spice</code> /
+      <code>--target verilog</code> is still Vision-tier; the substrate types below are real.
     </p>
 
     <!-- ── PSpice ── -->
-    <h3 style="font-size:1.05rem;margin:2rem 0 0.75rem">PSpice — analog circuits from a graph</h3>
+    <h3 style="font-size:1.05rem;margin:2rem 0 0.75rem">SPICE — analog circuits as Shape B data</h3>
+    <p class="muted" style="margin:0 0 1rem;font-size:0.82rem">
+      The <code>.dag</code> below builds a real <code>SpiceNetlist</code> value using the <code>Component</code>,
+      <code>NodeRef</code>, and <code>Directive</code> types from <code>spice.dag</code>. A Shape B emitter folds
+      that value into the canonical SPICE3F5 deck format — the same format the grammar probe in
+      <code>spice_format_grammar_probe</code> validates against the fixture <code>"R1 n1 n2 1"</code>.
+    </p>
     <div class="demo-grid">
       <div class="demo-panel">
-        <header><span>low_pass.dag (illustrative)</span><span class="badge badge-vision">Vision</span></header>
-        <pre>circuit LowPassFilter {
-  vin:    VoltageSource { ac: 1.0V }
-  r1:     Resistor      { r: 1kΩ }
-  c1:     Capacitor     { c: 100nF }
-  ground: Ground
+        <header><span>low_pass.dag — Shape B netlist value</span><span class="badge badge-vision">Vision · uses real types</span></header>
+        <pre>module examples.spice.low_pass
 
-  connect vin.out -> r1.a
-  connect r1.b    -> c1.a
-  connect c1.b    -> ground
-  output vout = c1.a
+import v4.extdeps.formats.spice {
+  Component, DeckStatement, Directive,
+  NodeRef, SpiceNetlist, SpiceValue, AcSweepKind
+}
+import v4.std.node { Symbol }
+
+data n_in:  NodeRef = Named { node: NamedNode { name: "in"  } }
+data n_out: NodeRef = Named { node: NamedNode { name: "out" } }
+data gnd:   NodeRef = Ground
+
+data low_pass_rc: SpiceNetlist = SpiceNetlist {
+  title: "RC low-pass filter — emitted from low_pass.dag",
+  body: [
+    DeckComponent { component: VoltageSource {
+      name: "V1", n_plus: n_in,  n_minus: gnd,
+      value: SpiceValue { lexeme: "AC 1" }
+    }},
+    DeckComponent { component: Resistor {
+      name: "R1", n_plus: n_in,  n_minus: n_out,
+      value: SpiceValue { lexeme: "1k" }
+    }},
+    DeckComponent { component: Capacitor {
+      name: "C1", n_plus: n_out, n_minus: gnd,
+      value: SpiceValue { lexeme: "100n" }
+    }},
+    DeckDirective { directive: Ac {
+      sweep:  Decade,
+      n:      SpiceValue { lexeme: "20" },
+      fstart: SpiceValue { lexeme: "10" },
+      fstop:  SpiceValue { lexeme: "1Meg" }
+    }}
+  ]
 }</pre>
       </div>
       <div class="demo-panel">
-        <header><span>Emitted PSpice netlist</span><span class="badge badge-vision">Vision</span></header>
-        <pre>* LowPassFilter — emitted from low_pass.dag
-V1   in   0   AC 1
-R1   in   out 1k
-C1   out  0   100n
+        <header><span>Emitted SPICE3F5 deck</span><span class="badge badge-vision">Vision · canonical format</span></header>
+        <pre>* RC low-pass filter — emitted from low_pass.dag
+V1 in  0   AC 1
+R1 in  out 1k
+C1 out 0   100n
 .ac dec 20 10 1Meg
-.probe V(out)
 .end</pre>
+        <div class="demo-out muted" style="font-size:0.72rem">
+          The same deck a <code>ngspice -b low_pass.cir</code> run would consume. Component order, node
+          identifiers, and the <code>.ac</code> directive all derive directly from the <code>SpiceNetlist</code>
+          value on the left — no string templating, no out-of-band glue.
+        </div>
       </div>
     </div>
     <div class="demo-grid" style="margin-top:1.25rem">
@@ -702,37 +741,74 @@ C1   out  0   100n
     </p>
 
     <!-- ── Verilog ── -->
-    <h3 style="font-size:1.05rem;margin:2.75rem 0 0.75rem">Verilog — digital hardware from the same idea</h3>
+    <h3 style="font-size:1.05rem;margin:2.75rem 0 0.75rem">Verilog — digital hardware as a Shape A language target</h3>
+    <p class="muted" style="margin:0 0 1rem;font-size:0.82rem">
+      Verilog gets the same treatment as Rust: the compiler emits it directly against the language spec.
+      The shape below uses the real <code>VerilogModule</code> / <code>AlwaysBlock</code> / <code>NetAssignment</code>
+      types from <a href="https://github.com/gunb-ai/daglang/blob/main/src/v4/extdeps/languages/verilog.dag">verilog.dag</a>
+      — the same structural carriers that
+      <a href="https://github.com/gunb-ai/daglang/blob/main/src/v4/test/claim/manual/verilog_concurrency_anchor.dag">verilog_concurrency_anchor.dag</a>
+      uses to anchor T-4.9 (continuous-assign + posedge always-block concurrency).
+    </p>
     <div class="demo-grid">
       <div class="demo-panel">
-        <header><span>counter.dag (illustrative)</span><span class="badge badge-vision">Vision</span></header>
-        <pre>module Counter {
-  input  clk:   Clock
-  input  reset: Bool
-  state  count: UInt&lt;8&gt;
+        <header><span>counter.dag — built from real carriers</span><span class="badge badge-vision">Vision · uses real types</span></header>
+        <pre>module examples.verilog.counter
 
-  on rising(clk) {
-    if reset { count = 0 }
-    else     { count = count + 1 }
-  }
+import v4.extdeps.languages.verilog {
+  AlwaysBlock, ContinuousAssign, EdgeTrigger,
+  ModuleKeyword, NetAssignment, SensitivityItem,
+  VerilogModule
+}
+
+data clk_event: SensitivityItem = SensitivityItem {
+  trigger: PosEdge,
+  event_expression_lexeme: "clk"
+}
+
+data count_step: NetAssignment = NetAssignment {
+  lhs_lexeme: "count",
+  rhs_lexeme: "reset ? 8'd0 : count + 8'd1"
+}
+
+data counter_always: AlwaysBlock = AlwaysBlock {
+  sensitivity: ExplicitEventList { items: [clk_event] },
+  body_lexeme: "count &lt;= reset ? 8'd0 : count + 8'd1;"
+}
+
+data counter_module: VerilogModule = NoPortListModule {
+  attributes:           NoAttributeInstances,
+  module_keyword:       ModuleKw,
+  name:                 "Counter",
+  parameter_port_list:  NoModuleParameterPortList,
+  items: [
+    AlwaysBlockItem {
+      attributes: NoAttributeInstances,
+      always_block: counter_always
+    }
+  ]
 }</pre>
       </div>
       <div class="demo-panel">
-        <header><span>Emitted Verilog</span><span class="badge badge-vision">Vision</span></header>
+        <header><span>Emitted Verilog (IEEE 1364-2005)</span><span class="badge badge-vision">Vision · same path as Rust</span></header>
         <pre>module Counter (
-  input         clk,
-  input         reset,
+  input            clk,
+  input            reset,
   output reg [7:0] count
 );
   always @(posedge clk) begin
-    if (reset) count &lt;= 8'd0;
-    else       count &lt;= count + 1;
+    count &lt;= reset ? 8'd0 : count + 8'd1;
   end
 endmodule</pre>
+        <div class="demo-out muted" style="font-size:0.72rem">
+          Same compile path as Rust — language spec anchored to
+          <a href="https://standards.ieee.org/ieee/1364/3641/">IEEE 1364-2005</a>, no template engine, no
+          string concatenation by the emitter.
+        </div>
       </div>
     </div>
     <div class="demo-panel" style="margin-top:1.25rem">
-      <header><span>Simulated waveform (count rolling under reset)</span><span class="badge badge-vision">Vision</span></header>
+      <header><span>Simulated waveform — counter rolling, reset released after t=2</span><span class="badge badge-vision">Vision</span></header>
       <svg class="artwork" viewBox="0 0 320 160" aria-label="Counter waveform">
         <!-- grid -->
         <line class="signal-bg" x1="60" y1="30"  x2="305" y2="30"/>
