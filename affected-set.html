@@ -985,8 +985,7 @@ await candidate.emitAffected({ scope: affected });
     });
   }
 
-  function renderGeneratedChecks(container, items) {
-    if (!container) return;
+  function generatedChecksHtml(items) {
     var html = "";
     (items || []).forEach(function (g) {
       var stateClass = g.state === "fail" ? "g-fail" : g.state === "warn" ? "g-warn" : "g-pass";
@@ -998,7 +997,7 @@ await candidate.emitAffected({ scope: affected });
         '<span class="as-gen-label">' + escapeHtml(g.label) + '</span>' +
         '</div>';
     });
-    container.innerHTML = html;
+    return html;
   }
 
   function renderReceipt(s) {
@@ -1022,7 +1021,8 @@ await candidate.emitAffected({ scope: affected });
       gate.textContent = s.gate.label;
       gate.style.color = s.gate.ok ? "var(--tier-now)" : "var(--diag-fail)";
     }
-    renderGeneratedChecks(document.getElementById("as-explainer-checks"), s.generated);
+    var checks = document.getElementById("as-explainer-checks");
+    if (checks) checks.innerHTML = generatedChecksHtml(s.generated);
     var body = document.getElementById("as-explainer-body");
     if (body) body.innerHTML = s.precision || "";
   }
