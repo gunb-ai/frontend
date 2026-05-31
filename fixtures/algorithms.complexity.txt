@@ -1,0 +1,18 @@
+compiling 1 sources (transitive closure)
+==================================================================
+ComplexityReport — emitted by v2 compiler (gunbc dev build)
+==================================================================
+
+function_classes (7 entries):
+------------------------------------------------------------------
+  classify                                           O(1)
+  count_in                                           O(n)
+  double                                             O(1)
+  duplicate_count                                    O(n * n)
+  evens_doubled                                      O(n)
+  length_acc                                         O(n)
+  sum_list                                           O(n)
+
+violations: 0
+
+structural_bounds: 0

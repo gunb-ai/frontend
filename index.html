@@ -3,12 +3,90 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>daglang — a compiler for systems that can’t drift</title>
-  <meta name="description" content="Declare programs as typed graphs. gunbc runs structural lenses, then emits verified Rust, Go, and Python from the same source. v0.1.0 alpha: documented subset only." />
+  <title>daglang — one graph, many targets</title>
+  <meta name="description" content="Modern systems drift because the backend, frontend, schema, tests, docs, CI, and runtime artifacts all become separate sources of truth. daglang represents the system as a typed graph; gunbc analyzes the graph, checks structural properties, and emits artifacts from the same source." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <meta name="theme-color" content="#0c0d0c" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#f4efe6" media="(prefers-color-scheme: light)" />
+  <meta name="color-scheme" content="dark light" />
+  <script>(function(){try{var s=localStorage.getItem("daglang-mode");var l=window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches;document.documentElement.setAttribute("data-mode",s||(l?"light":"dark"));}catch(e){}})();</script>
   <link rel="stylesheet" href="site.css" />
+  <style>
+    /* Page-local: problem cards + proposal flow */
+    .problem-grid {
+      display: grid; gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    }
+    .problem-card {
+      padding: 1.1rem 1.25rem; border: 1px solid; border-radius: 5px;
+      border-left-width: 3px;
+      font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.55;
+    }
+    [data-mode="dark"] .problem-card { background: var(--void-up); border-color: var(--border-dark); }
+    [data-mode="light"] .problem-card { background: var(--warm-white-up); border-color: var(--border-light); }
+    .problem-card { border-left-color: var(--diag-fail); }
+    .problem-card strong { color: var(--diag-fail); font-weight: 600; }
+    .problem-card-effect {
+      display: block; margin-top: 0.45rem; opacity: 0.75;
+      font-size: 0.72rem;
+    }
+
+    .proposal-flow {
+      display: grid; gap: 0.6rem;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      align-items: stretch;
+      position: relative;
+    }
+    .proposal-step {
+      padding: 1.1rem 1.25rem; border: 1px solid; border-radius: 5px;
+      font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.55;
+      display: flex; flex-direction: column; gap: 0.4rem;
+      position: relative;
+    }
+    [data-mode="dark"] .proposal-step { background: var(--void-up); border-color: var(--border-dark); }
+    [data-mode="light"] .proposal-step { background: var(--warm-white-up); border-color: var(--border-light); }
+    .proposal-step-num {
+      font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase;
+      opacity: 0.55; color: var(--tier-now);
+    }
+    .proposal-step-name { font-weight: 600; font-size: 0.85rem; color: var(--tier-now); }
+    .proposal-step-body { font-size: 0.72rem; opacity: 0.85; line-height: 1.6; }
+    .proposal-step:not(:last-child)::after {
+      content: "→"; position: absolute;
+      right: -0.7rem; top: 50%; transform: translateY(-50%);
+      color: var(--tier-now); font-family: var(--font-mono);
+      font-size: 0.95rem; pointer-events: none;
+    }
+
+    .available-now {
+      display: grid; gap: 0.75rem;
+      grid-template-columns: 1fr;
+      max-width: 46em;
+    }
+    .available-now-row {
+      display: grid; grid-template-columns: 1.4rem 1fr;
+      gap: 0.6rem; align-items: baseline;
+      padding: 0.65rem 0.85rem;
+      border: 1px solid; border-radius: 4px;
+      border-left: 3px solid var(--tier-now);
+      font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.55;
+    }
+    [data-mode="dark"] .available-now-row { background: var(--void-up); border-color: var(--border-dark); border-left-color: var(--tier-now); }
+    [data-mode="light"] .available-now-row { background: var(--warm-white-up); border-color: var(--border-light); border-left-color: var(--tier-now); }
+    .available-now-row .check { color: var(--tier-now); font-weight: 600; }
+    .available-now-row strong { font-weight: 600; }
+    .available-now-row small {
+      display: block; opacity: 0.65; font-size: 0.7rem; margin-top: 0.2rem;
+    }
+
+    @media (max-width: 760px) {
+      .proposal-flow { grid-template-columns: 1fr; }
+      .proposal-step:not(:last-child)::after { display: none; }
+    }
+  </style>
 </head>
 <body>
 
@@ -30,7 +108,11 @@
   </a>
   <div class="nav-right">
     <div class="nav-links">
+      <a href="showcase.html" class="nav-link" style="color:var(--tier-now)">Showcase</a>
+      <a href="showcase-backend.html" class="nav-link" style="color:var(--tier-next)">Showcase · backend</a>
       <a href="examples.html" class="nav-link">Examples</a>
+      <a href="affected-set.html" class="nav-link">Affected-set</a>
+      <a href="roadmap.html" class="nav-link">Roadmap</a>
       <a href="https://github.com/gunb-ai/daglang/blob/main/THESIS.md" class="nav-link">Docs</a>
       <a href="https://github.com/gunb-ai/daglang" class="nav-link">GitHub</a>
     </div>
@@ -42,121 +124,351 @@
 </nav>
 
 <main>
+  <!-- ───────────────── Hero — category + promise ───────────────── -->
   <section class="hero wrap">
-    <div class="hero-top">
-      <svg class="hero-logo" viewBox="0 0 120 120" style="color:currentColor" aria-hidden="true">
-        <defs>
-          <mask id="stoic-hero-mask">
-            <path fill="white" d="M40,20 H80 A30,30 0 0,1 110,50 V70 A30,30 0 0,1 80,100 H40 A30,30 0 0,1 10,70 V50 A30,30 0 0,1 40,20 Z"/>
-            <g class="features">
-              <circle cx="35" cy="48" r="8" fill="black"/>
-              <circle cx="85" cy="48" r="8" fill="black"/>
-              <path fill="black" d="M54,54 H66 A2,2 0 0,1 68,56 V58 A2,2 0 0,1 66,60 H54 A2,2 0 0,1 52,58 V56 A2,2 0 0,1 54,54 Z"/>
-            </g>
-          </mask>
-        </defs>
-        <path mask="url(#stoic-hero-mask)" fill="currentColor"
-              d="M40,20 H80 A30,30 0 0,1 110,50 V70 A30,30 0 0,1 80,100 H40 A30,30 0 0,1 10,70 V50 A30,30 0 0,1 40,20 Z"/>
-      </svg>
+    <div class="hero-grid">
       <div>
-        <h1 class="hero-headline">A compiler for systems that can’t drift.</h1>
-        <p class="hero-sub muted">
-          Declare your program as a typed graph. <strong>gunbc</strong> runs structural lenses over that graph,
-          then emits <strong>supported</strong> target artifacts from the same source.
-          The long-term goal: one graph, many artifacts, structural checks before code ships.
-        </p>
-        <div class="status-chip">
-          <span class="badge badge-alpha">v0.1.0 alpha — documented subset</span>
-          <span class="badge badge-alpha">Rust verified</span>
-          <span class="badge badge-preview">Go / Python — planned verified surfaces</span>
-          <span class="badge badge-preview">v4 + TypeScript + omni-emission — preview</span>
+        <div class="hero-mark-row">
+          <svg class="hero-logo" viewBox="0 0 120 120" aria-hidden="true">
+            <defs>
+              <mask id="stoic-hero-mask">
+                <path fill="white" d="M40,20 H80 A30,30 0 0,1 110,50 V70 A30,30 0 0,1 80,100 H40 A30,30 0 0,1 10,70 V50 A30,30 0 0,1 40,20 Z"/>
+                <g class="features">
+                  <circle cx="35" cy="48" r="8" fill="black"/>
+                  <circle cx="85" cy="48" r="8" fill="black"/>
+                  <path fill="black" d="M54,54 H66 A2,2 0 0,1 68,56 V58 A2,2 0 0,1 66,60 H54 A2,2 0 0,1 52,58 V56 A2,2 0 0,1 54,54 Z"/>
+                </g>
+              </mask>
+            </defs>
+            <path mask="url(#stoic-hero-mask)" fill="currentColor"
+                  d="M40,20 H80 A30,30 0 0,1 110,50 V70 A30,30 0 0,1 80,100 H40 A30,30 0 0,1 10,70 V50 A30,30 0 0,1 40,20 Z"/>
+          </svg>
+          <span class="hero-eyebrow">daglang · gunbc compiler</span>
         </div>
+        <h1 class="hero-headline">One graph. <em>Many targets.</em></h1>
+        <p class="hero-sub">
+          Modern systems drift because the backend, frontend, schema, tests, docs, CI, and runtime
+          artifacts all become separate sources of truth. <strong>daglang</strong> represents the system
+          as a typed graph. <strong>gunbc</strong> analyzes the graph, checks structural properties,
+          and emits artifacts from the same source.
+        </p>
         <div class="hero-actions">
-          <a href="https://github.com/gunb-ai/daglang" class="hero-cta">Get started</a>
-          <a href="examples.html" class="hero-cta-secondary">See examples</a>
-          <a href="https://github.com/gunb-ai/daglang/blob/main/THESIS.md" class="hero-cta-secondary">Read the thesis</a>
+          <a href="#available-now" class="hero-cta">See what works today</a>
+          <a href="affected-set.html" class="hero-cta-secondary">Affected-set demo</a>
+          <a href="roadmap.html" class="hero-cta-secondary">Explore the roadmap</a>
         </div>
-        <div class="install-block">
-          <kbd>git clone https://github.com/gunb-ai/daglang.git</kbd><br />
-          <kbd>cd daglang &amp;&amp; cargo build --release -p v2-compiler --bin gunbc</kbd><br />
-          <kbd>./target/release/gunbc --help</kbd>
+        <p class="hero-foot muted"><span>flow</span> &ensp; source → graph → lenses → artifacts</p>
+      </div>
+
+      <!-- Pipeline diagram — HTML boxes/labels + SVG lines only.
+           SVG <text> baseline behavior is famously inconsistent across
+           browsers. We sidestep the whole class of bugs by rendering every
+           label as normal HTML inside a styled <div>, and using SVG only
+           for the connecting wires. JS measures each node's center against
+           a shared coordinate frame (the .hero-pipeline container) and
+           draws the lines beneath. -->
+      <div class="hero-pipeline" id="hero-pipeline">
+        <svg class="hero-pipeline-lines" id="hero-pipeline-lines" aria-hidden="true"></svg>
+
+        <div class="hp-col hp-col-source">
+          <div class="hp-cap">SOURCE</div>
+          <div class="hp-node hp-node-core" id="hp-source">
+            <strong>.dag</strong>
+            <span>typed graph</span>
+          </div>
         </div>
-        <p class="flow-strip muted">
-          <span>flow</span> &ensp; source → graph → lenses → artifacts
-        </p>
+
+        <div class="hp-col hp-col-compiler">
+          <div class="hp-cap">COMPILER</div>
+          <div class="hp-node hp-node-core" id="hp-compiler">
+            <strong>gunbc</strong>
+            <span>compile · emit</span>
+          </div>
+        </div>
+
+        <div class="hp-col hp-col-artifacts">
+          <div class="hp-cap">ARTIFACTS</div>
+          <div class="hp-node hp-tier-now"    data-art="rust">    <span class="hp-marker">●</span>Rust</div>
+          <div class="hp-node hp-tier-stable" data-art="go">      <span class="hp-marker">◐</span>Go</div>
+          <div class="hp-node hp-tier-stable" data-art="python">  <span class="hp-marker">◐</span>Python</div>
+          <div class="hp-node hp-tier-next"   data-art="ts">      <span class="hp-marker">○</span>TypeScript</div>
+          <div class="hp-node hp-tier-next"   data-art="openapi"> <span class="hp-marker">○</span>OpenAPI</div>
+          <div class="hp-node hp-tier-vision" data-art="verilog"> <span class="hp-marker">◇</span>Verilog</div>
+          <div class="hp-node hp-tier-vision" data-art="pspice">  <span class="hp-marker">◇</span>PSpice</div>
+        </div>
+
+        <div class="hp-col hp-col-runtime">
+          <div class="hp-cap">RUNTIME</div>
+          <div class="hp-bus-label hp-bus-web" id="hp-bus-web">
+            <strong>HTTP</strong>
+            <span>OpenAPI contract</span>
+          </div>
+          <div class="hp-bus-label hp-bus-hw"  id="hp-bus-hw">
+            <strong>co-sim</strong>
+            <span>mixed-signal</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hp-legend" aria-label="tier legend">
+        <span><i class="hp-leg hp-leg-now"></i> shipped</span>
+        <span><i class="hp-leg hp-leg-stable"></i> stabilizing</span>
+        <span><i class="hp-leg hp-leg-next"></i> next</span>
+        <span><i class="hp-leg hp-leg-vision"></i> planned</span>
       </div>
     </div>
   </section>
 
+  <!-- ───────────────── The problem ───────────────── -->
   <section class="section wrap">
-    <h2>What v0.1.0 actually does</h2>
+    <p class="section-eyebrow">The problem</p>
+    <h2>Drift is the default.</h2>
     <p class="section-lead muted">
-      Correctness claims apply to the <strong>supported subset</strong> only.
-      Unsupported paths fail closed with named diagnostics — not plausible fake output.
+      Every system above a certain size carries the same tax. The cost shows up at code-review time,
+      at test time, at incident time, and at refactor time — but the root is always the same shape.
     </p>
-    <div class="cards">
-      <article class="card">
-        <h3>Catch cost drift before runtime</h3>
+    <div class="problem-grid">
+      <div class="problem-card">
+        <strong>Schema drift.</strong>
+        A field changes in the backend; the client compiles fine, then breaks at runtime.
+        <span class="problem-card-effect">Caught in production, not at build.</span>
+      </div>
+      <div class="problem-card">
+        <strong>Documentation drift.</strong>
+        A type changes; the docs stay stale until someone notices.
+        <span class="problem-card-effect">Onboarding gets harder; trust in docs erodes.</span>
+      </div>
+      <div class="problem-card">
+        <strong>Cost drift.</strong>
+        A helper gets slower; downstream code silently crosses a complexity budget.
+        <span class="problem-card-effect">Tail latency rises; nobody knows which commit did it.</span>
+      </div>
+      <div class="problem-card">
+        <strong>Cross-domain drift.</strong>
+        A circuit model, UI control, and simulation output describe the same thing — but no compiler sees them as one system.
+        <span class="problem-card-effect">Engineers reconcile by hand. The reconciliation goes stale.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────── The proposal ───────────────── -->
+  <section class="section wrap">
+    <p class="section-eyebrow">The proposal</p>
+    <h2>Make the system a graph.</h2>
+    <p class="section-lead muted">
+      A source line is a view. Underneath it are typed graph nodes — fields, variants, call edges,
+      match arms, effect boundaries, target-artifact projections. Because the compiler sees the graph,
+      it can answer structural questions: what changed, what depends on it, what tests must run,
+      what artifacts must update.
+    </p>
+    <div class="proposal-flow">
+      <div class="proposal-step">
+        <span class="proposal-step-num">Step 1</span>
+        <span class="proposal-step-name">Source line</span>
+        <span class="proposal-step-body">
+          What the developer (or agent) writes — a function body, a type declaration, a config field.
+        </span>
+      </div>
+      <div class="proposal-step">
+        <span class="proposal-step-num">Step 2</span>
+        <span class="proposal-step-name">Graph node</span>
+        <span class="proposal-step-body">
+          The compiler resolves the span to typed <code>CoreNode</code>s — addressable units of meaning.
+        </span>
+      </div>
+      <div class="proposal-step">
+        <span class="proposal-step-num">Step 3</span>
+        <span class="proposal-step-name">Lenses + checks</span>
+        <span class="proposal-step-body">
+          Complexity, type-shape, exhaustiveness, effect, latency — each folds over the node graph.
+        </span>
+      </div>
+      <div class="proposal-step">
+        <span class="proposal-step-num">Step 4</span>
+        <span class="proposal-step-name">Artifacts</span>
+        <span class="proposal-step-body">
+          Rust backend, TypeScript client, SQL migration, OpenAPI spec, generated tests, circuit netlist — projections of the same graph.
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────── Available now ───────────────── -->
+  <section class="section wrap" id="available-now">
+    <p class="section-eyebrow">Available now</p>
+    <h2>The supported slice today.</h2>
+    <p class="section-lead muted">
+      What you can run against the public compiler right now. Everything below is verified end-to-end
+      on the documented daglang subset; the broader roadmap lives in <a href="roadmap.html">/roadmap</a>.
+    </p>
+    <div class="available-now">
+      <div class="available-now-row">
+        <span class="check">●</span>
+        <span>
+          <strong>gunbc compiler</strong> — <code>compile</code> + <code>run</code>, with
+          <code>--target rust</code> verified by <code>cargo check</code>; Go and Python emit
+          paths exist on the same graph and are stabilizing.
+          <small>Source: <a href="https://github.com/gunb-ai/daglang">github.com/gunb-ai/daglang</a></small>
+        </span>
+      </div>
+      <div class="available-now-row">
+        <span class="check">●</span>
+        <span>
+          <strong>Documented daglang subset</strong> — types (struct, sum-of-products), pattern
+          matching, pure functions, pipeline operators, std collections. Fails closed on
+          unsupported constructs with named diagnostics.
+        </span>
+      </div>
+      <div class="available-now-row">
+        <span class="check">●</span>
+        <span>
+          <strong>Structural complexity analyzer</strong> — <code>function_classes</code> attached
+          to every analyzed function on every compile. Real benchmark in
+          <a href="examples.html#complexity">examples · complexity analyzer</a>.
+          <small><code>O(1)</code>, <code>O(n)</code>, <code>O(n * n)</code> derived from recursive
+          structure — no annotations.</small>
+        </span>
+      </div>
+      <div class="available-now-row">
+        <span class="check">●</span>
+        <span>
+          <strong>Contract-drift / fail-closed examples</strong> — add a variant to a sum type,
+          every <code>match</code> that doesn't cover it fails the build.
+          See <a href="examples.html#contract">examples · contract drift</a>.
+        </span>
+      </div>
+    </div>
+    <div class="install-block" style="margin-top:1.5rem;max-width:46em">
+      <kbd>git clone https://github.com/gunb-ai/daglang.git</kbd><br />
+      <kbd>cd daglang &amp;&amp; cargo build --release -p v2-compiler --bin gunbc</kbd><br />
+      <kbd>./target/release/gunbc compile --source-root dsl/examples/weather \
+                              --source-root dsl/std \
+                              --output-dir /tmp/weather-out --target rust</kbd>
+    </div>
+  </section>
+
+  <!-- ───────────────── Flagship demos ───────────────── -->
+  <section class="section wrap">
+    <p class="section-eyebrow">Flagship demos</p>
+    <h2>Three pages, three ways to see the graph.</h2>
+    <p class="section-lead muted">
+      One current capability, one concept demo, two interactive walkthroughs. Each makes "code is a graph"
+      tangible by showing a different consequence of it.
+    </p>
+    <div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(18rem,1fr))">
+      <article class="card t-now" style="border-color:var(--tier-now-line)">
+        <span class="card-tier">Available now</span>
+        <h3>Complexity analyzer.</h3>
         <p>
-          <strong>gunbc</strong> v2 already classifies per-function complexity during compile
-          (<code>function_classes</code>). The current analyzer reports structural cost classes like
-          <code>O(1)</code>, <code>O(n)</code>, and <code>O(?)</code>; CI-gated lens receipts are the next step.
+          The verifier you can run today. Pick a function on a real benchmark, see its derived cost class
+          and the structural reason. <code>duplicate_count → O(n * n)</code> from nested recursion — no
+          annotation, no benchmark, derived from the graph.
         </p>
+        <a class="card-link" href="examples.html#complexity">See the playground →</a>
       </article>
-      <article class="card">
-        <h3>Generate targets from one source</h3>
-        <p>Emit Rust today; Go and Python are planned verified surfaces on the documented <code>.dag</code> subset. For verified examples, a changed declaration propagates through derived artifacts or fails the build.</p>
+      <article class="card t-next" style="border-color:var(--tier-next-line)">
+        <span class="card-tier">Concept demo</span>
+        <h3>Affected-set propagation.</h3>
+        <p>
+          Change one line of <code>weather.dag</code>. Watch the typed dependency closure light up
+          downstream nodes, generated checks, and re-emit candidates — with a "skipped with receipt"
+          cell showing what safely doesn't run.
+        </p>
+        <a class="card-link" href="affected-set.html">Open affected-set →</a>
       </article>
-      <article class="card">
-        <h3>Fail closed, don’t fake it</h3>
-        <p>Unsupported constructs return named diagnostics at the boundary. No silent “best effort” emission on paths outside the verified surface.</p>
+      <article class="card t-vision" style="border-color:var(--tier-vision-line)">
+        <span class="card-tier">Interactive roadmap</span>
+        <h3>Interactive showcase.</h3>
+        <p>
+          Every feature walked on one protagonist. <strong>EE flavor</strong> uses a low-pass RC
+          filter with a slider that drives every projection in lockstep.
+          <strong>Backend flavor</strong> uses a Todo CRUD service with a handler picker that walks
+          O(1) → O(n²) across real endpoints.
+        </p>
+        <a class="card-link" href="showcase.html">EE showcase →</a>
+        &nbsp;·&nbsp;
+        <a class="card-link" href="showcase-backend.html">Backend showcase →</a>
       </article>
     </div>
   </section>
 
-  <section class="section wrap">
-    <h2>Lead example — contract drift</h2>
+  <!-- ───────────────── Roadmap (out of hero, its own section) ───────────────── -->
+  <section class="section wrap" id="roadmap">
+    <p class="section-eyebrow">Roadmap</p>
+    <h2>Maturity by capability.</h2>
     <p class="section-lead muted">
-      From <code>dsl/examples/weather/weather.dag</code> in the daglang repo — types, enums, and pure functions that compile to Rust today.
+      The roadmap is the honesty mechanism. No percentages, no ship dates we can't keep — just
+      where each capability lives on a four-tier scale, with dependencies between them.
     </p>
-    <div class="demo-panel">
-      <header>
-        <span>User-facing types stay in one declaration</span>
-        <span class="badge badge-alpha">v0.1.0 · Rust verified</span>
-      </header>
-      <pre>type Forecast {
-  location: String
-  high: Temperature
-  low: Temperature
-  condition: Condition
-}
-
-type Condition
-  = Sunny | Cloudy
-  | Rainy { mm_per_hour: Float }
-  | Snowy { cm_per_hour: Float }</pre>
-      <div class="demo-out muted">
-        <span class="diag-ok">→</span> Rust — verified (see examples for commands)<br />
-        <span class="diag-ok">→</span> Go / Python — planned verified surfaces<br />
-        <span class="diag-fail">→</span> Within the verified subset, stale derived artifacts fail closed instead of silently drifting
+    <div class="roadmap">
+      <p class="roadmap-title">Capabilities</p>
+      <div class="roadmap-row t-now">
+        <span class="roadmap-marker">●</span>
+        <span class="roadmap-tier">Available now</span>
+        <span class="roadmap-items">daglang subset · gunbc compiler · Rust output · complexity analyzer · contract-drift fail-closed</span>
+      </div>
+      <div class="roadmap-row t-stable">
+        <span class="roadmap-marker">◐</span>
+        <span class="roadmap-tier">Stabilizing</span>
+        <span class="roadmap-items">Go output · Python output · fail-closed diagnostics on unsupported paths</span>
+      </div>
+      <div class="roadmap-row t-next">
+        <span class="roadmap-marker">○</span>
+        <span class="roadmap-tier">Building next</span>
+        <span class="roadmap-items">TypeScript client · OpenAPI · SQL · affected-set CI · programmatic graph editing (<code>apply_diff</code>) · omni-ingestion (round-trip translate) · testgen</span>
+      </div>
+      <div class="roadmap-row t-vision">
+        <span class="roadmap-marker">◇</span>
+        <span class="roadmap-tier">Planned</span>
+        <span class="roadmap-items">full-stack omni-emission · Verilog · PSpice · protocols · v4 self-host</span>
       </div>
     </div>
-    <p style="margin-top:1rem"><a href="examples.html#contract" class="hero-cta-secondary">Full example →</a></p>
+    <p style="margin-top:1.5rem">
+      <a href="roadmap.html" class="hero-cta-secondary">Open the full capability graph →</a>
+    </p>
   </section>
 
+  <!-- ───────────────── Beyond programming languages ───────────────── -->
   <section class="section wrap">
-    <h2>Where this is going</h2>
-    <div class="vision">
-      <p class="muted" style="margin-top:0">
-        <strong>Roadmap, not v0.1.0.</strong> One graph should produce the backend, client, schema, docs, tests, and CI gates —
-        without schema drift, duplicate target logic, or late scans pretending to be guarantees.
-      </p>
-      <pre style="margin:1rem 0 0;padding:1rem;border-radius:3px;font-size:0.72rem">v0.1.0 verified subset (Shape A):
-  .dag declarations → Rust / Go / Python
-
-Preview (Shape B + full-stack):
-  .dag programs → OpenAPI, SQL DDL, docs, tests
-  .dag services → Rust backend, TypeScript client, DB migration</pre>
+    <p class="section-eyebrow">Where this is going</p>
+    <h2>Beyond programming languages.</h2>
+    <p class="section-lead muted">
+      A "target" doesn't have to be a language. Anywhere structure travels — circuits, schemas,
+      protocols, workflows — drift between artifacts is the bug daglang is built to remove. Most of
+      these are <span class="badge badge-vision">Planned</span> per the roadmap above; the substrate
+      types for SPICE and Verilog already exist in the v4 tree.
+    </p>
+    <div class="beyond-strip">
+      <a class="beyond-tile" href="showcase-backend.html">
+        <svg class="beyond-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg>
+        Full stack
+        <span class="beyond-tile-tag">Next</span>
+      </a>
+      <a class="beyond-tile" href="examples.html#beyond">
+        <svg class="beyond-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg>
+        PSpice
+        <span class="beyond-tile-tag">Planned</span>
+      </a>
+      <a class="beyond-tile" href="examples.html#beyond">
+        <svg class="beyond-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 18h3v-6h3v-4h3v8h3v-4h3v6"/></svg>
+        Verilog
+        <span class="beyond-tile-tag">Planned</span>
+      </a>
+      <a class="beyond-tile" href="examples.html#omni">
+        <svg class="beyond-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><ellipse cx="12" cy="5" rx="8" ry="2.5"/><path d="M4 5v14c0 1.4 3.6 2.5 8 2.5s8-1.1 8-2.5V5M4 12c0 1.4 3.6 2.5 8 2.5s8-1.1 8-2.5"/></svg>
+        SQL
+        <span class="beyond-tile-tag">Next</span>
+      </a>
+      <a class="beyond-tile" href="examples.html#omni">
+        <svg class="beyond-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 7l8-3 8 3v6c0 4-4 7-8 8-4-1-8-4-8-8V7z"/></svg>
+        OpenAPI
+        <span class="beyond-tile-tag">Next</span>
+      </a>
+      <a class="beyond-tile" href="https://github.com/gunb-ai/daglang/blob/main/THESIS.md">
+        <svg class="beyond-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="M8 7l3 9M16 7l-3 9"/></svg>
+        Protocols
+        <span class="beyond-tile-tag">Planned</span>
+      </a>
     </div>
   </section>
 </main>
