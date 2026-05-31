@@ -33,6 +33,7 @@
     tabs.forEach(function (tab) {
       var on = tab.getAttribute("data-tab") === id;
       tab.setAttribute("aria-selected", on ? "true" : "false");
+      tab.setAttribute("tabindex", on ? "0" : "-1");
     });
     panels.forEach(function (panel) {
       panel.hidden = panel.id !== "panel-" + id;
@@ -43,10 +44,21 @@
   }
 
   tabs.forEach(function (tab) {
+    // A11y: wire aria-controls + tabindex so the tab points at its panel
+    // and screen readers know which one is active.
+    var id = tab.getAttribute("data-tab");
+    var panelId = "panel-" + id;
+    if (document.getElementById(panelId)) {
+      tab.setAttribute("aria-controls", panelId);
+    }
+    tab.setAttribute("tabindex", tab.getAttribute("aria-selected") === "true" ? "0" : "-1");
+
     tab.addEventListener("click", function () {
-      selectTab(tab.getAttribute("data-tab"));
+      selectTab(id);
+      tab.focus();
     });
   });
+
 
   function activateFromHash() {
     var id = location.hash.replace(/^#/, "");
@@ -54,6 +66,35 @@
   }
   window.addEventListener("hashchange", activateFromHash);
   activateFromHash();
+})();
+
+/* ─── Universal tablist keyboard nav ──────────────────────────
+ * Arrow-Left/Right (and Up/Down) cycles through tabs inside any
+ * [role="tablist"]; Home/End jump to first/last. The selection action
+ * is the tab's own click handler — whatever wired it (main tabs,
+ * scenario pickers, handler pickers) does the right thing on click. */
+(function () {
+  document.querySelectorAll('[role="tablist"]').forEach(function (list) {
+    var items = Array.prototype.slice.call(list.querySelectorAll('[role="tab"]'));
+    items.forEach(function (item, idx) {
+      item.addEventListener("keydown", function (e) {
+        var next = null;
+        switch (e.key) {
+          case "ArrowRight": case "ArrowDown":
+            next = items[(idx + 1) % items.length]; break;
+          case "ArrowLeft":  case "ArrowUp":
+            next = items[(idx - 1 + items.length) % items.length]; break;
+          case "Home": next = items[0]; break;
+          case "End":  next = items[items.length - 1]; break;
+        }
+        if (next) {
+          e.preventDefault();
+          next.focus();
+          next.click();
+        }
+      });
+    });
+  });
 })();
 
 /* ─── Hero pipeline diagram: SVG lines over HTML boxes ──────────
@@ -108,11 +149,10 @@
 
     var artRight = Math.max.apply(null, artifacts.map(function (a) { return a.right; }));
     var trunkX = (compiler.right + artifacts[0].left) / 2;
-    // Trunk extends to include the compiler.cy so the horizontal join always
-    // lands ON the trunk (no visual gap if compiler is above or below the
-    // artifact stack's vertical range).
-    var trunkTop = Math.min(artifacts[0].cy, compiler.cy);
-    var trunkBot = Math.max(artifacts[artifacts.length - 1].cy, compiler.cy);
+    // Trunk extends to include the snapped source/compiler y so the
+    // horizontal join always lands ON the trunk.
+    var trunkTop = Math.min(artifacts[0].cy, compiler.cy, (source.cy + compiler.cy) / 2);
+    var trunkBot = Math.max(artifacts[artifacts.length - 1].cy, compiler.cy, (source.cy + compiler.cy) / 2);
     var busX = Math.min(artRight + 18, W - 6);
 
     var parts = [];
@@ -127,12 +167,16 @@
       '</defs>'
     );
 
-    // source → compiler arrow
-    parts.push(line(source.right, source.cy, compiler.left, compiler.cy,
+    // source → compiler arrow. Snap both endpoints to a shared y (the
+    // average of source.cy and compiler.cy) so the line draws horizontal
+    // even if cap-text wrapping or font metrics put the two boxes at
+    // slightly different vertical positions.
+    var srcLineY = Math.round((source.cy + compiler.cy) / 2);
+    parts.push(line(source.right, srcLineY, compiler.left, srcLineY,
       TIER_COLOR.now, "url(#hp-arr-now)"));
 
-    // compiler → trunk midpoint (horizontal join)
-    parts.push(line(compiler.right, compiler.cy, trunkX, compiler.cy,
+    // compiler → trunk midpoint (horizontal join from the same snapped y)
+    parts.push(line(compiler.right, srcLineY, trunkX, srcLineY,
       TIER_COLOR.now));
 
     // Vertical trunk spanning the artifact stack

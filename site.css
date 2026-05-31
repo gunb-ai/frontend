@@ -202,14 +202,14 @@ a { color: inherit; }
 .hero-pipeline {
   position: relative;
   display: grid;
-  /* Mins are sized to fit each column's cap label without wrapping —
-     a wrapped cap makes that column's content taller, which pushes its
-     node down and tilts the source→compiler line into a diagonal. */
+  /* Mins are sized to fit each column's cap label without wrapping. */
   grid-template-columns: minmax(72px, 1fr) minmax(88px, 1fr) minmax(110px, 1.3fr) minmax(82px, 1fr);
   column-gap: 1.5rem;
-  align-items: start; /* caps align horizontally across columns; with nowrap
-                          caps, source and compiler also have identical
-                          intrinsic heights so their node centers match. */
+  /* default align-items: stretch — columns share the artifacts column's
+     full height. Combined with margin-top/bottom: auto on source/compiler
+     core nodes (below), this puts their geometric centers at the SAME y,
+     making the source→compiler line horizontal regardless of cap-text
+     wrapping or font-metric drift. */
   width: 100%;
   min-height: 320px;
 }
@@ -229,7 +229,15 @@ a { color: inherit; }
   flex-direction: column;
   gap: 0.45rem;
 }
-.hp-col-source, .hp-col-compiler { justify-content: center; }
+/* Center the source/compiler core nodes vertically in their stretched columns.
+   Cap stays at top (flex order); margin-top: auto on the node pushes it
+   away from the cap; margin-bottom: auto balances it from the bottom →
+   node center sits at the column midpoint. Both columns share the
+   midpoint, so the source→compiler line is horizontal. */
+.hp-col-source .hp-node-core, .hp-col-compiler .hp-node-core {
+  margin-top: auto;
+  margin-bottom: auto;
+}
 
 .hp-cap {
   font-family: var(--font-mono); font-size: 0.6rem;
@@ -570,7 +578,11 @@ a { color: inherit; }
   font-family: var(--font-mono); font-size: 9px; opacity: 0.55;
 }
 .playground-plot .curve {
-  fill: none; stroke-width: 1.6; opacity: 0.18;
+  fill: none; stroke-width: 1.6;
+  /* Hide inactive curves entirely — crisscrossing was misleading at small n
+     (per reviewer: do not use a fake continuous curve plot unless obviously
+     ordered). One curve at a time, always the selected one. */
+  opacity: 0;
   transition: opacity 0.25s ease, stroke-width 0.25s ease;
 }
 .playground-plot .curve.is-active { opacity: 1; stroke-width: 2.2; }

@@ -7,6 +7,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <meta name="theme-color" content="#0c0d0c" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#f4efe6" media="(prefers-color-scheme: light)" />
+  <meta name="color-scheme" content="dark light" />
+  <script>(function(){try{var s=localStorage.getItem("daglang-mode");var l=window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches;document.documentElement.setAttribute("data-mode",s||(l?"light":"dark"));}catch(e){}})();</script>
   <link rel="stylesheet" href="site.css" />
 </head>
 <body>
@@ -247,22 +252,61 @@ fn describe_condition(cond: Condition) -> String {
       </p>
     </div>
 
-    <h3 style="font-size:1rem;margin:2.5rem 0 0.75rem">Real compiler output · algorithms benchmark</h3>
+    <h3 style="font-size:1rem;margin:2.5rem 0 0.75rem">Real compiler output · summary</h3>
     <p class="muted" style="margin:0 0 1rem">
-      The output below is captured verbatim from a local <code>gunbc</code> dev build run against a
-      seven-function benchmark designed to exercise every cost class the analyzer derives today.
-      <strong>Nothing is hand-authored or annotated</strong> — the analyzer folds across each function's
-      <code>match</code> + recursion structure and reports the resulting class. <code>duplicate_count</code>
-      calls <code>count_in</code> inside its own recursion; the analyzer composes those two linear walks
-      and lands on <code>O(n * n)</code> without any user hint.
+      Verbatim output from a <code>gunbc</code> dev build on a benchmark designed to exercise every
+      cost class the analyzer derives today. <strong>No annotations, no benchmark runs</strong> —
+      the analyzer folds across each function's structure and reports the class.
     </p>
-    <div class="demo-grid">
-      <div class="demo-panel">
-        <header>
-          <span><code>algorithms.dag</code> · 7 functions, no annotations</span>
-          <span class="badge badge-now">Real source</span>
-        </header>
-        <pre>module examples.algorithms
+
+    <!-- Compact summary table — what the analyzer reported, ordered by class -->
+    <table style="width:100%;max-width:42em;border-collapse:collapse;font-family:var(--font-mono);font-size:0.82rem;margin-bottom:1rem">
+      <thead>
+        <tr style="text-align:left">
+          <th style="padding:0.5rem 0.7rem;border-bottom:1px solid var(--border-dark-strong);font-weight:600;opacity:0.7;font-size:0.66rem;letter-spacing:0.12em;text-transform:uppercase">Function</th>
+          <th style="padding:0.5rem 0.7rem;border-bottom:1px solid var(--border-dark-strong);font-weight:600;opacity:0.7;font-size:0.66rem;letter-spacing:0.12em;text-transform:uppercase">Reported class</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style="padding:0.4rem 0.7rem"><code>double</code></td>          <td style="padding:0.4rem 0.7rem;color:var(--tier-now)">O(1)</td></tr>
+        <tr><td style="padding:0.4rem 0.7rem"><code>classify</code></td>        <td style="padding:0.4rem 0.7rem;color:var(--tier-now)">O(1)</td></tr>
+        <tr><td style="padding:0.4rem 0.7rem"><code>sum_list</code></td>        <td style="padding:0.4rem 0.7rem;color:var(--tier-stable)">O(n)</td></tr>
+        <tr><td style="padding:0.4rem 0.7rem"><code>length_acc</code></td>      <td style="padding:0.4rem 0.7rem;color:var(--tier-stable)">O(n)</td></tr>
+        <tr><td style="padding:0.4rem 0.7rem"><code>evens_doubled</code></td>   <td style="padding:0.4rem 0.7rem;color:var(--tier-stable)">O(n)</td></tr>
+        <tr><td style="padding:0.4rem 0.7rem"><code>count_in</code></td>        <td style="padding:0.4rem 0.7rem;color:var(--tier-stable)">O(n)</td></tr>
+        <tr><td style="padding:0.4rem 0.7rem"><code>duplicate_count</code></td> <td style="padding:0.4rem 0.7rem;color:var(--tier-vision)"><strong>O(n * n)</strong></td></tr>
+      </tbody>
+    </table>
+
+    <p class="muted" style="margin:0 0 1rem;font-size:0.82rem">
+      <strong>The <code>duplicate_count</code> result is the interesting one.</strong> Its body just
+      recurses on the tail; the inner call is to <code>count_in</code>, which also walks the list. The
+      analyzer composes the two linear walks and lands on <code>O(n * n)</code> — no annotation, no
+      benchmark, derived from the graph.
+    </p>
+
+<pre style="margin:0 0 1rem;padding:0.85rem 1rem;font-size:0.74rem;line-height:1.55;border:1px solid var(--border-dark);border-radius:4px;background:var(--void-up2);overflow-x:auto">// Why O(n * n) — the structural reason
+
+fn duplicate_count(xs: List&lt;Int&gt;) -&gt; Int {
+  match xs {
+    Empty =&gt; 0
+    Cons { head: h, tail: t } =&gt;
+      count_in(xs: t, target: h)  // ← walks the list (O(n))
+      + duplicate_count(xs: t)    // ← recurses on tail (n outer steps)
+  }
+}                                 //  outer × inner = O(n * n)</pre>
+
+    <details style="margin:0 0 0.5rem">
+      <summary style="cursor:pointer;font-family:var(--font-mono);font-size:0.78rem;padding:0.5rem 0.75rem;border:1px solid var(--border-dark-strong);border-radius:4px;display:inline-block">
+        Show full benchmark source + raw compiler output
+      </summary>
+      <div class="demo-grid" style="margin-top:0.85rem">
+        <div class="demo-panel">
+          <header>
+            <span><code>algorithms.dag</code> · 7 functions, no annotations</span>
+            <span class="badge badge-now">Real source</span>
+          </header>
+          <pre>module examples.algorithms
 
 fn double(n: Int) -> Int { n + n }
 
@@ -305,10 +349,10 @@ fn duplicate_count(xs: List&lt;Int&gt;) -&gt; Int {
       count_in(xs: t, target: h) + duplicate_count(xs: t)
   }
 }</pre>
-      </div>
-      <div class="demo-panel">
-        <header><span>ComplexityReport from <code>gunbc</code> · verbatim</span><span class="badge badge-now">Real output</span></header>
-        <pre>$ gunbc compile --source-root /tmp/cx-demo \
+        </div>
+        <div class="demo-panel">
+          <header><span>ComplexityReport · verbatim from <code>gunbc</code></span><span class="badge badge-now">Real output</span></header>
+          <pre>$ gunbc compile --source-root /tmp/cx-demo \
                 --source-root dsl/std \
                 --output-dir /tmp/out --target rust
 indexed 49 modules from 2 source roots
@@ -331,16 +375,14 @@ function_classes (7 entries):
 
 violations: 0
 structural_bounds: 0</pre>
+        </div>
       </div>
-    </div>
-    <p class="muted" style="margin-top:0.75rem;font-size:0.78rem">
-      Note <code>O(n * n)</code> — the analyzer composes <code>duplicate_count</code>'s recursive descent
-      with <code>count_in</code>'s inner walk and derives the nested-loop class structurally. The fixture
-      captured by daglang's release build lives at
-      <a href="fixtures/weather.complexity.txt">fixtures/weather.complexity.txt</a>; the dump harness
-      (<code>dump_complexity</code>, a one-bin shim around <code>v2_compiler_compile::compile_sources</code>)
-      is what was used to produce the panel above.
-    </p>
+      <p class="muted" style="margin-top:0.75rem;font-size:0.78rem">
+        Fixture: <a href="fixtures/algorithms.complexity.txt">fixtures/algorithms.complexity.txt</a>.
+        The dump harness (<code>dump_complexity</code>, a one-bin shim around
+        <code>v2_compiler_compile::compile_sources</code>) is what was used to produce this panel.
+      </p>
+    </details>
 
     <h3 style="font-size:1rem;margin:2.5rem 0 0.75rem">Emitted Rust · what <code>gunbc compile --target rust</code> actually writes</h3>
     <p class="muted" style="margin:0 0 1rem">

@@ -8,6 +8,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <meta name="theme-color" content="#0c0d0c" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#f4efe6" media="(prefers-color-scheme: light)" />
+  <meta name="color-scheme" content="dark light" />
+  <script>(function(){try{var s=localStorage.getItem("daglang-mode");var l=window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches;document.documentElement.setAttribute("data-mode",s||(l?"light":"dark"));}catch(e){}})();</script>
   <link rel="stylesheet" href="site.css" />
   <style>
     /* ── Page-local layout ── */
@@ -171,6 +176,13 @@
     .as-tree-row.r-transitive  .as-tree-marker { color: var(--tier-vision); }
     .as-tree-row .as-tree-name { font-weight: 500; }
     .as-tree-row .as-tree-line { font-size: 0.68rem; opacity: 0.6; text-align: right; }
+    /* Text-tag chip so the meaning survives color blindness / low contrast */
+    .as-tree-tag {
+      font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 0.1rem 0.4rem; border-radius: 3px;
+      border: 1px solid currentColor; opacity: 0.85;
+      margin-right: 0.25rem; font-weight: 600;
+    }
     .as-tree-row.r-changed     .as-tree-name { color: var(--diag-fail); }
     .as-tree-row.r-direct      .as-tree-name { color: var(--tier-next); }
     .as-tree-row.r-transitive  .as-tree-name { color: var(--tier-vision); }
@@ -800,15 +812,17 @@ await candidate.emitAffected({ scope: affected });
 
     // Source-side rows: line → graph node mapping
     html += '<div class="as-tree-row r-changed">' +
-      '<span class="as-tree-marker">●</span>' +
-      '<span class="as-tree-name">' + escapeHtml(s.site.label) +
+      '<span class="as-tree-marker" aria-hidden="true">●</span>' +
+      '<span class="as-tree-name"><span class="as-tree-tag">edit</span> ' +
+        escapeHtml(s.site.label) +
         '<small class="as-tree-node">' + escapeHtml(s.site.node) + '</small></span>' +
       '<span class="as-tree-line">L' + s.site.line + '</span>' +
       '</div>';
     s.direct.forEach(function (d) {
       html += '<div class="as-tree-row r-direct">' +
-        '<span class="as-tree-marker">◐</span>' +
-        '<span class="as-tree-name">' + escapeHtml(d.name) +
+        '<span class="as-tree-marker" aria-hidden="true">◐</span>' +
+        '<span class="as-tree-name"><span class="as-tree-tag">direct</span> ' +
+          escapeHtml(d.name) +
           ' <small style="opacity:0.7">' + escapeHtml(d.note || "") + '</small>' +
           '<small class="as-tree-node">' + escapeHtml(d.node) + '</small></span>' +
         '<span class="as-tree-line">L' + d.line + '</span>' +
@@ -816,8 +830,9 @@ await candidate.emitAffected({ scope: affected });
     });
     s.transitive.forEach(function (t) {
       html += '<div class="as-tree-row r-transitive">' +
-        '<span class="as-tree-marker">○</span>' +
-        '<span class="as-tree-name">' + escapeHtml(t.name) +
+        '<span class="as-tree-marker" aria-hidden="true">○</span>' +
+        '<span class="as-tree-name"><span class="as-tree-tag">transitive</span> ' +
+          escapeHtml(t.name) +
           ' <small style="opacity:0.7">' + escapeHtml(t.note || "") + '</small>' +
           '<small class="as-tree-node">' + escapeHtml(t.node) + '</small></span>' +
         '<span class="as-tree-line">L' + t.line + '</span>' +

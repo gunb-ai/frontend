@@ -8,6 +8,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <meta name="theme-color" content="#0c0d0c" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#f4efe6" media="(prefers-color-scheme: light)" />
+  <meta name="color-scheme" content="dark light" />
+  <script>(function(){try{var s=localStorage.getItem("daglang-mode");var l=window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches;document.documentElement.setAttribute("data-mode",s||(l?"light":"dark"));}catch(e){}})();</script>
   <link rel="stylesheet" href="site.css" />
   <style>
     /* ─── Step containers (shared shape with EE showcase) ─── */
@@ -323,6 +328,7 @@ app TodoApp {
     duplicates:   HttpGet&lt;/todos/duplicates&gt;         -> List&lt;TodoPair&gt;
     create:       HttpPost&lt;/todos, NewTodo&gt;          -> Todo
     toggle:       HttpPatch&lt;/todos/:id, Toggle&gt;      -> Todo
+    delete:       HttpDelete&lt;/todos/:id&gt;             -> Unit
 
     spec latency_budget: each handler &lt; 50ms p95
   }
@@ -361,7 +367,7 @@ app TodoApp {
           <!-- service TodoApi (center) -->
           <rect class="node n-service" x="130" y="100" width="100" height="40" rx="5" />
           <text x="180" y="118" dominant-baseline="central" text-anchor="middle" style="font-family:var(--font-mono);font-size:10px;font-weight:600;fill:var(--tier-next)">service TodoApi</text>
-          <text x="180" y="131" dominant-baseline="central" text-anchor="middle" style="font-family:var(--font-mono);font-size:7px;fill:currentColor;opacity:0.6">7 handlers</text>
+          <text x="180" y="131" dominant-baseline="central" text-anchor="middle" style="font-family:var(--font-mono);font-size:7px;fill:currentColor;opacity:0.6">8 handlers</text>
 
           <!-- store TodoDb -->
           <rect class="node n-store" x="240" y="40" width="100" height="40" rx="5" />
@@ -655,7 +661,7 @@ fn duplicates_quadratic_warning() {
     </p>
     <div class="sb-lens">
       <div class="sb-lens-card is-pass">
-        <p class="sb-lens-title">latency_budget_lens · 6 / 7 handlers</p>
+        <p class="sb-lens-title">latency_budget_lens · 7 / 8 handlers</p>
         <p class="sb-lens-state">PASS</p>
         <div class="sb-lens-body">
           <div>get_by_id, list_in_list, list_recent, create, toggle, delete</div>
