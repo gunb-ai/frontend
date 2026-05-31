@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>daglang · affected-set propagation</title>
+  <meta name="description" content="Change one line of .dag source. Watch every downstream node light up. affected_set is the v4 substrate primitive that drives incremental rebuild, lens re-runs, and programmatic graph editing." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <meta name="theme-color" content="#0c0d0c" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#f4efe6" media="(prefers-color-scheme: light)" />
+  <meta name="color-scheme" content="dark light" />
+  <script>(function(){try{var s=localStorage.getItem("daglang-mode");var l=window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches;document.documentElement.setAttribute("data-mode",s||(l?"light":"dark"));}catch(e){}})();</script>
+  <link rel="stylesheet" href="site.css" />
+  <style>
+    /* ── Page-local layout ── */
+    .as-intro { max-width: 44em; margin: 0 0 2rem; }
+    .as-scenarios { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0 0 1.75rem; }
+    .as-scenario {
+      font-family: var(--font-mono); font-size: 0.74rem;
+      padding: 0.55rem 0.95rem; border: 1px solid; border-radius: 4px;
+      background: transparent; cursor: pointer; color: inherit;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+    }
+    .as-scenario::before {
+      content: ""; width: 7px; height: 7px; border-radius: 50%;
+      background: var(--tier-next); opacity: 0.85;
+    }
+    [data-mode="dark"] .as-scenario { border-color: var(--border-dark-strong); color: var(--warm-white-dim); }
+    [data-mode="light"] .as-scenario { border-color: var(--border-light-strong); color: var(--text-dark-dim); }
+    .as-scenario[aria-selected="true"] {
+      border-color: var(--tier-next-line);
+      background: var(--tier-next-soft);
+      color: var(--tier-next);
+    }
+
+    /* Legend */
+    .as-legend {
+      display: flex; flex-wrap: wrap; gap: 1.25rem; margin: 0 0 1rem;
+      font-family: var(--font-mono); font-size: 0.7rem;
+    }
+    .as-legend span { display: inline-flex; align-items: center; gap: 0.4rem; opacity: 0.85; }
+    .as-legend i {
+      width: 10px; height: 10px; border-radius: 2px; display: inline-block;
+    }
+    .as-legend .lg-changed    { background: var(--diag-fail); }
+    .as-legend .lg-direct     { background: var(--tier-next); }
+    .as-legend .lg-transitive { background: var(--tier-vision); }
+    .as-legend .lg-skipped    { background: var(--stone-faint); }
+
+    /* Two-column stage: source code | affected tree.
+       Fanout SVG is an absolute overlay sharing the same coordinate
+       system as the stage, so every measured y stays in the same frame
+       no matter how the stage resizes or which font loads. */
+    .as-stage {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(17rem, 0.9fr);
+      gap: 0; align-items: stretch;
+      border: 1px solid; border-radius: 6px; overflow: hidden;
+    }
+    [data-mode="dark"] .as-stage { border-color: var(--border-dark); background: var(--void-up); }
+    [data-mode="light"] .as-stage { border-color: var(--border-light); background: var(--warm-white-up); }
+
+    .as-code, .as-tree {
+      position: relative; z-index: 2;
+      padding: 1.25rem 1.25rem 1.25rem 1rem;
+      font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.7;
+    }
+    .as-code { min-width: 0; overflow-x: auto; }
+    .as-tree {
+      padding-left: 1rem; padding-right: 1.25rem;
+      border-left: 1px solid;
+    }
+    [data-mode="dark"] .as-tree { border-left-color: var(--border-dark); }
+    [data-mode="light"] .as-tree { border-left-color: var(--border-light); }
+    [data-mode="dark"] .as-tree { border-left-color: var(--border-dark); }
+    [data-mode="light"] .as-tree { border-left-color: var(--border-light); }
+
+    /* Code line layout: gutter pin · line-no · code */
+    .as-line {
+      display: grid;
+      grid-template-columns: 22px 36px 1fr;
+      align-items: baseline;
+      padding: 0 0.5rem 0 0.5rem;
+      border-left: 3px solid transparent;
+      transition: background 0.2s ease, border-left-color 0.2s ease;
+      white-space: pre;
+    }
+    .as-line .as-gutter {
+      font-size: 0.7rem; opacity: 0; text-align: center;
+      transition: opacity 0.2s ease;
+    }
+    .as-line .as-no {
+      font-size: 0.7rem; opacity: 0.4; text-align: right; padding-right: 0.6rem;
+      user-select: none;
+    }
+    .as-line .as-src { white-space: pre; min-width: max-content; }
+
+    /* States */
+    .as-line.is-changed {
+      background: var(--diag-fail-soft);
+      border-left-color: var(--diag-fail);
+    }
+    .as-line.is-changed .as-gutter { opacity: 1; color: var(--diag-fail); }
+    .as-line.is-changed .as-src { color: var(--diag-fail); font-weight: 500; }
+
+    .as-line.is-direct {
+      background: var(--tier-next-soft);
+      border-left-color: var(--tier-next);
+    }
+    .as-line.is-direct .as-gutter { opacity: 1; color: var(--tier-next); }
+
+    .as-line.is-transitive {
+      background: var(--tier-vision-soft);
+      border-left-color: var(--tier-vision);
+    }
+    .as-line.is-transitive .as-gutter { opacity: 1; color: var(--tier-vision); }
+
+    .as-line:not(.is-changed):not(.is-direct):not(.is-transitive) {
+      opacity: 0.62;
+      transition: opacity 0.25s ease;
+    }
+
+    /* Function-header subtle hint */
+    .as-line.is-fn-head {
+      margin-top: 0.45rem;
+    }
+
+    /* Fan-out SVG — absolutely-positioned overlay over the full stage.
+       Bezier endpoints are computed against the SAME bounding box (the
+       stage), so the SVG coordinate system always matches the DOM
+       coordinate system — no column-height drift, no resize surprises. */
+    .as-fanout {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      overflow: visible;
+      z-index: 1;
+    }
+    .as-fanout path {
+      fill: none; stroke-width: 1.5; opacity: 0.85;
+      stroke-linecap: round;
+    }
+    .as-fanout path.e-direct { stroke: var(--tier-next); }
+    .as-fanout path.e-transitive { stroke: var(--tier-vision); opacity: 0.75; }
+    .as-fanout circle.dot-changed     { fill: var(--diag-fail); }
+    .as-fanout circle.dot-direct      { fill: var(--tier-next); }
+    .as-fanout circle.dot-transitive  { fill: var(--tier-vision); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .as-fanout path { transition: none !important; stroke-dashoffset: 0 !important; }
+    }
+
+    /* Tree */
+    .as-tree h3 {
+      font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.14em;
+      text-transform: uppercase; margin: 0 0 0.85rem; opacity: 0.65; font-weight: 600;
+    }
+    .as-tree-row {
+      display: grid; grid-template-columns: 14px 1fr 4rem;
+      align-items: baseline; gap: 0.4rem;
+      padding: 0.3rem 0; border-top: 1px dashed transparent;
+    }
+    .as-tree-row + .as-tree-row { border-top-color: var(--border-dark); }
+    [data-mode="light"] .as-tree-row + .as-tree-row { border-top-color: var(--border-light); }
+    .as-tree-row .as-tree-marker {
+      font-size: 0.62rem; line-height: 1;
+    }
+    .as-tree-row.r-changed     .as-tree-marker { color: var(--diag-fail); }
+    .as-tree-row.r-direct      .as-tree-marker { color: var(--tier-next); }
+    .as-tree-row.r-transitive  .as-tree-marker { color: var(--tier-vision); }
+    .as-tree-row .as-tree-name { font-weight: 500; }
+    .as-tree-row .as-tree-line { font-size: 0.68rem; opacity: 0.6; text-align: right; }
+    /* Text-tag chip so the meaning survives color blindness / low contrast */
+    .as-tree-tag {
+      font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 0.1rem 0.4rem; border-radius: 3px;
+      border: 1px solid currentColor; opacity: 0.85;
+      margin-right: 0.25rem; font-weight: 600;
+    }
+    .as-tree-row.r-changed     .as-tree-name { color: var(--diag-fail); }
+    .as-tree-row.r-direct      .as-tree-name { color: var(--tier-next); }
+    .as-tree-row.r-transitive  .as-tree-name { color: var(--tier-vision); }
+    .as-tree-empty { font-size: 0.74rem; opacity: 0.5; padding: 0.4rem 0; }
+
+    /* Graph-node sublabel under each tree row */
+    .as-tree-node {
+      display: block; font-family: var(--font-mono); font-size: 0.62rem;
+      opacity: 0.55; margin-top: 0.15rem; letter-spacing: 0.01em;
+    }
+
+    /* Generated checks list */
+    .as-gen-row {
+      display: grid; grid-template-columns: 14px 14px 1fr; gap: 0.5rem;
+      align-items: baseline; padding: 0.3rem 0;
+      font-family: var(--font-mono); font-size: 0.72rem;
+      border-top: 1px dashed var(--border-dark);
+    }
+    [data-mode="light"] .as-gen-row { border-top-color: var(--border-light); }
+    .as-gen-row:first-of-type { border-top: 0; }
+    .as-gen-state, .as-gen-kind { font-size: 0.68rem; line-height: 1; }
+    .as-gen-kind { opacity: 0.55; }
+    .as-gen-row.g-pass .as-gen-state { color: var(--tier-now); }
+    .as-gen-row.g-warn .as-gen-state { color: var(--tier-next); }
+    .as-gen-row.g-fail .as-gen-state { color: var(--diag-fail); }
+    .as-gen-row.g-fail .as-gen-label { color: var(--diag-fail); opacity: 0.9; }
+    .as-gen-row.g-warn .as-gen-label { color: var(--tier-next); }
+
+    /* Cross-language artifact rows */
+    .as-art-row {
+      display: grid; grid-template-columns: 5rem 1fr; gap: 0.6rem;
+      align-items: baseline; padding: 0.3rem 0;
+      font-family: var(--font-mono); font-size: 0.7rem;
+      border-top: 1px dashed var(--border-dark);
+    }
+    [data-mode="light"] .as-art-row { border-top-color: var(--border-light); }
+    .as-art-row:first-of-type { border-top: 0; }
+    .as-art-lang {
+      font-weight: 600; color: var(--tier-next);
+      font-size: 0.66rem; letter-spacing: 0.05em;
+    }
+    .as-art-file { opacity: 0.85; }
+
+    /* Precision callout — explains where the typed graph stops */
+    .as-precision {
+      margin-top: 1.25rem; padding: 1rem 1.25rem;
+      border: 1px dashed; border-radius: 5px;
+      display: grid; grid-template-columns: auto 1fr; gap: 0.85rem; align-items: baseline;
+    }
+    [data-mode="dark"] .as-precision { border-color: var(--tier-now-line); background: var(--tier-now-soft); }
+    [data-mode="light"] .as-precision { border-color: var(--tier-now-line); background: var(--tier-now-soft); }
+    .as-precision-tag {
+      font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.16em;
+      text-transform: uppercase; font-weight: 600; color: var(--tier-now);
+    }
+    .as-precision-body {
+      font-family: var(--font-mono); font-size: 0.76rem; line-height: 1.65;
+    }
+    .as-precision-body strong { color: var(--tier-now); }
+    .as-precision-body em { font-style: normal; opacity: 0.7; }
+    @media (max-width: 640px) {
+      .as-precision { grid-template-columns: 1fr; gap: 0.35rem; }
+    }
+
+    /* Node-granularity panel below the main stage */
+    .as-grain {
+      margin-top: 2.5rem; padding: 1.5rem 1.75rem;
+      border: 1px solid; border-radius: 6px;
+    }
+    [data-mode="dark"] .as-grain { border-color: var(--border-dark); background: var(--void-up); }
+    [data-mode="light"] .as-grain { border-color: var(--border-light); background: var(--warm-white-up); }
+    .as-grain h2 { margin: 0 0 0.6rem; font-size: 1.25rem; letter-spacing: -0.015em; }
+    .as-grain-lead { margin: 0 0 1.25rem; max-width: 46em; }
+    .as-grain-table {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.1fr) minmax(0, 1.3fr) minmax(0, 1.6fr);
+      gap: 0;
+      font-family: var(--font-mono); font-size: 0.72rem;
+      border: 1px solid; border-radius: 4px; overflow: hidden;
+    }
+    [data-mode="dark"] .as-grain-table { border-color: var(--border-dark); background: var(--void-up2); }
+    [data-mode="light"] .as-grain-table { border-color: var(--border-light); background: var(--warm-white); }
+    .as-grain-table > div {
+      padding: 0.7rem 0.85rem;
+      border-bottom: 1px dashed var(--border-dark);
+    }
+    [data-mode="light"] .as-grain-table > div { border-bottom-color: var(--border-light); }
+    .as-grain-table > div:nth-last-child(-n+4) { border-bottom: 0; }
+    .as-grain-head {
+      font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase;
+      opacity: 0.6; font-weight: 600;
+    }
+    [data-mode="dark"] .as-grain-head { background: var(--void-up); }
+    [data-mode="light"] .as-grain-head { background: var(--warm-white-up); }
+    .as-grain-span code { font-weight: 500; }
+    .as-grain-node { color: var(--tier-next); }
+    .as-grain-checks { opacity: 0.85; }
+    .as-grain-down  { opacity: 0.85; }
+    @media (max-width: 760px) {
+      .as-grain-table { grid-template-columns: 1fr; }
+      .as-grain-table > div:nth-last-child(-n+4) { border-bottom: 1px dashed var(--border-dark); }
+      [data-mode="light"] .as-grain-table > div:nth-last-child(-n+4) { border-bottom-color: var(--border-light); }
+      .as-grain-table > div:last-child { border-bottom: 0; }
+    }
+
+    /* Agent workflow section */
+    .as-agent {
+      margin-top: 2.5rem; padding: 1.5rem 1.75rem;
+      border: 1px solid; border-radius: 6px;
+    }
+    [data-mode="dark"] .as-agent { border-color: var(--border-dark); background: var(--void-up); }
+    [data-mode="light"] .as-agent { border-color: var(--border-light); background: var(--warm-white-up); }
+    .as-agent h2 { margin: 0 0 0.6rem; font-size: 1.25rem; letter-spacing: -0.015em; }
+    .as-agent-flow {
+      display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center;
+      margin: 1rem 0 1.25rem;
+      font-family: var(--font-mono); font-size: 0.72rem;
+    }
+    .as-agent-step {
+      padding: 0.4rem 0.7rem; border: 1px solid var(--tier-next-line);
+      background: var(--tier-next-soft); color: var(--tier-next);
+      border-radius: 4px;
+    }
+    .as-agent-arrow { color: var(--tier-next); opacity: 0.5; }
+    .as-agent pre {
+      margin: 0; padding: 0.95rem 1.1rem;
+      font-size: 0.72rem; line-height: 1.6;
+      border: 1px solid; border-radius: 4px; overflow-x: auto;
+    }
+    [data-mode="dark"] .as-agent pre { background: var(--void-up2); border-color: var(--border-dark); }
+    [data-mode="light"] .as-agent pre { background: var(--warm-white); border-color: var(--border-light); }
+
+    /* Receipt strip below the stage */
+    .as-receipt {
+      margin-top: 1.25rem; padding: 1rem 1.25rem;
+      border: 1px solid; border-radius: 5px;
+      font-family: var(--font-mono); font-size: 0.76rem;
+      display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 1rem;
+    }
+    @media (max-width: 980px) { .as-receipt { grid-template-columns: 1fr 1fr; }
+      .as-receipt-cell[style*="grid-column:span 2"] { grid-column: 1 / -1 !important; } }
+    [data-mode="dark"] .as-receipt { border-color: var(--border-dark); background: var(--void-up2); }
+    [data-mode="light"] .as-receipt { border-color: var(--border-light); background: var(--warm-white); }
+    .as-receipt-cell { display: flex; flex-direction: column; gap: 0.2rem; }
+    .as-receipt-label {
+      font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; opacity: 0.55;
+    }
+    .as-receipt-value { font-weight: 500; }
+
+    @media (max-width: 880px) {
+      .as-stage { grid-template-columns: 1fr; }
+      .as-fanout { display: none; } /* overlay arrows hidden on narrow screens; impact chain below replaces them */
+      .as-tree { border-left: 0; border-top: 1px solid var(--border-dark); padding: 1.25rem; }
+      [data-mode="light"] .as-tree { border-top-color: var(--border-light); }
+      .as-receipt { grid-template-columns: 1fr 1fr; }
+      .as-mobile-chain { display: grid; }
+    }
+
+    /* ─── Mobile impact chain ─── desktop hides the fanout SVG cleanly,
+       but the graph meaning shouldn't disappear with it. On mobile we
+       render the same propagation as a stacked card chain so the demo
+       still tells its story. Hidden on desktop. */
+    .as-mobile-chain {
+      display: none; /* enabled inside the 880px media query above */
+      gap: 0.5rem;
+      margin: 1.25rem 0 0;
+      padding: 0;
+      list-style: none;
+      font-family: var(--font-mono); font-size: 0.74rem;
+    }
+    .as-mobile-chain li {
+      border: 1px solid; border-radius: 4px;
+      padding: 0.7rem 0.9rem;
+      border-left-width: 3px;
+      display: grid; gap: 0.25rem;
+    }
+    [data-mode="dark"] .as-mobile-chain li { background: var(--void-up); border-color: var(--border-dark); }
+    [data-mode="light"] .as-mobile-chain li { background: var(--warm-white-up); border-color: var(--border-light); }
+    .as-mobile-chain li.c-changed     { border-left-color: var(--diag-fail);    color: var(--diag-fail); }
+    .as-mobile-chain li.c-direct      { border-left-color: var(--tier-next);    color: var(--tier-next); }
+    .as-mobile-chain li.c-transitive  { border-left-color: var(--tier-vision);  color: var(--tier-vision); }
+    .as-mobile-chain li.c-gen, .as-mobile-chain li.c-art {
+      border-left-color: var(--stone-faint); color: currentColor;
+    }
+    .as-mobile-chain .as-mc-label {
+      font-size: 0.62rem; letter-spacing: 0.16em;
+      text-transform: uppercase; opacity: 0.75;
+    }
+    .as-mobile-chain .as-mc-body {
+      font-size: 0.78rem; line-height: 1.55;
+      color: currentColor;
+    }
+    .as-mobile-chain code { font-size: 0.74rem; }
+    .as-mobile-chain .as-mc-arrow {
+      grid-column: 1 / -1;
+      text-align: center;
+      font-size: 0.85rem;
+      opacity: 0.45;
+      margin: -0.25rem 0;
+      color: currentColor;
+    }
+  </style>
+</head>
+<body>
+
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
+  <symbol id="stoic-idle" viewBox="0 0 120 120">
+    <path fill-rule="evenodd" fill="currentColor" d="
+      M40,20 H80 A30,30 0 0,1 110,50 V70 A30,30 0 0,1 80,100 H40 A30,30 0 0,1 10,70 V50 A30,30 0 0,1 40,20 Z
+      M35,40 A8,8 0 0,1 35,56 A8,8 0 0,1 35,40 Z
+      M85,40 A8,8 0 0,1 85,56 A8,8 0 0,1 85,40 Z
+      M54,54 H66 A2,2 0 0,1 68,56 V58 A2,2 0 0,1 66,60 H54 A2,2 0 0,1 52,58 V56 A2,2 0 0,1 54,54 Z
+    "/>
+  </symbol>
+</svg>
+
+<nav class="nav">
+  <a href="/" class="nav-left">
+    <svg class="nav-logo" viewBox="0 0 120 120"><use href="#stoic-idle"/></svg>
+    <span class="wordmark">daglang</span>
+  </a>
+  <div class="nav-right">
+    <div class="nav-links">
+      <a href="showcase.html" class="nav-link" style="color:var(--tier-now)">Showcase</a>
+      <a href="showcase-backend.html" class="nav-link" style="color:var(--tier-next)">Showcase · backend</a>
+      <a href="examples.html" class="nav-link">Examples</a>
+      <a href="affected-set.html" class="nav-link active">Affected-set</a>
+      <a href="roadmap.html" class="nav-link">Roadmap</a>
+      <a href="https://github.com/gunb-ai/daglang/blob/main/THESIS.md" class="nav-link">Docs</a>
+      <a href="https://github.com/gunb-ai/daglang" class="nav-link">GitHub</a>
+    </div>
+    <button class="mode-toggle" id="mode-toggle" type="button" aria-label="Toggle light/dark mode">
+      <span class="indicator"></span>
+      <span id="mode-label-text">Dark</span>
+    </button>
+  </div>
+</nav>
+
+<main class="wrap" style="padding:3rem 0 5rem">
+  <p class="section-eyebrow">Graph-aware impact analysis</p>
+  <h1 style="font-size:2rem;margin:0 0 0.6rem;letter-spacing:-0.02em">Change one line. See the graph move.</h1>
+  <p class="muted as-intro">
+    A source line is just a view. <code>gunbc</code> resolves it to typed graph nodes — fields,
+    variants, call edges, match arms, literals, effect boundaries, target-artifact projections. When
+    a node changes, the compiler walks the graph to every downstream node whose meaning could shift.
+    Generated checks and lenses then run only on that affected scope — across functions, modules,
+    and emitted languages. (In the compiler architecture, this is the <code>affected_set</code>
+    primitive over a typed <code>CoreNode</code>.)
+  </p>
+  <p style="font-family:var(--font-mono);font-size:0.78rem;letter-spacing:0.04em;margin:0 0 1.5rem;color:var(--tier-now)">
+    Not file-by-file. Not function-by-function. <strong>Node-by-node.</strong>
+  </p>
+
+  <div class="as-scenarios" role="tablist" aria-label="Edit scenarios">
+    <button class="as-scenario" role="tab" data-scenario="condition" aria-selected="true">
+      Add <code>Hail</code> variant to <code>Condition</code>
+    </button>
+    <button class="as-scenario" role="tab" data-scenario="temperature" aria-selected="false">
+      Swap <code>Temperature</code> unit Celsius → Fahrenheit
+    </button>
+    <button class="as-scenario" role="tab" data-scenario="threshold" aria-selected="false">
+      Tighten <code>is_freezing</code> threshold 0°C → 2°C
+    </button>
+  </div>
+
+  <div class="as-legend">
+    <span><i class="lg-changed"></i> changed line</span>
+    <span><i class="lg-direct"></i> direct dependent</span>
+    <span><i class="lg-transitive"></i> transitive dependent</span>
+    <span><i class="lg-skipped"></i> skipped with receipt</span>
+  </div>
+
+  <div class="as-stage">
+    <!-- ── Fan-out gutter — left margin of the code, curves bulge inward ── -->
+    <svg class="as-fanout" id="as-fanout" aria-hidden="true"></svg>
+
+    <!-- ── Code column ── -->
+    <div class="as-code" id="as-code"><!-- populated by JS --></div>
+
+    <!-- ── Affected tree ── -->
+    <div class="as-tree" id="as-tree"><!-- populated by JS --></div>
+  </div>
+
+  <!-- ── Mobile-only impact chain: stacked cards replacing the hidden fanout SVG ── -->
+  <ol class="as-mobile-chain" id="as-mobile-chain" aria-label="impact chain (mobile)"><!-- populated by JS --></ol>
+
+  <div class="as-receipt" id="as-receipt">
+    <div class="as-receipt-cell">
+      <span class="as-receipt-label">edit site · line</span>
+      <span class="as-receipt-value" id="r-site">—</span>
+    </div>
+    <div class="as-receipt-cell">
+      <span class="as-receipt-label">graph node</span>
+      <span class="as-receipt-value" id="r-node" style="font-size:0.72rem">—</span>
+    </div>
+    <div class="as-receipt-cell">
+      <span class="as-receipt-label">affected nodes</span>
+      <span class="as-receipt-value" id="r-size">—</span>
+    </div>
+    <div class="as-receipt-cell">
+      <span class="as-receipt-label">generated checks</span>
+      <span class="as-receipt-value" id="r-lenses" style="font-size:0.72rem">—</span>
+    </div>
+    <div class="as-receipt-cell">
+      <span class="as-receipt-label">artifacts touched</span>
+      <span class="as-receipt-value" id="r-artifacts" style="font-size:0.72rem">—</span>
+    </div>
+    <div class="as-receipt-cell">
+      <span class="as-receipt-label">gate result</span>
+      <span class="as-receipt-value" id="r-gate">—</span>
+    </div>
+    <div class="as-receipt-cell" style="grid-column:span 2">
+      <span class="as-receipt-label">skipped with receipt</span>
+      <span class="as-receipt-value" id="r-skipped" style="opacity:0.85;font-size:0.72rem">—</span>
+    </div>
+  </div>
+
+  <div class="as-precision" id="as-precision">
+    <div class="as-precision-tag">why does it stop?</div>
+    <div class="as-precision-body" id="as-precision-body">—</div>
+  </div>
+
+  <p class="muted" style="margin-top:1.5rem;font-size:0.78rem">
+    Compute is local: the scenarios are precomputed for clarity, but real <code>affected_set(root, { at })</code>
+    in v4 returns the dependency closure of the edit Path against the typed graph — not a textual grep, and
+    not a whole-program rebuild. Combined with sequential <code>apply_diff</code> and candidate-state gating,
+    an agent's structural patch either passes the same lenses a human edit would, or fails closed before any
+    file on disk changes.
+  </p>
+
+  <!-- ── Node-granularity panel ── -->
+  <section class="as-grain">
+    <h2>Not function-by-function. Node-by-node.</h2>
+    <p class="muted as-grain-lead">
+      A function isn't the smallest unit <code>gunbc</code> can reason about. A field, a match arm, a variant,
+      a call edge, even a literal — each is a graph node with its own dependents, generated checks, and
+      target-language projections. The table below shows what the compiler addresses for four representative
+      source spans on <code>weather.dag</code>.
+    </p>
+    <div class="as-grain-table">
+      <div class="as-grain-head">source span</div>
+      <div class="as-grain-head">graph node</div>
+      <div class="as-grain-head">generated checks</div>
+      <div class="as-grain-head">cross-language downstream</div>
+
+      <div class="as-grain-span"><code>celsius: Float</code></div>
+      <div class="as-grain-node"><code>Field.Temperature.celsius</code></div>
+      <div class="as-grain-checks">field-type · emit-shape · roundtrip</div>
+      <div class="as-grain-down">Rust <code>struct</code> · TS <code>interface</code> · Python <code>@dataclass</code> · OpenAPI property</div>
+
+      <div class="as-grain-span"><code>temp.celsius &lt;= 0.0</code></div>
+      <div class="as-grain-node"><code>Compare.is_freezing.body</code></div>
+      <div class="as-grain-checks">type-check · unit-consistency · complexity</div>
+      <div class="as-grain-down"><code>freezing_locations</code> filter predicate</div>
+
+      <div class="as-grain-span"><code>Rainy { mm_per_hour }</code></div>
+      <div class="as-grain-node"><code>Variant.Condition.Rainy</code></div>
+      <div class="as-grain-checks">exhaustiveness · payload-shape · enum-emit</div>
+      <div class="as-grain-down">Rust <code>enum</code> arm · TS discriminant · Python branch · OpenAPI <code>oneOf</code></div>
+
+      <div class="as-grain-span"><code>|&gt; filter(...)</code></div>
+      <div class="as-grain-node"><code>CallEdge.filter@freezing_locations</code></div>
+      <div class="as-grain-checks">complexity (ShapeIterateBody) · cardinality</div>
+      <div class="as-grain-down">Rust iterator chain · TS array method · Python generator</div>
+    </div>
+    <p class="muted" style="font-size:0.74rem;margin:1rem 0 0">
+      <strong>Line-level UX, node-level truth.</strong> The interface lets a human start from a line;
+      the lens reasons about the nodes that line resolves to.
+    </p>
+  </section>
+
+  <!-- ── Agent workflow section ── -->
+  <section class="as-agent">
+    <h2>An agent edits the graph through the same pipeline.</h2>
+    <p class="muted" style="margin:0 0 0.75rem">
+      Same primitives, no special "agent mode." An agent's structural <code>Diff</code> is held to the
+      same lenses and gates a human edit triggers, and re-emits only the affected artifacts.
+    </p>
+    <div class="as-agent-flow">
+      <span class="as-agent-step">read graph</span>
+      <span class="as-agent-arrow">→</span>
+      <span class="as-agent-step">locate node</span>
+      <span class="as-agent-arrow">→</span>
+      <span class="as-agent-step">apply_diff</span>
+      <span class="as-agent-arrow">→</span>
+      <span class="as-agent-step">affected_set</span>
+      <span class="as-agent-arrow">→</span>
+      <span class="as-agent-step">testgen + lenses</span>
+      <span class="as-agent-arrow">→</span>
+      <span class="as-agent-step">emit affected only</span>
+    </div>
+<pre>// roadmap API shape — composes the primitives from
+// design-v4-compiler-homomorphism.md
+const graph = await gunbc.read("examples/weather.dag");
+
+// 1 · Locate: the user (or agent) starts from a line; gunbc resolves it
+//     to graph nodes — the addressable unit, not the line.
+const edit = graph.editAtLine(7).addVariant(
+  "Hail", { mm_per_hour: "Float" },
+);
+
+// 2 · Diff: apply_diff substitutes through a candidate root; fails closed
+//     if any Path in the Diff can't resolve in the current state (P3).
+const candidate = await graph.applyDiff(edit);
+
+// 3 · Affected: typed dependency closure from the changed Path
+const affected = await candidate.affectedSet({
+  at: "Type.Condition",
+});
+//   → ["Match.Condition", "Call.describe_condition",
+//      "Rust::weather.rs::Condition", "TS::weather.ts::Condition",
+//      "Python::weather.py::Condition", "OpenAPI::WeatherCondition"]
+
+// 4 · Generated checks for ONLY the affected scope
+const checks = await candidate.generatedChecks({ scope: affected });
+// → exhaustiveness fails: describe_condition missing arm: Hail
+
+// 5 · Re-emit only the affected artifacts; skipped ones carry receipts
+await candidate.emitAffected({ scope: affected });
+// emitted: weather.rs · weather.ts · weather.py · WeatherCondition.yaml
+// skipped: PSpice low_pass · OpenAPI auth · 27 unrelated</pre>
+    <p class="muted" style="font-size:0.74rem;margin:0.85rem 0 0">
+      See <a href="examples.html#agent">programmatic graph editing</a> for the full SDK sketch and CLI surface.
+    </p>
+  </section>
+
+  <p style="margin-top:2rem;display:flex;gap:0.6rem;flex-wrap:wrap">
+    <a href="examples.html#agent" class="hero-cta-secondary">← Programmatic graph editing</a>
+    <a href="examples.html#complexity" class="hero-cta-secondary">Complexity playground</a>
+    <a href="/" class="hero-cta-secondary">Home</a>
+  </p>
+</main>
+
+<footer class="footer">
+  <p>Built by <a href="https://gunb.ai">Gunb.ai</a> · <a href="https://github.com/gunb-ai/daglang">gunb-ai/daglang</a></p>
+</footer>
+
+<script src="site.js"></script>
+<script>
+/* ─── Affected-set scenarios ───────────────────────────
+ * Each scenario uses the same weather.dag-style source. We label lines by index
+ * (1-based) and precompute which lines are the edit site, direct callers, or
+ * transitive callers. Real affected_set(root, { at }) does this from the typed
+ * CoreNode graph; here we ship it as data so the visual story is clear.
+ * ─────────────────────────────────────────────────────── */
+(function () {
+  // Source matches dsl/examples/weather/weather.dag (Temperature is celsius-keyed there).
+  var SOURCE = [
+    "module examples.weather",                                       // 1
+    "",                                                              // 2
+    "type Temperature {",                                            // 3
+    "  celsius: Float",                                              // 4
+    "}",                                                             // 5
+    "",                                                              // 6
+    "type Condition",                                                // 7
+    "  = Sunny",                                                     // 8
+    "  | Cloudy",                                                    // 9
+    "  | Rainy  { mm_per_hour: Float }",                             // 10
+    "  | Snowy  { cm_per_hour: Float }",                             // 11
+    "",                                                              // 12
+    "type Forecast {",                                               // 13
+    "  location:  String",                                           // 14
+    "  high:      Temperature",                                      // 15
+    "  low:       Temperature",                                      // 16
+    "  condition: Condition",                                        // 17
+    "}",                                                             // 18
+    "",                                                              // 19
+    "fn is_freezing(temp: Temperature) -> Bool {",                   // 20
+    "  temp.celsius <= 0.0",                                         // 21
+    "}",                                                             // 22
+    "",                                                              // 23
+    "fn to_fahrenheit(temp: Temperature) -> Float {",                // 24
+    "  temp.celsius * 1.8 + 32.0",                                   // 25
+    "}",                                                             // 26
+    "",                                                              // 27
+    "fn describe_condition(cond: Condition) -> String {",            // 28
+    "  match cond {",                                                // 29
+    "    Sunny  => \"clear skies\"",                                 // 30
+    "    Cloudy => \"overcast\"",                                    // 31
+    "    Rainy  { mm_per_hour: r } =>",                              // 32
+    "      if r > 10.0 { \"heavy rain\" } else { \"light rain\" }",  // 33
+    "    Snowy  { cm_per_hour: _ } => \"snowfall\"",                 // 34
+    "  }",                                                           // 35
+    "}",                                                             // 36
+    "",                                                              // 37
+    "fn freezing_locations(forecasts: List<Forecast>) -> List<String> {", // 38
+    "  forecasts",                                                   // 39
+    "    |> filter(f => is_freezing(temp: f.low))",                  // 40
+    "    |> map(f => f.location)",                                   // 41
+    "}",                                                             // 42
+    "",                                                              // 43
+    "fn daily_summary(forecast: Forecast) -> String {",              // 44
+    "  let high_f = to_fahrenheit(temp: forecast.high)",             // 45
+    "  let desc   = describe_condition(cond: forecast.condition)",   // 46
+    "  concat(forecast.location, \": \", desc, \", high \",",        // 47
+    "         to_string(value: high_f), \"°F\")",                    // 48
+    "}",                                                             // 49
+  ];
+
+  // Lines that begin a function header (used purely for spacing).
+  var FN_HEADS = [20, 24, 28, 38, 44];
+
+  // All three scenarios are internally coherent on dsl/examples/weather/weather.dag.
+  // Each affected entry resolves a source line to a graph node, the generated
+  // checks that depend on it, and the cross-language artifacts touched.
+  var SCENARIOS = {
+    condition: {
+      site: { line: 7, label: "type Condition · add Hail variant", node: "Type.Condition" },
+      direct: [
+        { line: 29, name: "describe_condition · match cond", node: "Match.Condition", note: "+1 arm required" },
+      ],
+      transitive: [
+        { line: 46, name: "daily_summary · calls describe_condition", node: "Call.describe_condition", note: "re-typecheck" },
+      ],
+      generated: [
+        { kind: "lens",      label: "exhaustiveness · describe_condition", state: "fail" },
+        { kind: "lens",      label: "type-check · daily_summary", state: "pass" },
+        { kind: "testgen",   label: "Condition.variants_covered (auto)", state: "fail" },
+      ],
+      artifacts: [
+        { lang: "Rust",       file: "weather.rs · enum Condition + match arm",      state: "needs-emit" },
+        { lang: "TypeScript", file: "weather.ts · discriminated union + arm",       state: "needs-emit" },
+        { lang: "Python",     file: "weather.py · dataclass + isinstance branch",   state: "needs-emit" },
+        { lang: "OpenAPI",    file: "WeatherCondition schema · enum value",         state: "needs-emit" },
+      ],
+      gate: { ok: false, label: "FAIL · match on Condition non-exhaustive (missing Hail)" },
+      skipped: "to_fahrenheit · freezing_locations · is_freezing · concat · PSpice low_pass · OpenAPI auth schema",
+      skipCount: 27,
+      precision:
+        'Notice <strong>L47–L48</strong> are dimmed, not lit. They use <code>desc</code>, the result of the affected ' +
+        '<code>describe_condition</code> call — but <strong>desc: String</strong> is a stable interface. ' +
+        '<code>concat</code> and <code>to_string</code> consume the String, not the <code>Condition</code>, so the typed ' +
+        'graph has nothing to propagate through them. <em>That is the precision argument — not "every line that mentions ' +
+        'the variable," but "every node whose typed dependencies actually moved."</em>',
+    },
+    temperature: {
+      site: { line: 4, label: "Temperature.celsius · rename to fahrenheit", node: "Field.Temperature.celsius" },
+      direct: [
+        { line: 21, name: "is_freezing · reads temp.celsius",   node: "FieldRead.Temperature.celsius@is_freezing",   note: "field access broken" },
+        { line: 25, name: "to_fahrenheit · reads temp.celsius", node: "FieldRead.Temperature.celsius@to_fahrenheit", note: "field access broken" },
+      ],
+      transitive: [
+        { line: 40, name: "freezing_locations · calls is_freezing",      node: "Call.is_freezing@filter",     note: "re-typecheck" },
+        { line: 45, name: "daily_summary · calls to_fahrenheit",         node: "Call.to_fahrenheit@summary",  note: "re-typecheck" },
+      ],
+      generated: [
+        { kind: "lens",    label: "type-check · 2 unresolved field reads", state: "fail" },
+        { kind: "lens",    label: "complexity · freezing_locations (re-run)", state: "pass" },
+        { kind: "testgen", label: "Forecast.high_low_roundtrip (auto)", state: "fail" },
+      ],
+      artifacts: [
+        { lang: "Rust",       file: "weather.rs · struct Temperature field rename", state: "needs-emit" },
+        { lang: "TypeScript", file: "weather.ts · interface Temperature field",     state: "needs-emit" },
+        { lang: "Python",     file: "weather.py · @dataclass Temperature field",    state: "needs-emit" },
+        { lang: "OpenAPI",    file: "Temperature schema · property name",           state: "needs-emit" },
+      ],
+      gate: { ok: false, label: "FAIL · two unresolved field reads against renamed type" },
+      skipped: "describe_condition · Condition match arms · PSpice · Verilog · 14 unrelated tests",
+      skipCount: 22,
+      precision:
+        'Notice that <strong>L47–L48</strong> stay cold even though they reference <code>high_f</code> and <code>desc</code>. ' +
+        'Those bindings are typed <strong>Float</strong> and <strong>String</strong> respectively — both unchanged by ' +
+        'the field rename. <code>concat</code> and <code>to_string</code> work the same way. The affected set stops at ' +
+        'the interface boundary where types hold steady, even though the textual variable still appears further down.',
+    },
+    threshold: {
+      site: { line: 21, label: "is_freezing · 0.0 → 2.0 (tighten band)", node: "Literal.0.0@is_freezing" },
+      direct: [
+        { line: 40, name: "freezing_locations · calls is_freezing", node: "Call.is_freezing@filter", note: "filter predicate semantics shift" },
+      ],
+      transitive: [],
+      generated: [
+        { kind: "lens",    label: "type-check · scope intact",            state: "pass" },
+        { kind: "lens",    label: "semantic-snapshot · filter cardinality", state: "warn" },
+        { kind: "testgen", label: "is_freezing.threshold_band (auto)",    state: "pass" },
+      ],
+      artifacts: [
+        { lang: "Rust",       file: "weather.rs · constant in is_freezing body", state: "needs-emit" },
+      ],
+      gate: { ok: true, label: "PASS · types intact · snapshot flags filter-cardinality drift" },
+      skipped: "describe_condition · to_fahrenheit · daily_summary · Condition arms · TS/Python/OpenAPI emits (no shape change)",
+      skipCount: 31,
+      precision:
+        'A literal value change — not a shape change. <code>is_freezing</code> still returns <strong>Bool</strong>, ' +
+        '<code>filter</code> still takes the same predicate signature, and the type-level surface of every artifact is ' +
+        'unchanged. The whole right column (TypeScript, Python, OpenAPI) skips with a receipt — only Rust re-emits ' +
+        'because the literal constant lives in the emitted body. <em>Zero transitives. Precision, not paranoia.</em>',
+    },
+  };
+
+  var codeEl = document.getElementById("as-code");
+  var treeEl = document.getElementById("as-tree");
+  var fanoutEl = document.getElementById("as-fanout");
+  var scenarioBtns = document.querySelectorAll(".as-scenario");
+
+  function escapeHtml(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function renderCode() {
+    var html = "";
+    SOURCE.forEach(function (src, i) {
+      var lineNo = i + 1;
+      var isHead = FN_HEADS.indexOf(lineNo) !== -1 ? " is-fn-head" : "";
+      html += '<div class="as-line' + isHead + '" data-line="' + lineNo + '">' +
+        '<span class="as-gutter">●</span>' +
+        '<span class="as-no">' + lineNo + '</span>' +
+        '<span class="as-src">' + (escapeHtml(src) || "&nbsp;") + '</span>' +
+        '</div>';
+    });
+    codeEl.innerHTML = html;
+  }
+
+  function classifyLines(s) {
+    var map = {};
+    map[s.site.line] = "is-changed";
+    s.direct.forEach(function (d) { map[d.line] = "is-direct"; });
+    s.transitive.forEach(function (t) {
+      if (!map[t.line]) map[t.line] = "is-transitive";
+    });
+    return map;
+  }
+
+  function renderTree(s) {
+    var totalNodes = 1 + s.direct.length + s.transitive.length;
+    var html = '<h3>affected_set · ' + totalNodes + ' graph nodes</h3>';
+
+    // Source-side rows: line → graph node mapping
+    html += '<div class="as-tree-row r-changed">' +
+      '<span class="as-tree-marker" aria-hidden="true">●</span>' +
+      '<span class="as-tree-name"><span class="as-tree-tag">edit</span> ' +
+        escapeHtml(s.site.label) +
+        '<small class="as-tree-node">' + escapeHtml(s.site.node) + '</small></span>' +
+      '<span class="as-tree-line">L' + s.site.line + '</span>' +
+      '</div>';
+    s.direct.forEach(function (d) {
+      html += '<div class="as-tree-row r-direct">' +
+        '<span class="as-tree-marker" aria-hidden="true">◐</span>' +
+        '<span class="as-tree-name"><span class="as-tree-tag">direct</span> ' +
+          escapeHtml(d.name) +
+          ' <small style="opacity:0.7">' + escapeHtml(d.note || "") + '</small>' +
+          '<small class="as-tree-node">' + escapeHtml(d.node) + '</small></span>' +
+        '<span class="as-tree-line">L' + d.line + '</span>' +
+        '</div>';
+    });
+    s.transitive.forEach(function (t) {
+      html += '<div class="as-tree-row r-transitive">' +
+        '<span class="as-tree-marker" aria-hidden="true">○</span>' +
+        '<span class="as-tree-name"><span class="as-tree-tag">transitive</span> ' +
+          escapeHtml(t.name) +
+          ' <small style="opacity:0.7">' + escapeHtml(t.note || "") + '</small>' +
+          '<small class="as-tree-node">' + escapeHtml(t.node) + '</small></span>' +
+        '<span class="as-tree-line">L' + t.line + '</span>' +
+        '</div>';
+    });
+    if (s.direct.length === 0 && s.transitive.length === 0) {
+      html += '<div class="as-tree-empty">No downstream graph nodes — precise lens, zero cascade.</div>';
+    }
+
+    // Generated checks — testgen + lens derivations for the affected scope
+    if (s.generated && s.generated.length) {
+      html += '<h3 style="margin-top:1.25rem">generated checks · ' + s.generated.length + '</h3>';
+      s.generated.forEach(function (g) {
+        var stateClass = g.state === "fail" ? "g-fail" : g.state === "warn" ? "g-warn" : "g-pass";
+        var icon = g.state === "fail" ? "✕" : g.state === "warn" ? "!" : "✓";
+        var kindIcon = g.kind === "lens" ? "λ" : g.kind === "testgen" ? "∗" : "•";
+        html += '<div class="as-gen-row ' + stateClass + '">' +
+          '<span class="as-gen-state">' + icon + '</span>' +
+          '<span class="as-gen-kind" title="' + g.kind + '">' + kindIcon + '</span>' +
+          '<span class="as-gen-label">' + escapeHtml(g.label) + '</span>' +
+          '</div>';
+      });
+    }
+
+    // Cross-language artifacts touched
+    if (s.artifacts && s.artifacts.length) {
+      html += '<h3 style="margin-top:1.25rem">artifacts to re-emit · ' + s.artifacts.length + '</h3>';
+      s.artifacts.forEach(function (a) {
+        html += '<div class="as-art-row">' +
+          '<span class="as-art-lang">' + escapeHtml(a.lang) + '</span>' +
+          '<span class="as-art-file">' + escapeHtml(a.file) + '</span>' +
+          '</div>';
+      });
+    }
+
+    treeEl.innerHTML = html;
+    renderMobileChain(s);
+  }
+
+  // Mobile-only impact chain — same data the tree shows, in a stacked
+  // card sequence with arrows. Visible only at <880px (the media query
+  // toggles display:grid). Replaces the hidden fanout SVG so the
+  // propagation story still works on phones.
+  function renderMobileChain(s) {
+    var mc = document.getElementById("as-mobile-chain");
+    if (!mc) return;
+    var arr = '<li class="as-mc-arrow" aria-hidden="true">↓</li>';
+    var html = "";
+    html += '<li class="c-changed"><span class="as-mc-label">Edit · L' + s.site.line +
+      '</span><span class="as-mc-body">' + escapeHtml(s.site.label) +
+      '<br /><code>' + escapeHtml(s.site.node) + '</code></span></li>';
+    if (s.direct && s.direct.length) {
+      html += arr;
+      html += '<li class="c-direct"><span class="as-mc-label">Direct dependents · ' + s.direct.length +
+        '</span><span class="as-mc-body">' +
+        s.direct.map(function (d) {
+          return escapeHtml(d.name) + ' <small style="opacity:0.7">L' + d.line + '</small>';
+        }).join("<br />") +
+        '</span></li>';
+    }
+    if (s.transitive && s.transitive.length) {
+      html += arr;
+      html += '<li class="c-transitive"><span class="as-mc-label">Transitive · ' + s.transitive.length +
+        '</span><span class="as-mc-body">' +
+        s.transitive.map(function (t) {
+          return escapeHtml(t.name) + ' <small style="opacity:0.7">L' + t.line + '</small>';
+        }).join("<br />") +
+        '</span></li>';
+    }
+    if (s.generated && s.generated.length) {
+      html += arr;
+      var failing = s.generated.filter(function (g) { return g.state === "fail"; }).length;
+      html += '<li class="c-gen"><span class="as-mc-label">Generated checks · ' +
+        s.generated.length + (failing ? ' (' + failing + ' fail)' : '') +
+        '</span><span class="as-mc-body">' +
+        s.generated.map(function (g) {
+          var icon = g.state === "fail" ? "✕" : g.state === "warn" ? "!" : "✓";
+          return icon + ' ' + escapeHtml(g.label);
+        }).join("<br />") +
+        '</span></li>';
+    }
+    if (s.artifacts && s.artifacts.length) {
+      html += arr;
+      html += '<li class="c-art"><span class="as-mc-label">Artifacts to re-emit · ' + s.artifacts.length +
+        '</span><span class="as-mc-body">' +
+        s.artifacts.map(function (a) {
+          return '<strong>' + escapeHtml(a.lang) + '</strong> · ' + escapeHtml(a.file);
+        }).join("<br />") +
+        '</span></li>';
+    }
+    mc.innerHTML = html;
+  }
+
+  // Helper: vertical center of `el` relative to `rootBox`.
+  function centerY(el, rootBox) {
+    var b = el.getBoundingClientRect();
+    return b.top - rootBox.top + b.height / 2;
+  }
+
+  function renderFanout(s) {
+    // Single shared coordinate system. The overlay SVG fills the stage, so
+    // EVERY measurement (changed line, target lines, edit endpoints) is taken
+    // against the same .as-stage bounding box. No column-height drift, no
+    // "SVG y differs from DOM y because the SVG column resized differently."
+    var stage = document.querySelector(".as-stage");
+    if (!stage) return;
+    var stageBox = stage.getBoundingClientRect();
+
+    var siteEl = codeEl.querySelector('[data-line="' + s.site.line + '"]');
+    if (!siteEl) { fanoutEl.innerHTML = ""; return; }
+
+    // viewBox = pixel-for-pixel match with the stage
+    fanoutEl.setAttribute("viewBox", "0 0 " + stageBox.width + " " + stageBox.height);
+
+    // X anchor: just inside the code column's left edge (so dots hug the
+    // colored line-border that marks each affected line). Control points sit
+    // 28-34px to the left, in the empty margin of the code column.
+    var codeBox = codeEl.getBoundingClientRect();
+    var endX  = codeBox.left - stageBox.left + 4;
+    var ctrl1 = endX - 28;
+    var ctrl2 = endX - 28;
+    var siteY = centerY(siteEl, stageBox);
+
+    var parts = [
+      // Origin dot — flush against the changed code line's left border
+      '<circle class="dot-changed" cx="' + endX + '" cy="' + siteY + '" r="3.6" />',
+    ];
+
+    function addEdge(targetLine, kind) {
+      var tEl = codeEl.querySelector('[data-line="' + targetLine + '"]');
+      if (!tEl) return;
+      var tY = centerY(tEl, stageBox);
+      // Bezier bulging into the margin to the left of the code column.
+      var d = "M" + endX + "," + siteY +
+              " C" + ctrl1 + "," + siteY +
+              " " + ctrl2 + "," + tY +
+              " " + endX + "," + tY;
+      parts.push('<path class="e-' + kind + '" d="' + d + '" />');
+      parts.push('<circle class="dot-' + kind + '" cx="' + endX + '" cy="' + tY + '" r="3" />');
+    }
+
+    s.direct.forEach(function (d)  { addEdge(d.line, "direct"); });
+    s.transitive.forEach(function (t) { addEdge(t.line, "transitive"); });
+
+    fanoutEl.innerHTML = parts.join("");
+
+    // Per-path draw-in animation: dasharray = actual path length so the line
+    // never breaks mid-bezier. Staggered start so curves draw in sequence.
+    var reduceMotion = window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    fanoutEl.querySelectorAll("path").forEach(function (p, i) {
+      var len = p.getTotalLength();
+      p.style.strokeDasharray = len + " " + len;
+      if (reduceMotion) {
+        p.style.strokeDashoffset = "0";
+        return;
+      }
+      p.style.strokeDashoffset = len;
+      void p.getBoundingClientRect(); // force layout to register start state
+      p.style.transition = "stroke-dashoffset 0.55s ease " + (i * 60) + "ms";
+      p.style.strokeDashoffset = "0";
+    });
+  }
+
+  function renderReceipt(s) {
+    document.getElementById("r-site").textContent = "L" + s.site.line + " · " + s.site.label;
+    var node = document.getElementById("r-node");
+    if (node) node.textContent = s.site.node;
+    document.getElementById("r-size").textContent =
+      (1 + s.direct.length + s.transitive.length) +
+      " (1 + " + s.direct.length + " direct + " + s.transitive.length + " transitive)";
+    var gens = (s.generated || []);
+    var run = gens.length;
+    document.getElementById("r-lenses").textContent =
+      run + " run / " + (s.skipCount || 0) + " skip";
+    var artifacts = document.getElementById("r-artifacts");
+    if (artifacts) {
+      artifacts.textContent = (s.artifacts || []).map(function (a) { return a.lang; }).join(" · ") || "none";
+    }
+    var gate = document.getElementById("r-gate");
+    gate.textContent = s.gate.label;
+    gate.style.color = s.gate.ok ? "var(--tier-now)" : "var(--diag-fail)";
+    var skipped = document.getElementById("r-skipped");
+    if (skipped) skipped.textContent = (s.skipCount || 0) + " · " + (s.skipped || "—");
+    var precision = document.getElementById("as-precision-body");
+    if (precision) precision.innerHTML = s.precision || "";
+  }
+
+  function applyScenario(id) {
+    var s = SCENARIOS[id];
+    if (!s) return;
+
+    var lineMap = classifyLines(s);
+    codeEl.querySelectorAll(".as-line").forEach(function (row) {
+      row.classList.remove("is-changed", "is-direct", "is-transitive");
+      var ln = parseInt(row.getAttribute("data-line"), 10);
+      if (lineMap[ln]) row.classList.add(lineMap[ln]);
+    });
+
+    renderTree(s);
+    renderReceipt(s);
+    // Wait one frame so the line-class restyling settles before measuring.
+    requestAnimationFrame(function () { renderFanout(s); });
+
+    scenarioBtns.forEach(function (b) {
+      b.setAttribute("aria-selected", b.getAttribute("data-scenario") === id ? "true" : "false");
+    });
+  }
+
+  scenarioBtns.forEach(function (b) {
+    b.addEventListener("click", function () {
+      applyScenario(b.getAttribute("data-scenario"));
+    });
+  });
+
+  // rAF-debounced re-measure — re-runs the fanout geometry only, not the
+  // full scenario re-render. ResizeObserver can fire on every layout tick,
+  // so we coalesce to one frame.
+  var measureQueued = false;
+  function scheduleMeasure() {
+    if (measureQueued) return;
+    measureQueued = true;
+    requestAnimationFrame(function () {
+      measureQueued = false;
+      var current = document.querySelector('.as-scenario[aria-selected="true"]');
+      if (!current) return;
+      var s = SCENARIOS[current.getAttribute("data-scenario")];
+      if (s) renderFanout(s);
+    });
+  }
+  window.addEventListener("resize", scheduleMeasure);
+  // Webfont metrics change line heights — re-measure once fonts settle.
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(scheduleMeasure);
+  }
+  if ("ResizeObserver" in window) {
+    new ResizeObserver(scheduleMeasure).observe(codeEl);
+    new ResizeObserver(scheduleMeasure).observe(document.querySelector(".as-stage"));
+  }
+
+  renderCode();
+  applyScenario("condition");
+})();
+</script>
+</body>
+</html>

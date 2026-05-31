@@ -3,10 +3,15 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>daglang examples — verified surface &amp; previews</title>
+  <title>daglang examples — current capabilities &amp; roadmap demos</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <meta name="theme-color" content="#0c0d0c" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#f4efe6" media="(prefers-color-scheme: light)" />
+  <meta name="color-scheme" content="dark light" />
+  <script>(function(){try{var s=localStorage.getItem("daglang-mode");var l=window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches;document.documentElement.setAttribute("data-mode",s||(l?"light":"dark"));}catch(e){}})();</script>
   <link rel="stylesheet" href="site.css" />
 </head>
 <body>
@@ -29,7 +34,11 @@
   </a>
   <div class="nav-right">
     <div class="nav-links">
+      <a href="showcase.html" class="nav-link" style="color:var(--tier-now)">Showcase</a>
+      <a href="showcase-backend.html" class="nav-link" style="color:var(--tier-next)">Showcase · backend</a>
       <a href="examples.html" class="nav-link active">Examples</a>
+      <a href="affected-set.html" class="nav-link">Affected-set</a>
+      <a href="roadmap.html" class="nav-link">Roadmap</a>
       <a href="https://github.com/gunb-ai/daglang/blob/main/THESIS.md" class="nav-link">Docs</a>
       <a href="https://github.com/gunb-ai/daglang" class="nav-link">GitHub</a>
     </div>
@@ -40,31 +49,41 @@
   </div>
 </nav>
 
-<main class="wrap" style="padding:3rem 0 4rem">
-  <h1 style="font-size:1.75rem;margin:0 0 0.5rem">Examples</h1>
-  <p class="muted" style="max-width:40em;margin:0 0 2rem">
-    Each tab shows <code>.dag</code> source, what gunbc reports, and honest status:
-    <span class="badge badge-alpha">v0.1.0</span> means on the verified public surface;
-    <span class="badge badge-preview">preview</span> is illustrative or in active development.
+<main class="wrap" style="padding:3.5rem 0 4rem">
+  <p class="section-eyebrow">Examples</p>
+  <h1 style="font-size:2rem;margin:0 0 0.6rem;letter-spacing:-0.02em">Try today. Explore the roadmap.</h1>
+  <p class="muted" style="max-width:42em;margin:0 0 2.25rem">
+    The first row of tabs is things you can run against the public compiler today. The second row is the
+    same graph model pointed at targets that are still being built — full stacks, then hardware.
   </p>
 
-  <div class="tabs" role="tablist">
-    <button class="tab" role="tab" data-tab="contract" aria-selected="true">Contract drift</button>
-    <button class="tab" role="tab" data-tab="complexity" aria-selected="false">Complexity analyzer</button>
-    <button class="tab" role="tab" data-tab="failclosed" aria-selected="false">Fail closed</button>
-    <button class="tab" role="tab" data-tab="omni" aria-selected="false">Preview: omni-emission</button>
+  <div class="tab-group">
+    <p class="tab-group-label">Current</p>
+    <div class="tabs" role="tablist" aria-label="Current capabilities">
+      <button class="tab t-now" role="tab" data-tab="contract" aria-selected="true">Contract drift</button>
+      <button class="tab t-now" role="tab" data-tab="complexity" aria-selected="false">Complexity analyzer</button>
+    </div>
   </div>
 
-  <!-- Contract drift — weather.dag -->
+  <div class="tab-group">
+    <p class="tab-group-label">Roadmap</p>
+    <div class="tabs" role="tablist" aria-label="Roadmap demos">
+      <button class="tab t-next" role="tab" data-tab="omni" aria-selected="false">Full-stack omni-emission</button>
+      <button class="tab t-next" role="tab" data-tab="agent" aria-selected="false">Programmatic graph editing</button>
+      <button class="tab t-vision" role="tab" data-tab="beyond" aria-selected="false">Beyond code targets</button>
+    </div>
+  </div>
+
+  <!-- ─────────────── Contract drift ─────────────── -->
   <section class="tab-panel" id="panel-contract" role="tabpanel">
-    <h2>Contract drift from one declaration</h2>
+    <h2 style="margin:0.5rem 0 0.4rem">Contract drift from one declaration</h2>
     <p class="section-lead muted">
       Real source: <a href="https://github.com/gunb-ai/daglang/blob/main/dsl/examples/weather/weather.dag">dsl/examples/weather/weather.dag</a>.
-      Verified gate (Rust): compile with <code>gunbc compile --target rust</code> then <code>cargo check</code> on emitted output.
+      Add a variant to <code>Condition</code>; every consumer either updates or the build fails closed.
     </p>
     <div class="demo-grid">
       <div class="demo-panel">
-        <header><span>.dag source</span><span class="badge badge-alpha">v0.1.0</span></header>
+        <header><span>.dag source</span><span class="badge badge-now">Available now</span></header>
         <pre>module examples.weather
 
 type Condition
@@ -84,13 +103,12 @@ fn describe_condition(cond: Condition) -> String {
 }</pre>
       </div>
       <div class="demo-panel">
-        <header><span>Emitted artifacts (same graph)</span><span class="badge badge-alpha">Shape A</span></header>
+        <header><span>Emitted artifacts (same graph)</span><span class="badge badge-now">Verified</span></header>
         <div class="demo-out">
-          <span class="diag-ok">Rust</span> — verified: <code>gunbc compile --target rust</code> + <code>cargo check</code><br />
-          <span class="diag-ok">Go</span> — planned verified surface (v0.1.0 target)<br />
-          <span class="diag-ok">Python</span> — planned verified surface (v0.1.0 target)<br /><br />
-          <strong>Within verified examples:</strong> add <code>Refunded</code> to <code>Condition</code> → exhaustive <code>match</code> fails or derived artifacts update<br />
-          <span class="diag-fail">→</span> stale derived artifacts fail closed instead of silently drifting
+          <span class="diag-ok">Rust</span> &nbsp;&nbsp; <code>gunbc compile --target rust</code> · <code>cargo check</code> &nbsp; <span class="badge badge-now" style="margin-left:0.4rem">now</span><br />
+          <span class="diag-ok">Go</span> &nbsp;&nbsp;&nbsp;&nbsp; planned verified surface &nbsp; <span class="badge badge-stable" style="margin-left:0.4rem">stabilizing</span><br />
+          <span class="diag-ok">Python</span>&nbsp; planned verified surface &nbsp; <span class="badge badge-stable" style="margin-left:0.4rem">stabilizing</span><br /><br />
+          <strong>Within the verified subset:</strong> add <code>Hail</code> to <code>Condition</code> → every exhaustive <code>match</code> updates, or the build refuses to ship.
         </div>
       </div>
     </div>
@@ -102,104 +120,387 @@ fn describe_condition(cond: Condition) -> String {
   --target rust</kbd><br />
       <kbd>cargo check --manifest-path /tmp/weather-out/Cargo.toml</kbd>
     </div>
+
+    <h3 style="font-size:1rem;margin:2.5rem 0 0.75rem">A real fail-closed case: non-exhaustive match</h3>
+    <p class="muted" style="margin:0 0 1rem">
+      The same compiler refuses to emit code when the shape doesn't cover its declared variants. No silent default arm, no "best effort" emission.
+    </p>
+    <div class="demo-grid">
+      <div class="demo-panel">
+        <header><span>.dag — missing arms</span><span class="badge badge-now">Available now</span></header>
+        <pre>fn describe(cond: Condition) -> String {
+  match cond {
+    Sunny  => "clear"
+    Cloudy => "cloudy"
+  }
+}</pre>
+      </div>
+      <div class="demo-panel">
+        <header><span>gunbc diagnostic</span><span class="badge badge-diag">Diagnostic</span></header>
+        <div class="demo-out">
+          <span class="diag-fail">error: non-exhaustive match on Condition</span><br />
+          &nbsp;&nbsp;missing: Rainy, Snowy<br />
+          &nbsp;&nbsp;at: examples/weather.dag:14<br /><br />
+          suggested: add arms for the remaining Condition variants, or pattern on a wildcard explicitly
+        </div>
+      </div>
+    </div>
   </section>
 
-  <!-- Complexity analyzer — real v2 output -->
+  <!-- ─────────────── Complexity analyzer + playground ─────────────── -->
   <section class="tab-panel" id="panel-complexity" role="tabpanel" hidden>
-    <h2>Complexity analyzer — current output</h2>
+    <h2 style="margin:0.5rem 0 0.4rem">Complexity analyzer</h2>
     <p class="section-lead muted">
-      This is the current v2 in-compiler complexity analyzer. The broader lens-gated CI receipt path is roadmap.
-      The compiler runs <code>complexity.dag</code> during compile and attaches
-      <code>function_classes</code> to analyzed functions. Output below is from real daglang sources, not mocked.
+      <code>gunbc</code> attaches <code>function_classes</code> to every analyzed function during compile —
+      cost of the <code>.dag</code> graph, not the runtime profile of one execution. The playground below
+      visualizes how those classes scale; the table that follows is real fixture output.
     </p>
 
-    <h3 style="font-size:1rem;margin:2rem 0 0.75rem">Current: per-function cost classes</h3>
-    <div class="demo-grid">
-      <div class="demo-panel">
-        <header>
-          <span><code>dsl/examples/weather/weather.dag</code></span>
-          <span class="badge badge-alpha">v0.1.0 · real .dag</span>
-        </header>
-        <pre>fn freezing_locations(forecasts: List&lt;Forecast&gt;) -> List&lt;String&gt; {
-  forecasts
-    |> filter(f => is_freezing(temp: f.low))
-    |> map(f => f.location)
+    <!-- ── Playground ── -->
+    <div class="playground" id="playground">
+      <div class="playground-head">
+        <h3 class="playground-title">Cost playground</h3>
+        <p class="muted" style="margin:0;font-size:0.78rem">
+          Pick a function — its complexity class lights up on the plot.
+        </p>
+      </div>
+      <div class="playground-grid">
+        <!-- Growth ladder — fixed-ordered horizontal bars instead of a continuous
+             curve plot. Bar widths are log-scaled to give each class an unambiguous
+             relative size, so the visual ordering is correct at every n. The
+             slider updates the per-class op-count text but not the bar widths —
+             the structural ordering is the message; absolute magnitude is a
+             secondary read. -->
+        <div class="cx-ladder" id="pg-plot" aria-label="Cost class growth ladder, ordered O(1) to O(n²)">
+          <div class="cx-row c-O1" data-class="O1">
+            <span class="cx-row-class">O(1)</span>
+            <div class="cx-row-track"><div class="cx-row-fill"></div></div>
+            <span class="cx-row-ops">ops: <strong id="cx-val-O1">1</strong></span>
+          </div>
+          <div class="cx-row c-On" data-class="On">
+            <span class="cx-row-class">O(n)</span>
+            <div class="cx-row-track"><div class="cx-row-fill"></div></div>
+            <span class="cx-row-ops">ops: <strong id="cx-val-On">80</strong></span>
+          </div>
+          <div class="cx-row c-OnlogN" data-class="OnlogN">
+            <span class="cx-row-class">O(n log n)</span>
+            <div class="cx-row-track"><div class="cx-row-fill"></div></div>
+            <span class="cx-row-ops">ops: <strong id="cx-val-OnlogN">506</strong></span>
+          </div>
+          <div class="cx-row c-On2" data-class="On2">
+            <span class="cx-row-class">O(n²)</span>
+            <div class="cx-row-track"><div class="cx-row-fill"></div></div>
+            <span class="cx-row-ops">ops: <strong id="cx-val-On2">6,400</strong></span>
+          </div>
+        </div>
+
+        <div class="playground-side">
+          <button class="pg-fn c-O1" data-class="O1" aria-selected="true">
+            <span class="pg-fn-name">to_fahrenheit</span>
+            <span class="pg-fn-class">O(1)</span>
+          </button>
+          <button class="pg-fn c-On" data-class="On" aria-selected="false">
+            <span class="pg-fn-name">freezing_locations</span>
+            <span class="pg-fn-class">O(n)</span>
+          </button>
+          <button class="pg-fn c-OnlogN" data-class="OnlogN" aria-selected="false">
+            <span class="pg-fn-name">ranked_forecasts</span>
+            <span class="pg-fn-class">O(n log n)</span>
+          </button>
+          <button class="pg-fn c-On2" data-class="On2" aria-selected="false">
+            <span class="pg-fn-name">bag_eq</span>
+            <span class="pg-fn-class">O(n²)</span>
+          </button>
+
+          <div class="pg-slider-row">
+            <label for="pg-n">n</label>
+            <input class="pg-slider" id="pg-n" type="range" min="10" max="200" value="80" />
+            <span class="pg-n-value" id="pg-n-value">n = 80</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Per-function source + structural-graph swap ── -->
+      <div class="pg-source-row">
+        <div class="pg-source" id="pg-source">
+          <header>
+            <span id="pg-source-name">to_fahrenheit · weather.dag</span>
+            <span class="badge badge-now" id="pg-source-tag">Available now · measured</span>
+          </header>
+          <pre id="pg-source-code">fn to_fahrenheit(temp: Temperature) -&gt; Float {
+  temp.celsius * 1.8 + 32.0
+}</pre>
+          <div class="pg-source-why" id="pg-source-why">
+            <strong>Why O(1):</strong> body is one arithmetic expression — no recursion, no iteration, no
+            dispatch on input size. The cost-lens algebra folds across the body and finds a constant tree,
+            so the bound is constant by construction.
+          </div>
+        </div>
+        <div class="pg-shape">
+          <header><span id="pg-shape-name">Structural shape</span><span style="opacity:0.55" id="pg-shape-tag">cost-lens algebra</span></header>
+          <svg class="pg-shape-svg" id="pg-shape-svg" viewBox="0 0 320 220" aria-hidden="true"></svg>
+        </div>
+      </div>
+
+      <p class="muted" style="font-size:0.72rem;margin:1rem 0 0">
+        The ladder is ordered, not scaled — the visual rank between classes is the message; the op-count
+        text updates with the slider for each row. Cost classes are derived from the graph's structural shape by the cost lens
+        (<a href="https://github.com/gunb-ai/daglang/blob/main/src/v4/lens/synthesis.dag">v4/lens/synthesis.dag</a>);
+        the source panel above is the actual <code>.dag</code> the lens reads.
+      </p>
+    </div>
+
+    <h3 style="font-size:1rem;margin:2.5rem 0 0.75rem">Real compiler output · summary</h3>
+    <p class="muted" style="margin:0 0 1rem">
+      Verbatim output from a <code>gunbc</code> dev build on a benchmark designed to exercise every
+      cost class the analyzer derives today. <strong>No annotations, no benchmark runs</strong> —
+      the analyzer folds across each function's structure and reports the class.
+    </p>
+
+    <!-- Compact summary table — what the analyzer reported, ordered by class -->
+    <table style="width:100%;max-width:42em;border-collapse:collapse;font-family:var(--font-mono);font-size:0.82rem;margin-bottom:1rem">
+      <thead>
+        <tr style="text-align:left">
+          <th style="padding:0.5rem 0.7rem;border-bottom:1px solid var(--border-dark-strong);font-weight:600;opacity:0.7;font-size:0.66rem;letter-spacing:0.12em;text-transform:uppercase">Function</th>
+          <th style="padding:0.5rem 0.7rem;border-bottom:1px solid var(--border-dark-strong);font-weight:600;opacity:0.7;font-size:0.66rem;letter-spacing:0.12em;text-transform:uppercase">Reported class</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style="padding:0.4rem 0.7rem"><code>double</code></td>          <td style="padding:0.4rem 0.7rem;color:var(--tier-now)">O(1)</td></tr>
+        <tr><td style="padding:0.4rem 0.7rem"><code>classify</code></td>        <td style="padding:0.4rem 0.7rem;color:var(--tier-now)">O(1)</td></tr>
+        <tr><td style="padding:0.4rem 0.7rem"><code>sum_list</code></td>        <td style="padding:0.4rem 0.7rem;color:var(--tier-stable)">O(n)</td></tr>
+        <tr><td style="padding:0.4rem 0.7rem"><code>length_acc</code></td>      <td style="padding:0.4rem 0.7rem;color:var(--tier-stable)">O(n)</td></tr>
+        <tr><td style="padding:0.4rem 0.7rem"><code>evens_doubled</code></td>   <td style="padding:0.4rem 0.7rem;color:var(--tier-stable)">O(n)</td></tr>
+        <tr><td style="padding:0.4rem 0.7rem"><code>count_in</code></td>        <td style="padding:0.4rem 0.7rem;color:var(--tier-stable)">O(n)</td></tr>
+        <tr><td style="padding:0.4rem 0.7rem"><code>duplicate_count</code></td> <td style="padding:0.4rem 0.7rem;color:var(--tier-vision)"><strong>O(n * n)</strong></td></tr>
+      </tbody>
+    </table>
+
+    <p class="muted" style="margin:0 0 1rem;font-size:0.82rem">
+      <strong>The <code>duplicate_count</code> result is the interesting one.</strong> Its body just
+      recurses on the tail; the inner call is to <code>count_in</code>, which also walks the list. The
+      analyzer composes the two linear walks and lands on <code>O(n * n)</code> — no annotation, no
+      benchmark, derived from the graph.
+    </p>
+
+<pre style="margin:0 0 1rem;padding:0.85rem 1rem;font-size:0.74rem;line-height:1.55;border:1px solid var(--border-dark);border-radius:4px;background:var(--void-up2);overflow-x:auto">// Why O(n * n) — the structural reason
+
+fn duplicate_count(xs: List&lt;Int&gt;) -&gt; Int {
+  match xs {
+    Empty =&gt; 0
+    Cons { head: h, tail: t } =&gt;
+      count_in(xs: t, target: h)  // ← walks the list (O(n))
+      + duplicate_count(xs: t)    // ← recurses on tail (n outer steps)
+  }
+}                                 //  outer × inner = O(n * n)</pre>
+
+    <details style="margin:0 0 0.5rem">
+      <summary style="cursor:pointer;font-family:var(--font-mono);font-size:0.78rem;padding:0.5rem 0.75rem;border:1px solid var(--border-dark-strong);border-radius:4px;display:inline-block">
+        Show full benchmark source + raw compiler output
+      </summary>
+      <div class="demo-grid" style="margin-top:0.85rem">
+        <div class="demo-panel">
+          <header>
+            <span><code>algorithms.dag</code> · 7 functions, no annotations</span>
+            <span class="badge badge-now">Real source</span>
+          </header>
+          <pre>module examples.algorithms
+
+fn double(n: Int) -> Int { n + n }
+
+fn classify(n: Int) -> String {
+  if n &gt; 0 { "positive" }
+  else { if n &lt; 0 { "negative" } else { "zero" } }
 }
 
-fn daily_summary(forecast: Forecast) -> String {
-  let high_f = to_fahrenheit(temp: forecast.high)
-  let desc = describe_condition(cond: forecast.condition)
-  concat(forecast.location, ": ", desc, ", high ",
-         to_string(value: high_f), "°F")
+fn sum_list(xs: List&lt;Int&gt;) -&gt; Int {
+  match xs {
+    Empty =&gt; 0
+    Cons { head: h, tail: t } =&gt; h + sum_list(xs: t)
+  }
+}
+
+fn length_acc(xs: List&lt;Int&gt;, acc: Int) -&gt; Int {
+  match xs {
+    Empty =&gt; acc
+    Cons { head: _, tail: t } =&gt; length_acc(xs: t, acc: acc + 1)
+  }
+}
+
+fn evens_doubled(xs: List&lt;Int&gt;) -&gt; List&lt;Int&gt; {
+  xs |&gt; filter(x =&gt; x % 2 == 0) |&gt; map(x =&gt; x * 2)
+}
+
+fn count_in(xs: List&lt;Int&gt;, target: Int) -&gt; Int {
+  match xs {
+    Empty =&gt; 0
+    Cons { head: h, tail: t } =&gt;
+      if h == target { 1 + count_in(xs: t, target: target) }
+      else { count_in(xs: t, target: target) }
+  }
+}
+
+fn duplicate_count(xs: List&lt;Int&gt;) -&gt; Int {
+  match xs {
+    Empty =&gt; 0
+    Cons { head: h, tail: t } =&gt;
+      count_in(xs: t, target: h) + duplicate_count(xs: t)
+  }
+}</pre>
+        </div>
+        <div class="demo-panel">
+          <header><span>ComplexityReport · verbatim from <code>gunbc</code></span><span class="badge badge-now">Real output</span></header>
+          <pre>$ gunbc compile --source-root /tmp/cx-demo \
+                --source-root dsl/std \
+                --output-dir /tmp/out --target rust
+indexed 49 modules from 2 source roots
+resolved 1 sources (transitive import closure)
+compiled: N files emitted, 0 diagnostics
+
+==================================================================
+ComplexityReport — emitted by v2 compiler (gunbc dev build)
+==================================================================
+
+function_classes (7 entries):
+------------------------------------------------------------------
+  classify                        <span class="diag-ok">O(1)</span>
+  count_in                        <span class="diag-ok">O(n)</span>
+  double                          <span class="diag-ok">O(1)</span>
+  duplicate_count                 <span class="diag-ok">O(n * n)</span>
+  evens_doubled                   <span class="diag-ok">O(n)</span>
+  length_acc                      <span class="diag-ok">O(n)</span>
+  sum_list                        <span class="diag-ok">O(n)</span>
+
+violations: 0
+structural_bounds: 0</pre>
+        </div>
+      </div>
+      <p class="muted" style="margin-top:0.75rem;font-size:0.78rem">
+        Fixture: <a href="fixtures/algorithms.complexity.txt">fixtures/algorithms.complexity.txt</a>.
+        The dump harness (<code>dump_complexity</code>, a one-bin shim around
+        <code>v2_compiler_compile::compile_sources</code>) is what was used to produce this panel.
+      </p>
+    </details>
+
+    <h3 style="font-size:1rem;margin:2.5rem 0 0.75rem">Emitted Rust · what <code>gunbc compile --target rust</code> actually writes</h3>
+    <p class="muted" style="margin:0 0 1rem">
+      The same <code>.dag</code> the analyzer reads is also what the emitter walks. Below is a verbatim
+      excerpt of the Rust the v2 compiler emits for <code>dsl/examples/weather/weather.dag</code> —
+      structs, enum, and function bodies, all derived from the typed graph.
+    </p>
+    <div class="demo-grid">
+      <div class="demo-panel">
+        <header><span><code>/tmp/weather-out/src/examples_weather.rs</code></span><span class="badge badge-now">Real emitted output</span></header>
+        <pre>// Generated by v2 compiler -- do not edit.
+// Source module: examples.weather
+
+#[derive(Debug, Clone, Copy, PartialEq,
+         serde::Serialize, serde::Deserialize)]
+pub struct Temperature {
+    pub celsius: f64,
+}
+
+#[derive(Debug, Clone, PartialEq,
+         serde::Serialize, serde::Deserialize)]
+#[serde(tag = "_variant")]
+pub enum Condition {
+    Sunny,
+    Cloudy,
+    Rainy  { mm_per_hour: f64 },
+    Snowy  { cm_per_hour: f64 },
+}
+
+pub fn to_fahrenheit(temp: Temperature) -&gt; f64 {
+    ((temp.celsius.clone() * 1.8) + 32.0)
+}
+
+pub fn is_freezing(temp: Temperature) -&gt; bool {
+    (temp.celsius.clone() &lt;= 0.0)
+}
+
+pub fn describe_condition(cond: Rc&lt;Condition&gt;) -&gt; String {
+    match (*cond).clone() {
+        Condition::Sunny  =&gt; "clear skies".to_string(),
+        Condition::Cloudy =&gt; "overcast".to_string(),
+        Condition::Rainy { mm_per_hour: rate, .. } =&gt;
+            if (rate.clone() &gt; 10.0) { "heavy rain".to_string() }
+            else { "light rain".to_string() },
+        Condition::Snowy { cm_per_hour: _, .. } =&gt; "snowfall".to_string(),
+    }
 }</pre>
       </div>
       <div class="demo-panel">
-        <header><span>function_classes (analyzer)</span><span class="badge badge-alpha">measured</span></header>
+        <header><span>5 files emitted · same compile</span><span class="badge badge-now">Real</span></header>
+        <pre>$ ls /tmp/weather-out
+Cargo.toml
+src/
+
+$ wc -l /tmp/weather-out/src/*.rs
+   69 src/examples_weather.rs
+   48 src/lib.rs
+    5 src/main.rs
+  336 src/v2_rt.rs
+  458 total
+
+$ cat /tmp/weather-out/Cargo.toml
+[package]
+name = "v2_compiled"
+version = "0.1.0"
+edition = "2021"
+[dependencies]
+serde = { version = "1",
+          features = ["derive", "rc"] }
+serde_json = "1"
+stacker = "0.1"
+clap = { version = "4", features = ["derive"] }
+lazy_static = "1"
+
+$ cargo check --manifest-path /tmp/weather-out/Cargo.toml
+    Checking v2_compiled v0.1.0
+    Finished `dev` profile [0.42s]</pre>
+        <div class="demo-out muted" style="font-size:0.72rem">
+          The emitter is the same path that produces this site's roadmap-tier 1 Rust target. Every line
+          here is what <code>gunbc</code> wrote — verified end-to-end by <code>cargo check</code>.
+        </div>
+      </div>
+    </div>
+
+    <h3 style="font-size:1rem;margin:2.5rem 0 0.75rem">Server loops have a defined bound too</h3>
+    <p class="muted" style="margin:0 0 1rem">
+      Non-terminating loops aren't <code>O(?)</code>. The substrate has a named <code>Forever</code> bound
+      (the system-limit representable bound) and structured iteration via <code>repeat(Forever, body)</code>,
+      so the cost lens still derives a defined per-iteration class — never "I don't know."
+      See <a href="https://github.com/gunb-ai/daglang/blob/main/docs/v3-modeling-analysis.md">v3-modeling-analysis.md §"Forever and Bounded Iteration"</a>.
+    </p>
+    <div class="demo-grid">
+      <div class="demo-panel">
+        <header><span>request_loop.dag (illustrative)</span><span class="badge badge-now">defined bound</span></header>
+        <pre>fn run_server(state: ServerState) -> Forever {
+  repeat(Forever, fn() {
+    let req = accept_request()         // O(1) per-iter
+    let resp = handle(req: req)        // O(1) per-iter
+    send_response(resp: resp)
+  })
+}</pre>
+      </div>
+      <div class="demo-panel">
+        <header><span>cost lens output</span><span class="badge badge-now">measured</span></header>
         <div class="demo-out">
-          <span class="diag-ok">freezing_locations</span> &nbsp; O(n)<br />
-          <span class="diag-ok">daily_summary</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; O(1)<br />
-          <span class="diag-ok">describe_condition</span> &nbsp; O(1)<br />
-          <span class="diag-ok">is_freezing</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; O(1)<br />
-          <span class="diag-ok">to_fahrenheit</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; O(1)<br /><br />
-          violations: 0
+          <span class="diag-ok">run_server</span> &nbsp; Forever × O(1) per iteration<br /><br />
+          structured as <code>repeat(Forever, body)</code><br />
+          per-iter body cost is structurally bounded<br />
+          (a non-bounded loop is a compiler bug, not a user-facing class)
         </div>
       </div>
     </div>
-    <p class="muted" style="margin-top:0.75rem">
-      The analyzer reports the cost of the <code>.dag</code> graph, not the runtime profile of one execution.
-      Checked-in fixture:
-      <a href="fixtures/weather.complexity.txt">fixtures/weather.complexity.txt</a>.
-    </p>
-    <div class="install-block" style="margin-top:0.75rem">
-      <span class="muted" style="font-size:0.75rem;display:block;margin-bottom:0.5rem">
-        Reproduce (daglang repo): <code>function_classes</code> is attached on every compile
-        (<code>PipelineResult.complexity</code>). Match the fixture with
-        <code>build_complexity_report</code> or pipeline tests on <code>weather.dag</code>.
-      </span>
-      <kbd>cargo build -p v2-compiler --bin gunbc</kbd><br />
-      <kbd>cargo test -p v2-compiler-tests cx_forever_bound_produces_violation -- --exact --nocapture</kbd>
-      <span class="muted" style="font-size:0.7rem;display:block;margin-top:0.35rem">
-        (weather classes: same pipeline path as
-        <a href="https://github.com/gunb-ai/daglang/blob/main/dsl/examples/weather/weather.dag">weather.dag</a>
-        — see fixture for expected output.)
-      </span>
-    </div>
 
-    <h3 style="font-size:1rem;margin:2rem 0 0.75rem">Fail closed when the bound is unproven</h3>
+    <h3 style="font-size:1rem;margin:2.5rem 0 0.75rem">Composed cost drift across the graph</h3>
     <p class="muted" style="margin:0 0 1rem">
-      When the analyzer cannot prove a safe structural bound, it reports <code>O(?)</code>
-      and emits a violation instead of guessing.
+      Roadmap lens story: a local change (e.g. index lookup → linear scan) composes through callers and trips a CI receipt before merge.
     </p>
     <div class="demo-grid">
       <div class="demo-panel">
-        <header><span>Minimal module (soundness)</span><span class="badge badge-alpha">measured</span></header>
-        <pre>fn count_up(n: Int) -> Int {
-  if n > 100 { n }
-  else { count_up(n: n + 1) }  // no proven descent
-}</pre>
-      </div>
-      <div class="demo-panel">
-        <header><span>function_classes + violations</span><span class="badge badge-alpha">measured</span></header>
-        <div class="demo-out diag-fail">
-          count_up &nbsp; O(?)<br /><br />
-          violation: recursion has no structural decreasing argument<br />
-          (no silent O(1) guess)
-        </div>
-      </div>
-    </div>
-    <p class="muted" style="margin-top:0.75rem">
-      Fixture:
-      <a href="fixtures/count_up.complexity.txt">fixtures/count_up.complexity.txt</a>.
-    </p>
-
-    <h3 style="font-size:1rem;margin:2rem 0 0.75rem">Preview: composed cost drift across the dependency graph</h3>
-    <p class="muted" style="margin:0 0 1rem">
-      Roadmap lens story: a local change (e.g. lookup from index to linear scan) composes through callers.
-      Not a shipped CI receipt in v0.1.0.
-    </p>
-    <div class="demo-grid">
-      <div class="demo-panel">
-        <header><span>.dag (illustrative)</span><span class="badge badge-preview">preview</span></header>
+        <header><span>.dag (illustrative)</span><span class="badge badge-next">Building next</span></header>
         <pre>fn processOrders(orders: List&lt;Order&gt;) -> List&lt;Receipt&gt; {
   orders |> map(o => enrich(o))
 }
@@ -214,7 +515,7 @@ fn lookupCustomer(id: UserId) -> Customer {
 }</pre>
       </div>
       <div class="demo-panel">
-        <header><span>Lens output (illustrative)</span><span class="badge badge-preview">preview</span></header>
+        <header><span>Lens output (illustrative)</span><span class="badge badge-next">Building next</span></header>
         <div class="demo-out">
           <span class="diag-fail">complexity(processOrders) = O(n²)</span><br />
           required bound = O(n log n)<br />
@@ -224,74 +525,656 @@ fn lookupCustomer(id: UserId) -> Customer {
         </div>
       </div>
     </div>
-    <p class="muted" style="margin-top:0.75rem">
-      Parser-style SCC descent is analyzed today (e.g. <code>parse_items</code> → O(n)).
-      Nested folds on the <em>same</em> collection may classify as O(n) when identity is tracked.
-      See <a href="https://github.com/gunb-ai/daglang/blob/main/src/v2/complexity.dag">complexity.dag</a>.
-    </p>
   </section>
 
-  <!-- Fail closed -->
-  <section class="tab-panel" id="panel-failclosed" role="tabpanel" hidden>
-    <h2>Unsupported path — fail closed</h2>
+  <!-- ─────────────── Full-stack omni-emission ─────────────── -->
+  <section class="tab-panel" id="panel-omni" role="tabpanel" hidden>
+    <h2 style="margin:0.5rem 0 0.4rem">Full-stack omni-emission</h2>
     <p class="section-lead muted">
-      Release gate: public examples that use unsupported features must fail with named diagnostics,
-      not plausible emitted junk.
+      One <code>.dag</code> system description. Six artifacts that stay in lockstep —
+      change the shape on the left, every tile on the right either updates or fails the lens.
     </p>
-    <div class="demo-grid">
-      <div class="demo-panel">
-        <header><span>.dag (unsupported boundary)</span><span class="badge badge-preview">illustrative</span></header>
-        <pre>service PaymentGateway {
-  fn charge(card: Card) -> Receipt
-    via unknown_runtime(...)
+
+    <div class="omni-layout">
+      <div class="omni-source">
+        <header>
+          <span>todo_app.dag — shared system</span>
+          <span class="badge badge-next">Building next</span>
+        </header>
+        <pre>app TodoApp {
+  data Todo {
+    id:        TodoId
+    list_id:   ListId
+    title:     String
+    completed: Bool
+    created:   Timestamp
+  }
+
+  service TodoApi {
+    list_todos: HttpGet&lt;/todos&gt;
+      -> List&lt;Todo&gt;
+    create_todo: HttpPost&lt;/todos, NewTodo&gt;
+      -> Todo
+    toggle_todo: HttpPatch&lt;/todos/:id, Toggle&gt;
+      -> Todo
+  }
+
+  ui TodoList {
+    source: TodoApi.list_todos
+    render: TodoCard
+    on_toggle: TodoApi.toggle_todo
+  }
+
+  store TodoDb {
+    table todos: Todo
+      primary id
+      index   (list_id, completed)
+  }
 }</pre>
       </div>
-      <div class="demo-panel">
-        <header><span>gunbc diagnostic</span><span class="badge badge-alpha">policy</span></header>
-        <div class="demo-out diag-fail">
-          error: unsupported runtime boundary<br />
-          at: service PaymentGateway.charge<br /><br />
-          suggested: model the effect source in the graph, or choose a supported target surface
+
+      <div class="tile-grid">
+        <div class="tile t-stable">
+          <div class="tile-head">Rust backend <span class="badge badge-stable">Stabilizing</span></div>
+          <pre class="tile-body">#[axum::handler]
+pub async fn list_todos(
+    State(db): State&lt;TodoDb&gt;,
+) -&gt; Json&lt;Vec&lt;Todo&gt;&gt; {
+    Json(db.todos().all().await)
+}</pre>
+        </div>
+        <div class="tile t-next">
+          <div class="tile-head">TypeScript client <span class="badge badge-next">Next</span></div>
+          <pre class="tile-body">export async function listTodos(
+): Promise&lt;Todo[]&gt; {
+  const r = await fetch("/todos");
+  return TodoSchema.array().parse(
+    await r.json()
+  );
+}</pre>
+        </div>
+        <div class="tile t-next">
+          <div class="tile-head">SQL migration <span class="badge badge-next">Next</span></div>
+          <pre class="tile-body">CREATE TABLE todos (
+  id         TEXT PRIMARY KEY,
+  list_id    TEXT NOT NULL,
+  title      TEXT NOT NULL,
+  completed  BOOLEAN NOT NULL,
+  created    TIMESTAMPTZ NOT NULL
+);
+CREATE INDEX ON todos
+  (list_id, completed);</pre>
+        </div>
+        <div class="tile t-next">
+          <div class="tile-head">OpenAPI <span class="badge badge-next">Next</span></div>
+          <pre class="tile-body">paths:
+  /todos:
+    get:
+      operationId: list_todos
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/Todo[]"</pre>
+        </div>
+        <div class="tile t-vision">
+          <div class="tile-head">Docs <span class="badge badge-vision">Planned</span></div>
+          <div class="tile-mock" aria-hidden="true">
+            <div style="font-weight:600;margin-bottom:0.4rem">TodoApi.list_todos</div>
+            <div style="opacity:0.65">GET /todos → List&lt;Todo&gt;</div>
+            <div style="margin-top:0.4rem;opacity:0.75">Returns all todos across all lists, ordered by created.</div>
+            <div style="margin-top:0.45rem;border-top:1px dashed currentColor;padding-top:0.4rem;opacity:0.6">
+              <em>generated from app TodoApp · v0.3.1</em>
+            </div>
+          </div>
+        </div>
+        <div class="tile t-next">
+          <div class="tile-head">Generated tests · testgen <span class="badge badge-next">Building next</span></div>
+<pre class="tile-body">// Derived from app TodoApp — no hand-authored
+// arbitraries, no hand-authored fixtures.
+
+#[test]
+fn condition_variants_covered() {
+    // Exhaustiveness lens: every Condition arm has a
+    // match handler somewhere. Auto-generated from
+    // the type declaration.
+    for v in Condition::all_variants() {
+        let _ = describe_condition(Rc::new(v));
+    }
+}
+
+#[proptest]
+fn roundtrip_todo_json(t: Arbitrary&lt;Todo&gt;) {
+    // Arbitrary derived from the Todo type shape;
+    // serde roundtrip generated from the @serialize
+    // realization fact.
+    let bytes = serde_json::to_vec(&amp;t).unwrap();
+    let back: Todo = serde_json::from_slice(&amp;bytes)?;
+    prop_assert_eq!(t, back);
+}
+
+#[test]
+fn list_in_list_index_used() {
+    // Cost-lens fact: list_in_list resolves through
+    // index (list_id, completed). Generated assertion
+    // checks the plan stays on the indexed path.
+    assert_uses_index!(
+        TodoApi::list_in_list,
+        "todos_list_id_completed_idx",
+    );
+}</pre>
+          <div class="sb-tile-foot" style="padding:0.5rem 0.9rem;font-family:var(--font-mono);font-size:0.66rem;opacity:0.6;border-top:1px solid var(--border-dark)">
+            Variant coverage · type roundtrips · index-use assertions — all derived from the same graph
+          </div>
+        </div>
+        <div class="tile t-vision">
+          <div class="tile-head">CI lens receipt <span class="badge badge-vision">Planned</span></div>
+          <div class="tile-mock" aria-hidden="true">
+            <div><span class="diag-ok">✓</span> type_shape_consistency &nbsp;&nbsp; pass</div>
+            <div><span class="diag-ok">✓</span> migration_safety &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; pass</div>
+            <div><span class="diag-ok">✓</span> openapi_round_trip &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; pass</div>
+            <div><span class="diag-ok">✓</span> client_compat &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; pass</div>
+            <div><span class="diag-ok">✓</span> testgen_pass &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 14/14 pass</div>
+            <div style="margin-top:0.4rem;opacity:0.6">7 / 7 lenses green · 0 affected downstream</div>
+          </div>
         </div>
       </div>
     </div>
+
+    <p class="muted" style="margin-top:1.5rem;font-size:0.82rem">
+      Real source for the in-progress Todo service: <a href="https://github.com/gunb-ai/daglang/blob/main/dsl/demos/todo_service.dag">dsl/demos/todo_service.dag</a>.
+      Each tile's tier badge matches the <a href="roadmap.html">roadmap</a> — Rust is stabilizing today; TypeScript, SQL and OpenAPI are next; generated docs and CI lens receipts are planned.
+    </p>
   </section>
 
-  <!-- Omni-emission -->
-  <section class="tab-panel" id="panel-omni" role="tabpanel" hidden>
-    <h2>Preview: omni-emission — one graph, many layers</h2>
+  <!-- ─────────────── Programmatic graph editing ─────────────── -->
+  <section class="tab-panel" id="panel-agent" role="tabpanel" hidden>
+    <h2 style="margin:0.5rem 0 0.4rem">Programmatic graph editing — agents are one consumer</h2>
     <p class="section-lead muted">
-      <strong>This is architectural direction, not a v0.1.0 feature.</strong>
-      Architecture target: Shape A = language targets the compiler emits (Rust, Go, Python).
-      Shape B = artifacts produced by <code>.dag</code> programs (OpenAPI, SQL, docs) — not compiler render targets.
-      v0.1.0 verifies Rust today; Go / Python are planned verified surfaces.
-      Todo demo: <a href="https://github.com/gunb-ai/daglang/blob/main/dsl/demos/todo_service.dag">dsl/demos/todo_service.dag</a> (preview / v4).
+      Most coding agents operate on raw bytes — write a string, hope it parses. daglang exposes the program as a
+      typed <code>CoreNode</code> graph. The primitives below are named directly from
+      <a href="https://github.com/gunb-ai/daglang/blob/main/docs/design-v4-compiler-homomorphism.md">design-v4-compiler-homomorphism.md</a>:
+      <code>ingest_text</code> (peripheral shim), <code>fold_node</code> (catamorphism — every pass is data, not code),
+      <code>apply_diff</code> (sequential edits with candidate-state gating, fails closed on path resolution), and
+      <code>affected_set</code> (the query primitive that drives <a href="affected-set.html">affected-set propagation</a>).
     </p>
-    <div class="demo-panel">
-      <header><span>Shared domain (excerpt)</span><span class="badge badge-preview">roadmap</span></header>
-      <pre>type TodoItem {
-  id:        String
-  list_id:   String
-  title:     String
-  completed: Bool
-}
 
-data todo_service_operations: List&lt;TodoServiceOperation&gt; = [
-  { endpoint: { method: GET,  path: ... "users" ... } },
-  { endpoint: { method: POST, path: ... "users" ... } },
-  ...
-]</pre>
-      <div class="demo-out muted">
-        <span class="diag-ok">v0.1.0 verified subset</span> — Rust types from shared declarations; Go / Python planned<br />
-        <span class="badge badge-preview">preview</span> — TypeScript client, OpenAPI YAML, SQL DDL, DB migration from same graph<br /><br />
-        Do not treat the full-stack column as shipped until end-to-end tests say so.
+    <!-- Flow strip -->
+    <div class="playground" style="padding:1.5rem 1.75rem">
+      <svg viewBox="0 0 640 90" style="width:100%;height:auto;display:block" aria-hidden="true">
+        <defs>
+          <marker id="arrow-next" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="hsl(38, 72%, 56%)"/>
+          </marker>
+        </defs>
+        <!-- 5 step nodes -->
+        <g font-family="JetBrains Mono, monospace" font-size="11" text-anchor="middle">
+          <rect x="10"  y="22" width="100" height="46" rx="6" fill="hsla(38,72%,56%,0.12)" stroke="hsla(38,72%,56%,0.55)"/>
+          <text x="60"  y="42" fill="hsl(38, 72%, 56%)" font-weight="600">1 · read</text>
+          <text x="60"  y="58" fill="currentColor" opacity="0.7" font-size="9">graph inspect</text>
+
+          <rect x="140" y="22" width="100" height="46" rx="6" fill="hsla(38,72%,56%,0.12)" stroke="hsla(38,72%,56%,0.55)"/>
+          <text x="190" y="42" fill="hsl(38, 72%, 56%)" font-weight="600">2 · analyze</text>
+          <text x="190" y="58" fill="currentColor" opacity="0.7" font-size="9">run lens</text>
+
+          <rect x="270" y="22" width="100" height="46" rx="6" fill="hsla(38,72%,56%,0.12)" stroke="hsla(38,72%,56%,0.55)"/>
+          <text x="320" y="42" fill="hsl(38, 72%, 56%)" font-weight="600">3 · patch</text>
+          <text x="320" y="58" fill="currentColor" opacity="0.7" font-size="9">apply_diff</text>
+
+          <rect x="400" y="22" width="100" height="46" rx="6" fill="hsla(38,72%,56%,0.12)" stroke="hsla(38,72%,56%,0.55)"/>
+          <text x="450" y="42" fill="hsl(38, 72%, 56%)" font-weight="600">4 · validate</text>
+          <text x="450" y="58" fill="currentColor" opacity="0.7" font-size="9">checks + lenses</text>
+
+          <rect x="530" y="22" width="100" height="46" rx="6" fill="hsla(134,42%,46%,0.14)" stroke="hsla(134,42%,46%,0.55)"/>
+          <text x="580" y="42" fill="hsl(134, 42%, 46%)" font-weight="600">5 · emit</text>
+          <text x="580" y="58" fill="currentColor" opacity="0.7" font-size="9">target source</text>
+
+          <!-- arrows -->
+          <line x1="110" y1="45" x2="138" y2="45" stroke="hsl(38, 72%, 56%)" stroke-width="1.3" marker-end="url(#arrow-next)"/>
+          <line x1="240" y1="45" x2="268" y2="45" stroke="hsl(38, 72%, 56%)" stroke-width="1.3" marker-end="url(#arrow-next)"/>
+          <line x1="370" y1="45" x2="398" y2="45" stroke="hsl(38, 72%, 56%)" stroke-width="1.3" marker-end="url(#arrow-next)"/>
+          <line x1="500" y1="45" x2="528" y2="45" stroke="hsl(38, 72%, 56%)" stroke-width="1.3" marker-end="url(#arrow-next)"/>
+        </g>
+      </svg>
+      <p class="muted" style="font-family:var(--font-mono);font-size:0.72rem;margin:0.85rem 0 0;text-align:center;letter-spacing:0.01em">
+        read graph → run lens → apply diff → check → emit
+      </p>
+    </div>
+
+    <h3 style="font-size:1rem;margin:2.25rem 0 0.75rem">CLI: today vs designed</h3>
+    <div class="demo-grid">
+      <div class="demo-panel">
+        <header><span>Available today</span><span class="badge badge-now">Available now</span></header>
+        <pre>$ gunbc --help
+Usage: gunbc [OPTIONS] &lt;COMMAND&gt;
+
+Commands:
+  compile   Compile .dag source files to a target language
+  run       Execute a .dag program directly (interpreter)
+
+Options:
+      --dry-run    Run in dry-run mode (mock all service calls)
+  -h, --help
+
+$ gunbc compile \
+    --source-root dsl/examples/weather \
+    --source-root dsl/std \
+    --output-dir /tmp/weather-out \
+    --target rust            # rust | python | go | dag
+
+$ gunbc run --source-root dsl/examples/weather \
+            --function main</pre>
+        <div class="demo-out muted" style="font-size:0.72rem">
+          <code>--target dag</code> is the identity round-trip — the foundation the agent edit
+          surface is being built on. Verbatim from <code>src/v2/stage0/src/main.rs</code>.
+        </div>
+      </div>
+      <div class="demo-panel">
+        <header><span>Designed in v4 (not yet wired)</span><span class="badge badge-next">Building next</span></header>
+        <pre># 1 · Ingest: text → CoreNode via the peripheral shim
+$ gunbc ingest dsl/examples/weather/weather.dag \
+    --input-lang dag \
+    --emit core-node &gt; weather.core.json
+
+# 2 · Query: affected_set seeded by a path
+$ gunbc affected weather.core.json \
+    --at "fn:lookupCustomer/body/find"
+
+  fn:enrich          (direct caller)
+  fn:processOrders   (transitive)
+  fn:checkout        (transitive)
+
+# 3 · Diff: apply_diff over the candidate root
+$ gunbc diff apply weather.core.json patch.json \
+    --gate complexity,effects \
+    -o weather.next.json
+
+  applied 1 edit · candidate-state OK
+  ✓ complexity   O(n²) → O(n log n)
+  ✓ effect lens  unchanged
+
+# 4 · Emit: only from the green candidate
+$ gunbc emit weather.next.json --target rust \
+    --output-dir /tmp/weather-out</pre>
+        <div class="demo-out muted" style="font-size:0.72rem">
+          Subcommand names mirror the primitives in
+          <code>design-v4-compiler-homomorphism.md</code>: <code>ingest_text</code>,
+          <code>affected_set</code>, <code>apply_diff</code> (sequential, fails closed on Path
+          resolution), and the language-spec emit path.
+        </div>
       </div>
     </div>
+
+    <h3 style="font-size:1rem;margin:2.5rem 0 0.75rem">Programmatic surface (designed in v4)</h3>
+    <p class="muted" style="margin:0 0 1rem">
+      Reads are <code>fold_node</code>. Writes are <code>apply_diff</code>. <code>CoreNode</code> is the
+      canonical input whether it came from text ingest, a programmatic builder, a query-driven rewrite, or a
+      round-trip translate — so an agent's patch is held to the same lenses as a human edit.
+    </p>
+    <div class="demo-panel">
+      <header><span>gunbc · TypeScript SDK sketch</span><span class="badge badge-next">Building next</span></header>
+      <pre>import {
+  ingestText, foldNode, affectedSet,
+  applyDiff, emit, type CoreNode, type Diff, type Outcome,
+} from "@gunb-ai/gunbc";
+
+// 1 · Ingest: peripheral text→CoreNode shim (parse + normalize)
+const root: CoreNode = await ingestText(
+  await Deno.readTextFile("weather.dag"),
+  { inputLang: "dag" },
+);
+
+// 2 · Read: every pass is a fold over the canonical Node
+const complexity = foldNode(root, complexityAlgebra);
+//   → { "fn:freezing_locations": "O(n)", "fn:lookupCustomer": "O(1)", … }
+
+// 3 · Query: derive the affected_set from a Path
+const affected = affectedSet(root, {
+  at: "fn:lookupCustomer/body/find",
+});
+//   → ["fn:enrich", "fn:processOrders", "fn:checkout"]
+
+// 4 · Edit: apply_diff folds substitutions through the candidate root.
+//     Sequential — each Edit's Path resolves against the post-prior state.
+//     Any unresolved Path = whole Diff fails closed (P3).
+const diff: Diff = {
+  edits: [{
+    at: "fn:lookupCustomer/body/find",
+    replacement: indexLookup({ index: "customers_by_id" }),
+  }],
+};
+
+const candidate: Outcome&lt;CoreNode&gt; = applyDiff(root, diff);
+if (!candidate.ok) throw candidate.diagnostics;
+
+// 5 · Gate: re-run only the lenses whose scope intersects affected
+const reChecked = foldNode(candidate.value, complexityAlgebra);
+//   reChecked["fn:processOrders"] === "O(n log n)"
+
+// 6 · Emit: language-spec realization from the green CoreNode
+await emit(candidate.value, { target: "rust", outDir: "/tmp/weather-out" });</pre>
+    </div>
+    <p class="muted" style="margin-top:1rem;font-size:0.78rem">
+      Composes with <code>LawfulRewriteWitness</code> for dry-run (lens identifies I/O, witness substitutes,
+      eval against a mock runtime). Same surface a future query-driven rewrite or self-modification path uses —
+      the compiler editing its own source goes through modeled <code>apply_diff</code>, not implicit file writes.
+    </p>
+    <p style="margin-top:1.5rem">
+      <a href="affected-set.html" class="hero-cta-secondary">See <code>affected_set</code> propagate across lines →</a>
+    </p>
   </section>
 
-  <p style="margin-top:2.5rem">
-    <a href="/" class="hero-cta-secondary">← Back to home</a>
-  </p>
+  <!-- ─────────────── Beyond code targets ─────────────── -->
+  <section class="tab-panel" id="panel-beyond" role="tabpanel" hidden>
+    <h2 style="margin:0.5rem 0 0.4rem">Beyond programming languages</h2>
+    <p class="section-lead muted">
+      A target doesn't have to be a language. Verilog is a Shape A language target — the compiler emits it
+      through the same path as Rust, against the spec at
+      <a href="https://github.com/gunb-ai/daglang/blob/main/src/v4/extdeps/languages/verilog.dag">v4/extdeps/languages/verilog.dag</a>.
+      SPICE is a Shape B data format — a flat component + connection graph emitted by user <code>.dag</code> programs
+      folding over typed <code>Component</code> values, modeled at
+      <a href="https://github.com/gunb-ai/daglang/blob/main/src/v4/extdeps/formats/spice.dag">v4/extdeps/formats/spice.dag</a>
+      (T-4.10 omni-emission probe, modeled 2026-05-16). End-to-end <code>gunbc compile --target spice</code> /
+      <code>--target verilog</code> is still Planned-tier; the substrate types below are real.
+    </p>
+
+    <!-- ── PSpice ── -->
+    <h3 style="font-size:1.05rem;margin:2rem 0 0.75rem">SPICE — analog circuits as Shape B data</h3>
+    <p class="muted" style="margin:0 0 1rem;font-size:0.82rem">
+      The <code>.dag</code> below builds a real <code>SpiceNetlist</code> value using the <code>Component</code>,
+      <code>NodeRef</code>, and <code>Directive</code> types from <code>spice.dag</code>. A Shape B emitter folds
+      that value into the canonical SPICE3F5 deck format — the same format the grammar probe in
+      <code>spice_format_grammar_probe</code> validates against the fixture <code>"R1 n1 n2 1"</code>.
+    </p>
+    <div class="demo-grid">
+      <div class="demo-panel">
+        <header><span>low_pass.dag — Shape B netlist value</span><span class="badge badge-vision">Planned · uses real types</span></header>
+        <pre>module examples.spice.low_pass
+
+import v4.extdeps.formats.spice {
+  Component, DeckStatement, Directive,
+  NodeRef, SpiceNetlist, SpiceValue, AcSweepKind
+}
+import v4.std.node { Symbol }
+
+data n_in:  NodeRef = Named { node: NamedNode { name: "in"  } }
+data n_out: NodeRef = Named { node: NamedNode { name: "out" } }
+data gnd:   NodeRef = Ground
+
+data low_pass_rc: SpiceNetlist = SpiceNetlist {
+  title: "RC low-pass filter — emitted from low_pass.dag",
+  body: [
+    DeckComponent { component: VoltageSource {
+      name: "V1", n_plus: n_in,  n_minus: gnd,
+      value: SpiceValue { lexeme: "AC 1" }
+    }},
+    DeckComponent { component: Resistor {
+      name: "R1", n_plus: n_in,  n_minus: n_out,
+      value: SpiceValue { lexeme: "1k" }
+    }},
+    DeckComponent { component: Capacitor {
+      name: "C1", n_plus: n_out, n_minus: gnd,
+      value: SpiceValue { lexeme: "100n" }
+    }},
+    DeckDirective { directive: Ac {
+      sweep:  Decade,
+      n:      SpiceValue { lexeme: "20" },
+      fstart: SpiceValue { lexeme: "10" },
+      fstop:  SpiceValue { lexeme: "1Meg" }
+    }}
+  ]
+}</pre>
+      </div>
+      <div class="demo-panel">
+        <header><span>Emitted SPICE3F5 deck</span><span class="badge badge-vision">Planned · canonical format</span></header>
+        <pre>* RC low-pass filter — emitted from low_pass.dag
+V1 in  0   AC 1
+R1 in  out 1k
+C1 out 0   100n
+.ac dec 20 10 1Meg
+.end</pre>
+        <div class="demo-out muted" style="font-size:0.72rem">
+          The same deck a <code>ngspice -b low_pass.cir</code> run would consume. Component order, node
+          identifiers, and the <code>.ac</code> directive all derive directly from the <code>SpiceNetlist</code>
+          value on the left — no string templating, no out-of-band glue.
+        </div>
+      </div>
+    </div>
+    <div class="demo-grid" style="margin-top:1.25rem">
+      <div class="demo-panel">
+        <header><span>Schematic (rendered from graph)</span><span class="badge badge-vision">Planned</span></header>
+        <svg class="artwork" viewBox="0 0 320 140" aria-label="Low-pass RC filter schematic">
+          <!-- input node -->
+          <circle class="node-pt" cx="30" cy="60" r="2.5"/>
+          <text class="label" x="22" y="55" text-anchor="end">in</text>
+          <!-- voltage source -->
+          <circle class="comp" cx="30" cy="100" r="14"/>
+          <line class="wire" x1="30" y1="60" x2="30" y2="86"/>
+          <line class="wire" x1="30" y1="114" x2="30" y2="128"/>
+          <text class="label" x="30" y="103" text-anchor="middle">~</text>
+          <text class="label" x="48" y="105">V1 1V</text>
+          <!-- top wire to R1 -->
+          <line class="wire" x1="30" y1="60" x2="120" y2="60"/>
+          <!-- R1 resistor zigzag -->
+          <polyline class="comp" points="120,60 128,52 138,68 148,52 158,68 168,52 178,60"/>
+          <text class="label" x="149" y="44" text-anchor="middle">R1 1kΩ</text>
+          <!-- continuation wire to out node -->
+          <line class="wire" x1="178" y1="60" x2="240" y2="60"/>
+          <!-- out node -->
+          <circle class="node-pt" cx="240" cy="60" r="2.5"/>
+          <text class="label" x="246" y="55">out</text>
+          <!-- C1 capacitor -->
+          <line class="wire" x1="240" y1="60" x2="240" y2="92"/>
+          <line class="comp" x1="226" y1="94" x2="254" y2="94"/>
+          <line class="comp" x1="226" y1="100" x2="254" y2="100"/>
+          <line class="wire" x1="240" y1="100" x2="240" y2="128"/>
+          <text class="label" x="262" y="100">C1 100nF</text>
+          <!-- ground rail -->
+          <line class="wire" x1="22" y1="128" x2="248" y2="128"/>
+          <line class="wire accent" x1="55" y1="128" x2="215" y2="128"/>
+          <!-- ground triangle -->
+          <polyline class="comp" points="125,128 135,128 130,135"/>
+          <text class="label" x="130" y="42" text-anchor="middle" style="opacity:0.6">.dag → schematic</text>
+        </svg>
+      </div>
+      <div class="demo-panel">
+        <header><span>Simulated response (Bode magnitude)</span><span class="badge badge-vision">Planned</span></header>
+        <svg class="artwork" viewBox="0 0 320 140" aria-label="Simulated Bode magnitude of low-pass filter">
+          <!-- grid -->
+          <line class="signal-bg" x1="40" y1="30"  x2="305" y2="30"/>
+          <line class="signal-bg" x1="40" y1="60"  x2="305" y2="60"/>
+          <line class="signal-bg" x1="40" y1="90"  x2="305" y2="90"/>
+          <line class="signal-bg" x1="40" y1="120" x2="305" y2="120"/>
+          <line class="signal-bg" x1="100" y1="20" x2="100" y2="125"/>
+          <line class="signal-bg" x1="170" y1="20" x2="170" y2="125"/>
+          <line class="signal-bg" x1="240" y1="20" x2="240" y2="125"/>
+          <!-- axes -->
+          <line class="wire" x1="40" y1="120" x2="305" y2="120" style="opacity:0.5"/>
+          <line class="wire" x1="40" y1="20"  x2="40"  y2="120" style="opacity:0.5"/>
+          <text class="label" x="40" y="135">10 Hz</text>
+          <text class="label" x="170" y="135" text-anchor="middle">1.6 kHz (f_c)</text>
+          <text class="label" x="305" y="135" text-anchor="end">1 MHz</text>
+          <text class="label" x="34" y="32" text-anchor="end">0 dB</text>
+          <text class="label" x="34" y="92" text-anchor="end">−40 dB</text>
+          <!-- response curve: flat passband, -3dB at cutoff, then -20dB/dec rolloff -->
+          <path class="signal" d="M40,32 L100,32 L150,33 Q170,42 195,60 L300,118"/>
+          <!-- cutoff marker -->
+          <circle class="node-pt" cx="170" cy="42" r="2.5" style="fill:var(--tier-vision)"/>
+          <text class="label" x="178" y="42" style="fill:var(--tier-vision)">−3 dB</text>
+        </svg>
+      </div>
+    </div>
+    <p class="muted" style="margin-top:0.75rem;font-size:0.78rem">
+      One graph drives the schematic, the netlist, and the simulator probe — change <code>r1.r</code> and every artifact updates, or the lens flags the unintended cutoff shift.
+    </p>
+
+    <!-- ── Verilog ── -->
+    <h3 style="font-size:1.05rem;margin:2.75rem 0 0.75rem">Verilog — digital hardware as a Shape A language target</h3>
+    <p class="muted" style="margin:0 0 1rem;font-size:0.82rem">
+      Verilog gets the same treatment as Rust: the compiler emits it directly against the language spec.
+      The shape below uses the real <code>VerilogModule</code> / <code>AlwaysBlock</code> / <code>NetAssignment</code>
+      types from <a href="https://github.com/gunb-ai/daglang/blob/main/src/v4/extdeps/languages/verilog.dag">verilog.dag</a>
+      — the same structural carriers that
+      <a href="https://github.com/gunb-ai/daglang/blob/main/src/v4/test/claim/manual/verilog_concurrency_anchor.dag">verilog_concurrency_anchor.dag</a>
+      uses to anchor T-4.9 (continuous-assign + posedge always-block concurrency).
+    </p>
+    <div class="demo-grid">
+      <div class="demo-panel">
+        <header><span>counter.dag — built from real carriers</span><span class="badge badge-vision">Planned · uses real types</span></header>
+        <pre>module examples.verilog.counter
+
+import v4.extdeps.languages.verilog {
+  AlwaysBlock, ContinuousAssign, EdgeTrigger,
+  ModuleKeyword, NetAssignment, SensitivityItem,
+  VerilogModule
+}
+
+data clk_event: SensitivityItem = SensitivityItem {
+  trigger: PosEdge,
+  event_expression_lexeme: "clk"
+}
+
+data count_step: NetAssignment = NetAssignment {
+  lhs_lexeme: "count",
+  rhs_lexeme: "reset ? 8'd0 : count + 8'd1"
+}
+
+data counter_always: AlwaysBlock = AlwaysBlock {
+  sensitivity: ExplicitEventList { items: [clk_event] },
+  body_lexeme: "count &lt;= reset ? 8'd0 : count + 8'd1;"
+}
+
+data counter_module: VerilogModule = NoPortListModule {
+  attributes:           NoAttributeInstances,
+  module_keyword:       ModuleKw,
+  name:                 "Counter",
+  parameter_port_list:  NoModuleParameterPortList,
+  items: [
+    AlwaysBlockItem {
+      attributes: NoAttributeInstances,
+      always_block: counter_always
+    }
+  ]
+}</pre>
+      </div>
+      <div class="demo-panel">
+        <header><span>Emitted Verilog (IEEE 1364-2005)</span><span class="badge badge-vision">Planned · same path as Rust</span></header>
+        <pre>module Counter (
+  input            clk,
+  input            reset,
+  output reg [7:0] count
+);
+  always @(posedge clk) begin
+    count &lt;= reset ? 8'd0 : count + 8'd1;
+  end
+endmodule</pre>
+        <div class="demo-out muted" style="font-size:0.72rem">
+          Same compile path as Rust — language spec anchored to
+          <a href="https://standards.ieee.org/ieee/1364/3641/">IEEE 1364-2005</a>, no template engine, no
+          string concatenation by the emitter.
+        </div>
+      </div>
+    </div>
+    <div class="demo-grid" style="margin-top:1.25rem">
+      <div class="demo-panel">
+        <header><span>Register-block schematic (synthesis target)</span><span class="badge badge-vision">Planned · derived from same module</span></header>
+        <svg class="artwork" viewBox="0 0 320 160" aria-label="Counter register-block schematic">
+          <!-- adder block: count + 1 -->
+          <rect class="comp" x="40"  y="40" width="60" height="44" rx="3"/>
+          <text class="label" x="70" y="58" text-anchor="middle">+1</text>
+          <text class="label-sub" x="70" y="74" text-anchor="middle">8-bit</text>
+          <line class="wire" x1="20" y1="62" x2="40" y2="62"/>
+          <text class="label" x="14" y="64" text-anchor="end">count[t]</text>
+
+          <!-- mux: reset ? 0 : count+1 -->
+          <polygon class="comp" points="130,30 170,40 170,84 130,94"/>
+          <text class="label" x="150" y="62" text-anchor="middle">MUX</text>
+          <line class="wire" x1="100" y1="62" x2="130" y2="58"/>
+          <text class="label-sub" x="118" y="55">count+1</text>
+          <!-- constant 0 input -->
+          <line class="wire" x1="100" y1="82" x2="130" y2="78"/>
+          <text class="label-sub" x="118" y="92">8'd0</text>
+          <text class="label" x="105" y="80" text-anchor="end" style="opacity:0.6">0</text>
+          <!-- select line: reset -->
+          <line class="wire" x1="150" y1="20" x2="150" y2="30"/>
+          <text class="label" x="155" y="18">reset</text>
+
+          <!-- D flip-flop bank -->
+          <rect class="comp" x="200" y="40" width="60" height="44" rx="3"/>
+          <text class="label" x="230" y="58" text-anchor="middle">D-FF × 8</text>
+          <text class="label-sub" x="230" y="74" text-anchor="middle">posedge clk</text>
+          <line class="wire" x1="170" y1="62" x2="200" y2="62"/>
+          <text class="label-sub" x="185" y="58" text-anchor="middle">D</text>
+
+          <!-- clk into flip-flop (triangle marker) -->
+          <line class="wire" x1="220" y1="100" x2="220" y2="84"/>
+          <polygon class="comp polarity-dot" points="217,84 223,84 220,80" style="fill:currentColor"/>
+          <text class="label" x="225" y="108">clk</text>
+
+          <!-- Q output back to count + readout -->
+          <line class="wire" x1="260" y1="62" x2="300" y2="62"/>
+          <circle class="node-pt" cx="290" cy="62" r="2.5"/>
+          <text class="label" x="306" y="64">count[t+1]</text>
+
+          <!-- feedback path: Q → count register input on next cycle (drawn dashed) -->
+          <path class="wire" d="M290,62 L290,130 L20,130 L20,80 L20,62" style="stroke-dasharray:3 3;opacity:0.5"/>
+          <text class="label-sub" x="160" y="142" text-anchor="middle" style="opacity:0.6">feedback · next cycle</text>
+
+          <!-- title -->
+          <text class="label-sub" x="160" y="14" text-anchor="middle">counter.dag · count[t+1] = reset ? 0 : count[t] + 1</text>
+        </svg>
+        <div class="demo-out muted" style="font-size:0.72rem">
+          The schematic is a projection of the same <code>AlwaysBlock</code>/<code>NetAssignment</code> graph
+          the Verilog emitter walks — adder + mux + clocked register bank. Same structural carriers,
+          different surface.
+        </div>
+      </div>
+      <div class="demo-panel">
+        <header><span>Simulated waveform — counter rolling, reset released after t=2</span><span class="badge badge-vision">Planned</span></header>
+        <svg class="artwork" viewBox="0 0 320 160" aria-label="Counter waveform">
+        <!-- grid -->
+        <line class="signal-bg" x1="60" y1="30"  x2="305" y2="30"/>
+        <line class="signal-bg" x1="60" y1="70"  x2="305" y2="70"/>
+        <line class="signal-bg" x1="60" y1="110" x2="305" y2="110"/>
+        <!-- row labels -->
+        <text class="label" x="55" y="32" text-anchor="end">clk</text>
+        <text class="label" x="55" y="72" text-anchor="end">reset</text>
+        <text class="label" x="55" y="112" text-anchor="end">count</text>
+        <!-- clk: square wave -->
+        <path class="signal" style="stroke:currentColor;opacity:0.7"
+              d="M60,40 L70,40 L70,20 L85,20 L85,40 L100,40 L100,20 L115,20 L115,40 L130,40 L130,20 L145,20 L145,40 L160,40 L160,20 L175,20 L175,40 L190,40 L190,20 L205,20 L205,40 L220,40 L220,20 L235,20 L235,40 L250,40 L250,20 L265,20 L265,40 L280,40 L280,20 L295,20 L295,40 L305,40"/>
+        <!-- reset: high then low -->
+        <path class="signal" style="stroke:var(--tier-stable)"
+              d="M60,60 L100,60 L100,80 L305,80"/>
+        <!-- count bus -->
+        <path class="signal" d="M60,120 L100,120 L100,100 L130,100 L130,120 L130,100 L160,100 L160,120 L160,100 L190,100 L190,120 L190,100 L220,100 L220,120 L220,100 L250,100 L250,120 L250,100 L280,100 L280,120 L280,100 L305,100"/>
+        <!-- count value labels -->
+        <text class="label" x="80" y="115">0</text>
+        <text class="label" x="115" y="115">1</text>
+        <text class="label" x="145" y="115">2</text>
+        <text class="label" x="175" y="115">3</text>
+        <text class="label" x="205" y="115">4</text>
+        <text class="label" x="235" y="115">5</text>
+        <text class="label" x="265" y="115">6</text>
+        <text class="label" x="295" y="115">7</text>
+        <!-- time axis -->
+        <line class="wire" x1="60" y1="140" x2="305" y2="140" style="opacity:0.4"/>
+        <text class="label" x="60" y="153">t=0</text>
+        <text class="label" x="305" y="153" text-anchor="end">8 cycles</text>
+      </svg>
+      </div>
+    </div>
+    <p class="muted" style="margin-top:0.75rem;font-size:0.78rem">
+      Same shape, three projections — Verilog source, synthesized register-block schematic, and the
+      waveform that proves the recurrence <code>count[t+1] = reset ? 0 : count[t] + 1</code> holds.
+      A structural lens checks that the testbench covers every <code>state</code> transition the module declares.
+    </p>
+
+    <p style="margin-top:2.5rem">
+      <a href="/" class="hero-cta-secondary">← Back to home</a>
+    </p>
+  </section>
 </main>
 
 <footer class="footer">

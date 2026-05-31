@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>daglang — roadmap visualization concepts</title>
+  <meta name="description" content="Three candidate roadmap visualizations for the daglang home page. Pick one." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <meta name="theme-color" content="#0c0d0c" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#f4efe6" media="(prefers-color-scheme: light)" />
+  <meta name="color-scheme" content="dark light" />
+  <script>(function(){try{var s=localStorage.getItem("daglang-mode");var l=window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches;document.documentElement.setAttribute("data-mode",s||(l?"light":"dark"));}catch(e){}})();</script>
+  <link rel="stylesheet" href="site.css" />
+  <style>
+    /* Page-local styles — kept here so we can throw the losing two away cleanly. */
+    .concept-block { padding: 3rem 0; border-top: 1px solid; }
+    [data-mode="dark"] .concept-block { border-color: var(--border-dark); }
+    [data-mode="light"] .concept-block { border-color: var(--border-light); }
+    .concept-block:first-of-type { border-top: 0; padding-top: 1.5rem; }
+    .concept-label {
+      font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.22em;
+      text-transform: uppercase; opacity: 0.5; margin: 0 0 0.4rem;
+    }
+    .concept-title { font-size: 1.4rem; margin: 0 0 0.4rem; letter-spacing: -0.015em; }
+    .concept-take { font-family: var(--font-mono); font-size: 0.74rem; opacity: 0.7; margin: 0 0 1.5rem; max-width: 50em; }
+    .concept-frame {
+      border: 1px solid; border-radius: 6px;
+      padding: 1.75rem;
+    }
+    [data-mode="dark"] .concept-frame { border-color: var(--border-dark); background: var(--void-up); }
+    [data-mode="light"] .concept-frame { border-color: var(--border-light); background: var(--warm-white-up); }
+
+    /* ── Concept A: capability DAG ── */
+    .dag-canvas { width: 100%; aspect-ratio: 16 / 8; display: block; }
+    .dag-canvas .dag-edge {
+      fill: none; stroke-width: 1.3; stroke-linecap: round;
+      opacity: 0.55;
+    }
+    .dag-canvas .dag-edge.from-now    { stroke: var(--tier-now); }
+    .dag-canvas .dag-edge.from-stable { stroke: var(--tier-stable); }
+    .dag-canvas .dag-edge.from-next   { stroke: var(--tier-next); }
+    .dag-canvas .dag-edge.from-vision { stroke: var(--tier-vision); opacity: 0.4; stroke-dasharray: 4 3; }
+    .dag-canvas .dag-node {
+      stroke-width: 1.3;
+    }
+    .dag-canvas .dag-node.n-now    { fill: var(--tier-now-soft);    stroke: var(--tier-now-line); }
+    .dag-canvas .dag-node.n-stable { fill: var(--tier-stable-soft); stroke: var(--tier-stable-line); }
+    .dag-canvas .dag-node.n-next   { fill: var(--tier-next-soft);   stroke: var(--tier-next-line); }
+    .dag-canvas .dag-node.n-vision { fill: var(--tier-vision-soft); stroke: var(--tier-vision-line); }
+    .dag-canvas text {
+      font-family: var(--font-mono); font-size: 9px; font-weight: 500;
+      text-anchor: middle; dominant-baseline: middle;
+    }
+    .dag-canvas text.l-now    { fill: var(--tier-now); }
+    .dag-canvas text.l-stable { fill: var(--tier-stable); }
+    .dag-canvas text.l-next   { fill: var(--tier-next); }
+    .dag-canvas text.l-vision { fill: var(--tier-vision); }
+    .dag-canvas text.l-sub { fill: currentColor; opacity: 0.55; font-size: 7px; }
+
+    /* ── Concept B: gantt-style bars ── */
+    .gantt { display: grid; grid-template-columns: 11rem 1fr; gap: 0.6rem 1rem; align-items: center; }
+    .gantt-label { font-family: var(--font-mono); font-size: 0.78rem; }
+    .gantt-track {
+      position: relative; height: 14px; border-radius: 2px;
+      background: var(--border-dark-strong);
+    }
+    [data-mode="light"] .gantt-track { background: var(--border-light-strong); }
+    .gantt-bar {
+      position: absolute; top: 0; bottom: 0; border-radius: 2px;
+    }
+    .gantt-bar.b-now    { background: linear-gradient(90deg, var(--tier-now)    0%, var(--tier-now)    100%); }
+    .gantt-bar.b-stable { background: linear-gradient(90deg, var(--tier-stable) 0%, var(--tier-stable) 70%, transparent 100%); }
+    .gantt-bar.b-next   { background: linear-gradient(90deg, var(--tier-next)   0%, var(--tier-next)   55%, transparent 100%); }
+    .gantt-bar.b-vision {
+      background: repeating-linear-gradient(
+        45deg,
+        var(--tier-vision-soft) 0 6px,
+        var(--tier-vision) 6px 7px
+      );
+      opacity: 0.85;
+    }
+    .gantt-tier {
+      font-family: var(--font-mono); font-size: 0.6rem;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      opacity: 0.55;
+    }
+    .gantt-axis {
+      grid-column: 2; display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      font-family: var(--font-mono); font-size: 0.6rem;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      opacity: 0.55; margin-top: 0.6rem;
+      border-top: 1px dashed var(--border-dark-strong); padding-top: 0.45rem;
+    }
+    [data-mode="light"] .gantt-axis { border-top-color: var(--border-light-strong); }
+    .gantt-axis span:nth-child(1) { color: var(--tier-now); opacity: 1; }
+    .gantt-axis span:nth-child(2) { color: var(--tier-stable); opacity: 1; }
+    .gantt-axis span:nth-child(3) { color: var(--tier-next); opacity: 1; }
+    .gantt-axis span:nth-child(4) { color: var(--tier-vision); opacity: 1; }
+
+    /* ── Concept C: kanban-style tier columns ── */
+    .kanban { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
+    .kanban-col {
+      border: 1px solid; border-radius: 6px; padding: 1rem; min-height: 16rem;
+      display: flex; flex-direction: column; gap: 0.5rem;
+    }
+    [data-mode="dark"] .kanban-col { background: var(--void-up2); }
+    [data-mode="light"] .kanban-col { background: var(--warm-white); }
+    .kanban-col.k-now    { border-color: var(--tier-now-line); }
+    .kanban-col.k-stable { border-color: var(--tier-stable-line); }
+    .kanban-col.k-next   { border-color: var(--tier-next-line); }
+    .kanban-col.k-vision { border-color: var(--tier-vision-line); }
+    .kanban-head {
+      display: flex; justify-content: space-between; align-items: baseline;
+      font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em;
+      text-transform: uppercase; font-weight: 600;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid;
+    }
+    [data-mode="dark"] .kanban-head { border-bottom-color: var(--border-dark); }
+    [data-mode="light"] .kanban-head { border-bottom-color: var(--border-light); }
+    .kanban-col.k-now    .kanban-head { color: var(--tier-now); border-bottom-color: var(--tier-now-line); }
+    .kanban-col.k-stable .kanban-head { color: var(--tier-stable); border-bottom-color: var(--tier-stable-line); }
+    .kanban-col.k-next   .kanban-head { color: var(--tier-next); border-bottom-color: var(--tier-next-line); }
+    .kanban-col.k-vision .kanban-head { color: var(--tier-vision); border-bottom-color: var(--tier-vision-line); }
+    .kanban-count {
+      font-size: 0.62rem; opacity: 0.7; font-weight: 400; letter-spacing: 0.05em;
+    }
+    .kanban-chip {
+      padding: 0.5rem 0.65rem; border-radius: 3px;
+      font-family: var(--font-mono); font-size: 0.72rem;
+      border: 1px solid transparent;
+    }
+    [data-mode="dark"] .kanban-chip { background: var(--void-up); }
+    [data-mode="light"] .kanban-chip { background: var(--warm-white-up); }
+    .kanban-col.k-now    .kanban-chip { background: var(--tier-now-soft); border-color: var(--tier-now-line); }
+    .kanban-col.k-stable .kanban-chip { background: var(--tier-stable-soft); border-color: var(--tier-stable-line); }
+    .kanban-col.k-next   .kanban-chip { background: var(--tier-next-soft); border-color: var(--tier-next-line); }
+    .kanban-col.k-vision .kanban-chip { background: var(--tier-vision-soft); border-color: var(--tier-vision-line); }
+    .kanban-chip small { display: block; font-size: 0.62rem; opacity: 0.65; margin-top: 0.2rem; letter-spacing: 0.01em; }
+
+    @media (max-width: 880px) {
+      .kanban { grid-template-columns: 1fr 1fr; }
+      .gantt { grid-template-columns: 1fr; }
+      .gantt-track { grid-column: 1; }
+      .gantt-axis { grid-column: 1; }
+    }
+    @media (max-width: 560px) {
+      .kanban { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
+  <symbol id="stoic-idle" viewBox="0 0 120 120">
+    <path fill-rule="evenodd" fill="currentColor" d="
+      M40,20 H80 A30,30 0 0,1 110,50 V70 A30,30 0 0,1 80,100 H40 A30,30 0 0,1 10,70 V50 A30,30 0 0,1 40,20 Z
+      M35,40 A8,8 0 0,1 35,56 A8,8 0 0,1 35,40 Z
+      M85,40 A8,8 0 0,1 85,56 A8,8 0 0,1 85,40 Z
+      M54,54 H66 A2,2 0 0,1 68,56 V58 A2,2 0 0,1 66,60 H54 A2,2 0 0,1 52,58 V56 A2,2 0 0,1 54,54 Z
+    "/>
+  </symbol>
+</svg>
+
+<nav class="nav">
+  <a href="/" class="nav-left">
+    <svg class="nav-logo" viewBox="0 0 120 120"><use href="#stoic-idle"/></svg>
+    <span class="wordmark">daglang</span>
+  </a>
+  <div class="nav-right">
+    <div class="nav-links">
+      <a href="/" class="nav-link">Home</a>
+      <a href="showcase.html" class="nav-link" style="color:var(--tier-now)">Showcase</a>
+      <a href="showcase-backend.html" class="nav-link" style="color:var(--tier-next)">Showcase · backend</a>
+      <a href="examples.html" class="nav-link">Examples</a>
+      <a href="affected-set.html" class="nav-link">Affected-set</a>
+    </div>
+    <button class="mode-toggle" id="mode-toggle" type="button" aria-label="Toggle light/dark mode">
+      <span class="indicator"></span>
+      <span id="mode-label-text">Dark</span>
+    </button>
+  </div>
+</nav>
+
+<main class="wrap" style="padding:3rem 0 5rem">
+  <p class="section-eyebrow">Picking a roadmap visualization</p>
+  <h1 style="font-size:2rem;margin:0 0 0.6rem;letter-spacing:-0.02em">Three candidates. Pick one.</h1>
+  <p class="muted" style="max-width:42em;margin:0 0 2rem">
+    Same data in each — the four-tier roadmap plus omni-ingestion. Different visual shapes. Once you call it,
+    the winner replaces the strip on the home page; the other two get deleted with their styles.
+  </p>
+
+  <!-- ─────────────── Concept A — Capability DAG ─────────────── -->
+  <section class="concept-block">
+    <p class="concept-label">Concept A · capability DAG</p>
+    <h2 class="concept-title">The roadmap as the product.</h2>
+    <p class="concept-take">
+      Capabilities are nodes, dependencies are edges. The compiler core is the root; everything else hangs off it.
+      Strongest brand fit ("the product is a graph") and shows real dependencies — e.g. <code>apply_diff</code>
+      builds on <code>fold_node</code>; omni-ingestion is the inverse arrow of translate.
+      <strong>Weakness:</strong> denser to scan than a list.
+    </p>
+    <div class="concept-frame">
+      <svg class="dag-canvas" viewBox="0 0 960 480" aria-label="Capability DAG">
+        <!-- edges (drawn first, behind nodes) -->
+        <g>
+          <!-- core → emit targets (Rust now, Go/Py stabilizing) -->
+          <path class="dag-edge from-now"    d="M200,240 C 290,240 320,140 410,140"/>
+          <path class="dag-edge from-now"    d="M200,240 C 290,240 320,210 410,210"/>
+          <path class="dag-edge from-now"    d="M200,240 C 290,240 320,280 410,280"/>
+          <!-- core → fold_node → lenses -->
+          <path class="dag-edge from-now"    d="M200,240 C 250,240 270,360 350,365"/>
+          <path class="dag-edge from-now"    d="M460,365 C 510,365 520,420 570,425"/>
+          <!-- fold_node → apply_diff (next) -->
+          <path class="dag-edge from-next"   d="M460,365 C 540,365 540,300 600,300"/>
+          <!-- apply_diff → agent SDK -->
+          <path class="dag-edge from-next"   d="M700,300 C 760,300 760,365 800,365"/>
+          <!-- emit → omni-emission -->
+          <path class="dag-edge from-next"   d="M520,140 C 620,140 650,80 760,80"/>
+          <path class="dag-edge from-next"   d="M520,210 C 620,210 670,120 760,80"/>
+          <!-- omni-emission ↔ omni-ingestion (vision, dashed both ways) -->
+          <path class="dag-edge from-vision" d="M870,80 C 900,200 900,260 870,400" />
+          <path class="dag-edge from-vision" d="M820,80 C 720,80 700,200 760,400" />
+          <!-- emit → HDL targets (vision) -->
+          <path class="dag-edge from-vision" d="M520,140 C 620,80 680,40 760,160" />
+          <path class="dag-edge from-vision" d="M520,210 C 620,250 660,440 720,440" />
+        </g>
+
+        <!-- nodes -->
+        <!-- Core -->
+        <g>
+          <rect class="dag-node n-now" x="80" y="216" width="120" height="48" rx="8" />
+          <text class="l-now" x="140" y="236">gunbc core</text>
+          <text class="l-sub" x="140" y="250">CoreNode + fold_node</text>
+        </g>
+
+        <!-- Emit targets (Shape A) -->
+        <g>
+          <rect class="dag-node n-now"    x="410" y="116" width="110" height="48" rx="6" />
+          <text class="l-now" x="465" y="136">Rust emit</text>
+          <text class="l-sub" x="465" y="150">--target rust</text>
+
+          <rect class="dag-node n-stable" x="410" y="186" width="110" height="48" rx="6" />
+          <text class="l-stable" x="465" y="206">Go emit</text>
+          <text class="l-sub" x="465" y="220">--target go</text>
+
+          <rect class="dag-node n-stable" x="410" y="256" width="110" height="48" rx="6" />
+          <text class="l-stable" x="465" y="276">Python emit</text>
+          <text class="l-sub" x="465" y="290">--target python</text>
+        </g>
+
+        <!-- fold_node + lenses -->
+        <g>
+          <rect class="dag-node n-now" x="350" y="345" width="110" height="42" rx="6" />
+          <text class="l-now" x="405" y="362">fold_node</text>
+          <text class="l-sub" x="405" y="375">substrate primitive</text>
+
+          <rect class="dag-node n-now" x="570" y="405" width="120" height="42" rx="6" />
+          <text class="l-now" x="630" y="422">complexity lens</text>
+          <text class="l-sub" x="630" y="435">function_classes</text>
+        </g>
+
+        <!-- apply_diff + agent SDK (next) -->
+        <g>
+          <rect class="dag-node n-next" x="600" y="278" width="100" height="44" rx="6" />
+          <text class="l-next" x="650" y="297">apply_diff</text>
+          <text class="l-sub" x="650" y="310">candidate state</text>
+
+          <rect class="dag-node n-next" x="800" y="345" width="120" height="44" rx="6" />
+          <text class="l-next" x="860" y="364">agent SDK</text>
+          <text class="l-sub" x="860" y="377">ingest · diff · emit</text>
+        </g>
+
+        <!-- omni-emission (next) -->
+        <g>
+          <rect class="dag-node n-next" x="760" y="58" width="110" height="46" rx="6" />
+          <text class="l-next" x="815" y="76">omni-emission</text>
+          <text class="l-sub" x="815" y="90">TS · SQL · OpenAPI</text>
+        </g>
+
+        <!-- omni-ingestion (vision) -->
+        <g>
+          <rect class="dag-node n-vision" x="760" y="395" width="110" height="46" rx="6" />
+          <text class="l-vision" x="815" y="413">omni-ingestion</text>
+          <text class="l-sub" x="815" y="427">round-trip translate</text>
+        </g>
+
+        <!-- HDL targets (vision) -->
+        <g>
+          <rect class="dag-node n-vision" x="760" y="140" width="100" height="42" rx="6" />
+          <text class="l-vision" x="810" y="157">Verilog</text>
+          <text class="l-sub" x="810" y="170">Shape A · lang</text>
+
+          <rect class="dag-node n-vision" x="660" y="420" width="100" height="42" rx="6" />
+          <text class="l-vision" x="710" y="437">SPICE</text>
+          <text class="l-sub" x="710" y="450">Shape B · format</text>
+        </g>
+
+        <!-- legend -->
+        <g transform="translate(40, 440)">
+          <rect class="dag-node n-now"    x="0"   y="0" width="11" height="11" rx="2" />
+          <text x="18"  y="9" text-anchor="start" style="font-size:8px;opacity:0.7;fill:currentColor">now</text>
+          <rect class="dag-node n-stable" x="60"  y="0" width="11" height="11" rx="2" />
+          <text x="78"  y="9" text-anchor="start" style="font-size:8px;opacity:0.7;fill:currentColor">stabilizing</text>
+          <rect class="dag-node n-next"   x="150" y="0" width="11" height="11" rx="2" />
+          <text x="168" y="9" text-anchor="start" style="font-size:8px;opacity:0.7;fill:currentColor">next</text>
+          <rect class="dag-node n-vision" x="210" y="0" width="11" height="11" rx="2" />
+          <text x="228" y="9" text-anchor="start" style="font-size:8px;opacity:0.7;fill:currentColor">planned (dashed)</text>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ─────────────── Concept B — Gantt-style bars ─────────────── -->
+  <section class="concept-block">
+    <p class="concept-label">Concept B · gantt-style maturity bars</p>
+    <h2 class="concept-title">Capabilities along a maturity axis.</h2>
+    <p class="concept-take">
+      One row per capability. Bar starts solid where it lives today and fades into the future. Fastest to read
+      ("where is this thing?") and frames the project as actively moving. <strong>Weakness:</strong> implies
+      time-to-ship that we don't actually commit to.
+    </p>
+    <div class="concept-frame">
+      <div class="gantt">
+        <span class="gantt-label">gunbc core <span class="gantt-tier">substrate</span></span>
+        <div class="gantt-track"><div class="gantt-bar b-now" style="left:0;right:0"></div></div>
+
+        <span class="gantt-label">Rust emit</span>
+        <div class="gantt-track"><div class="gantt-bar b-now" style="left:0;right:0"></div></div>
+
+        <span class="gantt-label">complexity analyzer</span>
+        <div class="gantt-track"><div class="gantt-bar b-now" style="left:0;right:5%"></div></div>
+
+        <span class="gantt-label">Go / Python emit</span>
+        <div class="gantt-track"><div class="gantt-bar b-stable" style="left:0;right:35%"></div></div>
+
+        <span class="gantt-label">fail-closed diagnostics</span>
+        <div class="gantt-track"><div class="gantt-bar b-stable" style="left:0;right:30%"></div></div>
+
+        <span class="gantt-label">apply_diff · agent SDK</span>
+        <div class="gantt-track"><div class="gantt-bar b-next" style="left:25%;right:25%"></div></div>
+
+        <span class="gantt-label">TypeScript · OpenAPI · SQL</span>
+        <div class="gantt-track"><div class="gantt-bar b-next" style="left:25%;right:30%"></div></div>
+
+        <span class="gantt-label">lens-gated CI · affected-set</span>
+        <div class="gantt-track"><div class="gantt-bar b-next" style="left:35%;right:25%"></div></div>
+
+        <span class="gantt-label">omni-emission (full stack)</span>
+        <div class="gantt-track"><div class="gantt-bar b-vision" style="left:50%;right:0"></div></div>
+
+        <span class="gantt-label">omni-ingestion (round-trip)</span>
+        <div class="gantt-track"><div class="gantt-bar b-vision" style="left:60%;right:0"></div></div>
+
+        <span class="gantt-label">Verilog · SPICE · protocols</span>
+        <div class="gantt-track"><div class="gantt-bar b-vision" style="left:65%;right:0"></div></div>
+
+        <span class="gantt-label">v4 self-host</span>
+        <div class="gantt-track"><div class="gantt-bar b-vision" style="left:70%;right:0"></div></div>
+
+        <span></span>
+        <div class="gantt-axis"><span>now</span><span>stabilizing</span><span>next</span><span>planned</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── Concept C — Kanban-style tier columns ─────────────── -->
+  <section class="concept-block">
+    <p class="concept-label">Concept C · kanban tier columns</p>
+    <h2 class="concept-title">Four columns, capabilities as chips.</h2>
+    <p class="concept-take">
+      Linear / Notion vibe. Each tier is a column; capabilities are chips inside. Easy to scan, easy to add
+      items to, no false time axis. <strong>Weakness:</strong> looks like a project tracker, not a thesis;
+      doesn't show that capabilities relate to each other.
+    </p>
+    <div class="concept-frame">
+      <div class="kanban">
+        <div class="kanban-col k-now">
+          <div class="kanban-head"><span>● Available now</span><span class="kanban-count">4</span></div>
+          <div class="kanban-chip">gunbc compiler<small>--target rust / go / python / dag</small></div>
+          <div class="kanban-chip">daglang subset<small>parse · resolve · type</small></div>
+          <div class="kanban-chip">Rust emission<small>verified end-to-end</small></div>
+          <div class="kanban-chip">complexity analyzer<small>function_classes</small></div>
+        </div>
+        <div class="kanban-col k-stable">
+          <div class="kanban-head"><span>◐ Stabilizing</span><span class="kanban-count">3</span></div>
+          <div class="kanban-chip">Go emission<small>same emit path</small></div>
+          <div class="kanban-chip">Python emission<small>same emit path</small></div>
+          <div class="kanban-chip">fail-closed diagnostics<small>across unsupported paths</small></div>
+        </div>
+        <div class="kanban-col k-next">
+          <div class="kanban-head"><span>○ Building next</span><span class="kanban-count">5</span></div>
+          <div class="kanban-chip">TypeScript client<small>Shape A target</small></div>
+          <div class="kanban-chip">OpenAPI · SQL DDL<small>Shape B emitters</small></div>
+          <div class="kanban-chip">lens-gated CI receipts<small>affected-set selection</small></div>
+          <div class="kanban-chip"><code>apply_diff</code> + candidate state<small>agent-native SDK</small></div>
+          <div class="kanban-chip">ingest_text shim<small>peripheral text→CoreNode</small></div>
+        </div>
+        <div class="kanban-col k-vision">
+          <div class="kanban-head"><span>◇ Planned</span><span class="kanban-count">5</span></div>
+          <div class="kanban-chip">full-stack omni-emission<small>backend · client · schema · docs</small></div>
+          <div class="kanban-chip"><strong>omni-ingestion</strong><small>round-trip translate from any source</small></div>
+          <div class="kanban-chip">Verilog (Shape A)<small>HDL language target</small></div>
+          <div class="kanban-chip">SPICE (Shape B)<small>analog netlist format</small></div>
+          <div class="kanban-chip">v4 self-host<small>compiler in daglang</small></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <p style="margin-top:3rem;font-family:var(--font-mono);font-size:0.78rem">
+    Pick one — A, B, or C — and I'll wire it into the home page and delete the other two.
+    <a href="/" class="hero-cta-secondary" style="margin-left:0.5rem">← Back to home</a>
+  </p>
+</main>
+
+<footer class="footer">
+  <p>Built by <a href="https://gunb.ai">Gunb.ai</a> · <a href="https://github.com/gunb-ai/daglang">gunb-ai/daglang</a></p>
+</footer>
+
+<script src="site.js"></script>
+</body>
+</html>
