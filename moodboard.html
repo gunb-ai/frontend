@@ -1204,7 +1204,7 @@
         <button class="dl-btn" data-dl-symbol="#stoic-robot" data-dl-mode="light" data-dl-name="gunb-mark-robot">&darr; PNG (ink)</button>
         <button class="dl-btn" data-dl-symbol="#stoic-robot" data-dl-mode="dark" data-dl-name="gunb-mark-robot">&darr; PNG (stone)</button>
       </div>
-      <p class="dl-note">Tip: click any tile above to download that mark as a 1024&times;1024 transparent PNG (ink on the light tiles, stone on the dark). Need vector? Hold &#8997;&nbsp;Option (Alt) while clicking for an SVG.</p>
+      <p class="dl-note">Tip: click any tile above to download that mark as a 1024&times;1024 PNG with its background baked in (ink on cream <code>#F4F1EC</code>, or stone on void <code>#151514</code>). Need a transparent vector? Hold &#8997;&nbsp;Option (Alt) while clicking for an SVG.</p>
     </div>
 
     <!-- ═══════════════════ VOICE ═══════════════════ -->
@@ -1469,7 +1469,7 @@
       }
 
       var PNG_SIZE = 1024;
-      function downloadPNG(symbol, markColor, name) {
+      function downloadPNG(symbol, markColor, bgColor, name) {
         var svg = buildStandaloneSVG(symbol, markColor);
         var img = new Image();
         img.onload = function () {
@@ -1477,6 +1477,10 @@
           canvas.width = PNG_SIZE;
           canvas.height = PNG_SIZE;
           var ctx = canvas.getContext("2d");
+          if (bgColor) {
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, PNG_SIZE, PNG_SIZE);
+          }
           ctx.drawImage(img, 0, 0, PNG_SIZE, PNG_SIZE);
           canvas.toBlob(function (blob) {
             triggerDownload(blob, name + ".png");
@@ -1488,8 +1492,8 @@
       /* Resolve the actual on-screen tile backgrounds (mode-dependent CSS vars)
          so the baked PNG background matches exactly what the tile shows. */
       var MODE = {
-        dark:  { mark: "#C4BDB0" },  // stone, for dark backgrounds
-        light: { mark: "#0D0D0D" }   // ink, for light backgrounds
+        dark:  { mark: "#C4BDB0", bg: "#151514" },  // stone on void
+        light: { mark: "#0D0D0D", bg: "#F4F1EC" }   // ink on warm-white
       };
 
       function renderMarks(target, symbol, name) {
@@ -1510,7 +1514,7 @@
           cell.appendChild(lbl);
           cell.addEventListener("click", function (e) {
             if (e.altKey) downloadSVG(symbol, m.mark, name + "-" + mode);
-            else downloadPNG(symbol, m.mark, name + "-" + mode);
+            else downloadPNG(symbol, m.mark, m.bg, name + "-" + mode);
           });
           target.appendChild(cell);
         }
@@ -1531,7 +1535,7 @@
           var name = btn.getAttribute("data-dl-name") + "-" + mode;
           var symbol = btn.getAttribute("data-dl-symbol");
           if (e.altKey) downloadSVG(symbol, m.mark, name);
-          else downloadPNG(symbol, m.mark, name);
+          else downloadPNG(symbol, m.mark, m.bg, name);
         });
       });
     })();
