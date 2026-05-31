@@ -395,6 +395,7 @@
   <div class="nav-right">
     <div class="nav-links">
       <a href="showcase.html" class="nav-link" style="color:var(--tier-now)">Showcase</a>
+      <a href="showcase-backend.html" class="nav-link" style="color:var(--tier-next)">Showcase · backend</a>
       <a href="examples.html" class="nav-link">Examples</a>
       <a href="affected-set.html" class="nav-link active">Affected-set</a>
       <a href="roadmap.html" class="nav-link">Roadmap</a>
@@ -409,14 +410,15 @@
 </nav>
 
 <main class="wrap" style="padding:3rem 0 5rem">
-  <p class="section-eyebrow">affected_set · v4 substrate primitive</p>
+  <p class="section-eyebrow">Graph-aware impact analysis</p>
   <h1 style="font-size:2rem;margin:0 0 0.6rem;letter-spacing:-0.02em">Change one line. See the graph move.</h1>
   <p class="muted as-intro">
-    A source line is just a view. <code>gunbc</code> resolves it to typed <code>CoreNode</code> graph
-    nodes — fields, variants, call edges, match arms, literals, effect boundaries, target-artifact
-    projections. When a node changes, <code>affected_set</code> walks the graph to every downstream node
-    whose meaning could shift. Generated checks and lenses then run only on that affected scope —
-    across functions, modules, and emitted languages.
+    A source line is just a view. <code>gunbc</code> resolves it to typed graph nodes — fields,
+    variants, call edges, match arms, literals, effect boundaries, target-artifact projections. When
+    a node changes, the compiler walks the graph to every downstream node whose meaning could shift.
+    Generated checks and lenses then run only on that affected scope — across functions, modules,
+    and emitted languages. (In the compiler architecture, this is the <code>affected_set</code>
+    primitive over a typed <code>CoreNode</code>.)
   </p>
   <p style="font-family:var(--font-mono);font-size:0.78rem;letter-spacing:0.04em;margin:0 0 1.5rem;color:var(--tier-now)">
     Not file-by-file. Not function-by-function. <strong>Node-by-node.</strong>
