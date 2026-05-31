@@ -226,26 +226,28 @@
     }
     .as-art-file { opacity: 0.85; }
 
-    /* Precision callout — explains where the typed graph stops */
-    .as-precision {
-      margin-top: 1.25rem; padding: 1rem 1.25rem;
+    /* Gate + precision explainer below the receipt strip */
+    .as-explainer {
+      margin-top: 1rem; padding: 1rem 1.25rem;
       border: 1px dashed; border-radius: 5px;
-      display: grid; grid-template-columns: auto 1fr; gap: 0.85rem; align-items: baseline;
     }
-    [data-mode="dark"] .as-precision { border-color: var(--tier-now-line); background: var(--tier-now-soft); }
-    [data-mode="light"] .as-precision { border-color: var(--tier-now-line); background: var(--tier-now-soft); }
-    .as-precision-tag {
-      font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.16em;
-      text-transform: uppercase; font-weight: 600; color: var(--tier-now);
+    [data-mode="dark"] .as-explainer { border-color: var(--tier-now-line); background: var(--tier-now-soft); }
+    [data-mode="light"] .as-explainer { border-color: var(--tier-now-line); background: var(--tier-now-soft); }
+    .as-explainer-lead {
+      display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.65rem 1rem;
+      margin-bottom: 0.65rem;
+      font-family: var(--font-mono);
     }
-    .as-precision-body {
+    .as-explainer-gate { font-size: 0.76rem; font-weight: 600; }
+    .as-explainer-tag {
+      font-size: 0.62rem; letter-spacing: 0.16em;
+      text-transform: uppercase; font-weight: 600; color: var(--tier-now); opacity: 0.9;
+    }
+    .as-explainer-body {
       font-family: var(--font-mono); font-size: 0.76rem; line-height: 1.65;
     }
-    .as-precision-body strong { color: var(--tier-now); }
-    .as-precision-body em { font-style: normal; opacity: 0.7; }
-    @media (max-width: 640px) {
-      .as-precision { grid-template-columns: 1fr; gap: 0.35rem; }
-    }
+    .as-explainer-body strong { color: var(--tier-now); }
+    .as-explainer-body em { font-style: normal; opacity: 0.7; }
 
     /* Node-granularity panel below the main stage */
     .as-grain {
@@ -315,15 +317,14 @@
     [data-mode="dark"] .as-agent pre { background: var(--void-up2); border-color: var(--border-dark); }
     [data-mode="light"] .as-agent pre { background: var(--warm-white); border-color: var(--border-light); }
 
-    /* Receipt strip below the stage */
+    /* Receipt strip below the stage — five summary cells */
     .as-receipt {
       margin-top: 1.25rem; padding: 1rem 1.25rem;
       border: 1px solid; border-radius: 5px;
       font-family: var(--font-mono); font-size: 0.76rem;
-      display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 1rem;
+      display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1rem;
     }
-    @media (max-width: 980px) { .as-receipt { grid-template-columns: 1fr 1fr; }
-      .as-receipt-cell[style*="grid-column:span 2"] { grid-column: 1 / -1 !important; } }
+    @media (max-width: 980px) { .as-receipt { grid-template-columns: 1fr 1fr; } }
     [data-mode="dark"] .as-receipt { border-color: var(--border-dark); background: var(--void-up2); }
     [data-mode="light"] .as-receipt { border-color: var(--border-light); background: var(--warm-white); }
     .as-receipt-cell { display: flex; flex-direction: column; gap: 0.2rem; }
@@ -331,6 +332,10 @@
       font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; opacity: 0.55;
     }
     .as-receipt-value { font-weight: 500; }
+    .as-receipt-sub {
+      display: block; margin-top: 0.2rem;
+      font-size: 0.72rem; font-weight: 400; opacity: 0.75;
+    }
 
     @media (max-width: 880px) {
       .as-stage { grid-template-columns: 1fr; }
@@ -471,38 +476,33 @@
 
   <div class="as-receipt" id="as-receipt">
     <div class="as-receipt-cell">
-      <span class="as-receipt-label">edit site · line</span>
-      <span class="as-receipt-value" id="r-site">—</span>
+      <span class="as-receipt-label">edit</span>
+      <span class="as-receipt-value" id="r-edit">—</span>
     </div>
     <div class="as-receipt-cell">
-      <span class="as-receipt-label">graph node</span>
-      <span class="as-receipt-value" id="r-node" style="font-size:0.72rem">—</span>
-    </div>
-    <div class="as-receipt-cell">
-      <span class="as-receipt-label">affected nodes</span>
+      <span class="as-receipt-label">affected</span>
       <span class="as-receipt-value" id="r-size">—</span>
     </div>
     <div class="as-receipt-cell">
-      <span class="as-receipt-label">generated checks</span>
+      <span class="as-receipt-label">checks</span>
       <span class="as-receipt-value" id="r-lenses" style="font-size:0.72rem">—</span>
     </div>
     <div class="as-receipt-cell">
-      <span class="as-receipt-label">artifacts touched</span>
+      <span class="as-receipt-label">artifacts</span>
       <span class="as-receipt-value" id="r-artifacts" style="font-size:0.72rem">—</span>
     </div>
     <div class="as-receipt-cell">
-      <span class="as-receipt-label">gate result</span>
-      <span class="as-receipt-value" id="r-gate">—</span>
-    </div>
-    <div class="as-receipt-cell" style="grid-column:span 2">
-      <span class="as-receipt-label">skipped with receipt</span>
+      <span class="as-receipt-label">skipped</span>
       <span class="as-receipt-value" id="r-skipped" style="opacity:0.85;font-size:0.72rem">—</span>
     </div>
   </div>
 
-  <div class="as-precision" id="as-precision">
-    <div class="as-precision-tag">why does it stop?</div>
-    <div class="as-precision-body" id="as-precision-body">—</div>
+  <div class="as-explainer" id="as-explainer" aria-live="polite">
+    <div class="as-explainer-lead">
+      <span class="as-explainer-gate" id="as-explainer-gate">—</span>
+      <span class="as-explainer-tag">why does it stop?</span>
+    </div>
+    <div class="as-explainer-body" id="as-explainer-body">—</div>
   </div>
 
   <p class="muted" style="margin-top:1.5rem;font-size:0.78rem">
@@ -998,9 +998,12 @@ await candidate.emitAffected({ scope: affected });
   }
 
   function renderReceipt(s) {
-    document.getElementById("r-site").textContent = "L" + s.site.line + " · " + s.site.label;
-    var node = document.getElementById("r-node");
-    if (node) node.textContent = s.site.node;
+    var edit = document.getElementById("r-edit");
+    if (edit) {
+      edit.innerHTML =
+        "L" + s.site.line + " · " + escapeHtml(s.site.label) +
+        '<span class="as-receipt-sub">' + escapeHtml(s.site.node) + "</span>";
+    }
     document.getElementById("r-size").textContent =
       (1 + s.direct.length + s.transitive.length) +
       " (1 + " + s.direct.length + " direct + " + s.transitive.length + " transitive)";
@@ -1012,13 +1015,15 @@ await candidate.emitAffected({ scope: affected });
     if (artifacts) {
       artifacts.textContent = (s.artifacts || []).map(function (a) { return a.lang; }).join(" · ") || "none";
     }
-    var gate = document.getElementById("r-gate");
-    gate.textContent = s.gate.label;
-    gate.style.color = s.gate.ok ? "var(--tier-now)" : "var(--diag-fail)";
     var skipped = document.getElementById("r-skipped");
     if (skipped) skipped.textContent = (s.skipCount || 0) + " · " + (s.skipped || "—");
-    var precision = document.getElementById("as-precision-body");
-    if (precision) precision.innerHTML = s.precision || "";
+    var gate = document.getElementById("as-explainer-gate");
+    if (gate) {
+      gate.textContent = s.gate.label;
+      gate.style.color = s.gate.ok ? "var(--tier-now)" : "var(--diag-fail)";
+    }
+    var explainer = document.getElementById("as-explainer-body");
+    if (explainer) explainer.innerHTML = s.precision || "";
   }
 
   function applyScenario(id) {
