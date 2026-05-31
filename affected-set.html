@@ -697,7 +697,7 @@ await candidate.emitAffected({ scope: affected });
       skipCount: 31,
       precision:
         'A literal value change — not a shape change. <code>is_freezing</code> still returns <strong>Bool</strong>, ' +
-        '<code>filter</code> still takes the same predicate signature, and every artifact's type-level surface is ' +
+        '<code>filter</code> still takes the same predicate signature, and the type-level surface of every artifact is ' +
         'unchanged. The whole right column (TypeScript, Python, OpenAPI) skips with a receipt — only Rust re-emits ' +
         'because the literal constant lives in the emitted body. <em>Zero transitives. Precision, not paranoia.</em>',
     },

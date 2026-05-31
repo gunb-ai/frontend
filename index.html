@@ -79,10 +79,15 @@
         <p class="hero-foot muted"><span>flow</span> &ensp; source → graph → lenses → artifacts</p>
       </div>
 
-      <!-- Pipeline diagram — source → gunbc → fan of artifacts. Flowchart shape
-           (trunk + branches) so it reads as "one input, many outputs" rather
-           than as a radial creature with tentacles. -->
-      <svg class="hero-diagram" viewBox="0 0 340 320" aria-hidden="true">
+      <!-- Pipeline diagram — source → gunbc → fan of artifacts, with system
+           topology arcs on the right showing that artifacts collaborate at
+           runtime (HTTP between Rust and TypeScript via OpenAPI, mixed-signal
+           co-simulation between Verilog and PSpice). Flowchart shape so it
+           reads as a system, not as an octopus.
+
+           All text uses dominant-baseline: middle (set in site.css) so each
+           label's y is the literal vertical center of its container rect. -->
+      <svg class="hero-diagram" viewBox="0 0 420 322" aria-hidden="true">
         <defs>
           <marker id="hero-arrow-now"    viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,1 L7,4 L0,7 z" fill="var(--tier-now)"/></marker>
           <marker id="hero-arrow-stable" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,1 L7,4 L0,7 z" fill="var(--tier-stable)"/></marker>
@@ -90,30 +95,31 @@
           <marker id="hero-arrow-vision" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,1 L7,4 L0,7 z" fill="var(--tier-vision)"/></marker>
         </defs>
 
-        <!-- Column captions -->
-        <text x="42"  y="14" text-anchor="middle" style="font-family:var(--font-mono);font-size:7px;letter-spacing:0.18em;fill:currentColor;opacity:0.55">SOURCE</text>
-        <text x="138" y="14" text-anchor="middle" style="font-family:var(--font-mono);font-size:7px;letter-spacing:0.18em;fill:currentColor;opacity:0.55">COMPILER</text>
-        <text x="268" y="14" text-anchor="middle" style="font-family:var(--font-mono);font-size:7px;letter-spacing:0.18em;fill:currentColor;opacity:0.55">ARTIFACTS</text>
+        <!-- Column captions: y is the text center, so y=10 puts the cap row at the top -->
+        <text x="42"  y="10" text-anchor="middle" style="font-family:var(--font-mono);font-size:7px;letter-spacing:0.18em;fill:currentColor;opacity:0.55">SOURCE</text>
+        <text x="138" y="10" text-anchor="middle" style="font-family:var(--font-mono);font-size:7px;letter-spacing:0.18em;fill:currentColor;opacity:0.55">COMPILER</text>
+        <text x="268" y="10" text-anchor="middle" style="font-family:var(--font-mono);font-size:7px;letter-spacing:0.18em;fill:currentColor;opacity:0.55">ARTIFACTS</text>
+        <text x="382" y="10" text-anchor="middle" style="font-family:var(--font-mono);font-size:7px;letter-spacing:0.18em;fill:currentColor;opacity:0.55">RUNTIME</text>
 
-        <!-- LEFT: .dag source -->
+        <!-- LEFT: .dag source · rect 134..186 → center y = 160 -->
         <rect class="node-core" x="12" y="134" width="62" height="52" rx="6" />
-        <text class="t-core" x="43" y="158">.dag</text>
-        <text x="43" y="172" text-anchor="middle" style="font-family:var(--font-mono);font-size:7px;fill:currentColor;opacity:0.6">typed graph</text>
+        <text class="t-core" x="43" y="154">.dag</text>
+        <text x="43" y="170" text-anchor="middle" style="font-family:var(--font-mono);font-size:7px;fill:currentColor;opacity:0.6">typed graph</text>
 
         <!-- ARROW source → compiler -->
         <path class="edge e-now" d="M74,160 L100,160" marker-end="url(#hero-arrow-now)" />
 
-        <!-- MIDDLE: gunbc compiler -->
+        <!-- MIDDLE: gunbc compiler · rect 134..186 → center y = 160 -->
         <rect class="node-core" x="106" y="134" width="64" height="52" rx="6" />
-        <text class="t-core" x="138" y="158">gunbc</text>
-        <text x="138" y="172" text-anchor="middle" style="font-family:var(--font-mono);font-size:7px;fill:currentColor;opacity:0.6">compile · emit</text>
+        <text class="t-core" x="138" y="154">gunbc</text>
+        <text x="138" y="170" text-anchor="middle" style="font-family:var(--font-mono);font-size:7px;fill:currentColor;opacity:0.6">compile · emit</text>
 
-        <!-- JOIN: compiler → trunk -->
+        <!-- JOIN: compiler → trunk midpoint -->
         <line class="edge e-now" x1="170" y1="160" x2="194" y2="160" />
         <!-- Trunk: vertical line spanning all 7 target Ys -->
         <line class="edge e-now" x1="194" y1="42" x2="194" y2="278" />
 
-        <!-- Branches: trunk → tile, one per target, with tier-colored arrowhead -->
+        <!-- Branches → tile entry. y values match tile centers below. -->
         <path class="edge e-now"    d="M194,42  L208,42"  marker-end="url(#hero-arrow-now)"    />
         <path class="edge e-stable" d="M194,82  L208,82"  marker-end="url(#hero-arrow-stable)" />
         <path class="edge e-stable" d="M194,122 L208,122" marker-end="url(#hero-arrow-stable)" />
@@ -122,34 +128,52 @@
         <path class="edge e-vision" d="M194,242 L208,242" marker-end="url(#hero-arrow-vision)" />
         <path class="edge e-vision" d="M194,278 L208,278" marker-end="url(#hero-arrow-vision)" />
 
-        <!-- RIGHT: 7 target tiles, stacked, each with marker + name -->
+        <!-- 7 target tiles. Each tile: x=208 width=120 height=24. Text y = rect y + 12 (true center). -->
         <rect class="node n-now"    x="208" y="30"  width="120" height="24" rx="4" />
-        <text class="t-now"    x="216" y="46" text-anchor="start">● Rust</text>
+        <text class="t-now"    x="216" y="42"  text-anchor="start">● Rust</text>
 
         <rect class="node n-stable" x="208" y="70"  width="120" height="24" rx="4" />
-        <text class="t-stable" x="216" y="86" text-anchor="start">◐ Go</text>
+        <text class="t-stable" x="216" y="82"  text-anchor="start">◐ Go</text>
 
         <rect class="node n-stable" x="208" y="110" width="120" height="24" rx="4" />
-        <text class="t-stable" x="216" y="126" text-anchor="start">◐ Python</text>
+        <text class="t-stable" x="216" y="122" text-anchor="start">◐ Python</text>
 
         <rect class="node n-next"   x="208" y="150" width="120" height="24" rx="4" />
-        <text class="t-next"   x="216" y="166" text-anchor="start">○ TypeScript</text>
+        <text class="t-next"   x="216" y="162" text-anchor="start">○ TypeScript</text>
 
         <rect class="node n-next"   x="208" y="190" width="120" height="24" rx="4" />
-        <text class="t-next"   x="216" y="206" text-anchor="start">○ OpenAPI</text>
+        <text class="t-next"   x="216" y="202" text-anchor="start">○ OpenAPI</text>
 
         <rect class="node n-vision" x="208" y="230" width="120" height="24" rx="4" />
-        <text class="t-vision" x="216" y="246" text-anchor="start">◇ Verilog</text>
+        <text class="t-vision" x="216" y="242" text-anchor="start">◇ Verilog</text>
 
         <rect class="node n-vision" x="208" y="266" width="120" height="24" rx="4" />
-        <text class="t-vision" x="216" y="282" text-anchor="start">◇ PSpice</text>
+        <text class="t-vision" x="216" y="278" text-anchor="start">◇ PSpice</text>
 
-        <!-- Bottom legend: marker → tier-name mapping -->
-        <g transform="translate(12, 310)" style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.04em">
-          <text class="t-now"    x="0"   y="0">●</text><text x="9"   y="0" style="fill:currentColor;opacity:0.65">shipped</text>
-          <text class="t-stable" x="64"  y="0">◐</text><text x="73"  y="0" style="fill:currentColor;opacity:0.65">stabilizing</text>
-          <text class="t-next"   x="164" y="0">○</text><text x="173" y="0" style="fill:currentColor;opacity:0.65">next</text>
-          <text class="t-vision" x="216" y="0">◇</text><text x="225" y="0" style="fill:currentColor;opacity:0.65">planned</text>
+        <!-- ─── Runtime topology arcs (right margin) ───
+             These describe how the artifacts COLLABORATE at runtime — they're
+             not separate outputs, they speak to each other through real
+             interfaces. Thin, dashed, with small inline labels. -->
+        <g style="font-family:var(--font-mono);font-size:7px;letter-spacing:0.04em">
+          <!-- Rust ⇄ OpenAPI ⇄ TypeScript : web stack -->
+          <!-- Arc Rust ↔ TypeScript looping through OpenAPI's row -->
+          <path class="topo topo-web" d="M328,42  C 388,42  388,162 328,162" />
+          <text class="topo-label-web" x="392" y="102" text-anchor="middle">HTTP</text>
+          <!-- Smaller tick from OpenAPI into the arc, marking it as the contract -->
+          <path class="topo topo-web" d="M328,202 L368,202 L368,165" stroke-dasharray="3 2" />
+          <text class="topo-label-web" x="372" y="220" text-anchor="start">contract</text>
+
+          <!-- Verilog ⇄ PSpice : mixed-signal co-simulation -->
+          <path class="topo topo-hw" d="M328,242 C 360,242 360,278 328,278" />
+          <text class="topo-label-hw" x="364" y="260" text-anchor="start">co-sim</text>
+        </g>
+
+        <!-- Bottom legend: marker → tier name -->
+        <g transform="translate(12, 312)" style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.04em">
+          <text class="t-now"    x="0"   y="0">●</text><text x="10"  y="0" style="fill:currentColor;opacity:0.65">shipped</text>
+          <text class="t-stable" x="68"  y="0">◐</text><text x="78"  y="0" style="fill:currentColor;opacity:0.65">stabilizing</text>
+          <text class="t-next"   x="168" y="0">○</text><text x="178" y="0" style="fill:currentColor;opacity:0.65">next</text>
+          <text class="t-vision" x="220" y="0">◇</text><text x="230" y="0" style="fill:currentColor;opacity:0.65">planned</text>
         </g>
       </svg>
     </div>
