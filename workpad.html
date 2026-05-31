@@ -260,6 +260,274 @@
     .panel-receipt dd { margin: 0; color: var(--warm-white-dim); }
     .panel-receipt dd strong { color: var(--warm-white); font-weight: 500; }
 
+    /* ── Inline marks ── */
+
+    .inline-demo {
+      font-family: var(--font-sans); font-size: 0.85rem;
+      line-height: 1.7; color: var(--warm-white-dim);
+    }
+    code, .code-inline {
+      font-family: var(--font-mono); font-size: 0.85em;
+      background: var(--void-up2);
+      border: 1px solid var(--border-dark);
+      border-radius: 2px;
+      padding: 0.05em 0.35em;
+      color: var(--warm-white);
+    }
+    kbd, .kbd-inline {
+      font-family: var(--font-mono); font-size: 0.85em;
+      color: var(--moss);
+      padding: 0;
+    }
+    strong, .mark-strong { color: var(--warm-white); font-weight: 600; }
+    em, .mark-em { color: var(--stone); font-style: italic; }
+    .link-inline {
+      color: inherit;
+      text-decoration: none;
+      border-bottom: 1px solid var(--stone-faint);
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .link-inline:hover { color: var(--moss); border-bottom-color: var(--moss); }
+    .link-external::after {
+      content: " ↗"; font-family: var(--font-mono);
+      opacity: 0.65; font-size: 0.85em;
+    }
+
+    /* ── Lists ── */
+
+    .list-bullet, .list-numbered {
+      font-family: var(--font-mono); font-size: 0.78rem;
+      line-height: 1.7; color: var(--warm-white-dim);
+      margin: 0; padding: 0 0 0 1.25rem;
+    }
+    .list-bullet li::marker { color: var(--stone-faint); content: "· "; }
+    .list-numbered li::marker { color: var(--stone-faint); font-feature-settings: "tnum"; }
+    .list-tree {
+      font-family: var(--font-mono); font-size: 0.78rem;
+      line-height: 1.75; color: var(--warm-white-dim);
+      margin: 0; white-space: pre;
+    }
+    .list-tree .branch { color: var(--stone-faint); }
+    .list-tree .leaf   { color: var(--warm-white); }
+    .list-defs {
+      font-family: var(--font-mono); font-size: 0.74rem;
+      display: grid; grid-template-columns: 6rem 1fr;
+      gap: 0.3rem 1rem; margin: 0;
+    }
+    .list-defs dt {
+      color: var(--stone-faint); font-size: 0.6rem;
+      letter-spacing: 0.13em; text-transform: uppercase;
+      padding-top: 0.18rem;
+    }
+    .list-defs dd { margin: 0; color: var(--warm-white-dim); }
+    .list-defs dd strong { color: var(--warm-white); font-weight: 500; }
+
+    /* ── Dividers ── */
+
+    .div-hairline {
+      width: 100%; height: 0; border-top: 1px solid var(--border-dark);
+    }
+    .div-dashed {
+      width: 100%; height: 0; border-top: 1px dashed var(--border-dark);
+    }
+    .div-eyebrow-rule {
+      display: flex; align-items: center; gap: 0.85rem;
+      width: 100%;
+      font-family: var(--font-mono); font-size: 0.6rem;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--stone-faint);
+    }
+    .div-eyebrow-rule::after {
+      content: ""; flex: 1; border-top: 1px solid var(--border-dark);
+    }
+
+    /* ── Quote / callout ── */
+
+    .quote-pull {
+      font-family: var(--font-mono); font-size: 0.78rem;
+      line-height: 1.7;
+      border-left: 2px solid var(--stone-faint);
+      padding: 0.25rem 0 0.25rem 1rem;
+      color: var(--warm-white);
+      margin: 0;
+    }
+    .quote-pull cite {
+      display: block;
+      font-style: normal;
+      font-size: 0.62rem; letter-spacing: 0.13em; text-transform: uppercase;
+      color: var(--stone-faint); margin-top: 0.5rem;
+    }
+    .callout-note {
+      font-family: var(--font-mono); font-size: 0.74rem;
+      line-height: 1.65;
+      background: var(--void-up);
+      border: 1px solid var(--border-dark);
+      border-left: 2px solid var(--stone-dim);
+      border-radius: 0 3px 3px 0;
+      padding: 0.75rem 1rem;
+      color: var(--warm-white-dim);
+    }
+    .callout-note .head {
+      color: var(--warm-white); font-weight: 500;
+      font-size: 0.62rem; letter-spacing: 0.13em; text-transform: uppercase;
+      margin-bottom: 0.3rem;
+    }
+
+    /* ── Buttons & affordances ── */
+
+    .btn-text {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      font-family: var(--font-mono); font-size: 0.78rem;
+      color: var(--moss);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.15s, opacity 0.15s;
+      padding: 0;
+      background: none; border-top: none; border-left: none; border-right: none;
+      cursor: pointer;
+    }
+    .btn-text:hover { border-bottom-color: var(--moss); }
+    .btn-text:focus-visible { outline: 1px solid var(--moss); outline-offset: 3px; }
+    .btn-text .arrow { font-family: var(--font-mono); }
+
+    .btn-link-quiet {
+      font-family: var(--font-mono); font-size: 0.72rem;
+      color: var(--warm-white-dim);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.15s, color 0.15s;
+      letter-spacing: 0.02em;
+    }
+    .btn-link-quiet:hover { color: var(--moss); border-bottom-color: currentColor; }
+
+    .btn-mode {
+      display: inline-flex; align-items: center; gap: 0.45rem;
+      padding: 0.4rem 0.7rem;
+      background: var(--void-up2);
+      border: 1px solid var(--border-dark);
+      border-radius: 3px;
+      color: var(--warm-white-dim);
+      font-family: var(--font-mono); font-size: 0.65rem;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-mode:hover { color: var(--warm-white); border-color: var(--stone-faint); }
+    .btn-mode .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--stone-faint);
+    }
+
+    .prompt {
+      font-family: var(--font-mono); font-size: 0.78rem;
+      color: var(--warm-white-dim);
+    }
+    .prompt::before {
+      content: "$ "; color: var(--stone-faint);
+    }
+
+    /* ── Comparison table ── */
+
+    .cmp-table {
+      width: 100%; border-collapse: collapse;
+      font-family: var(--font-mono); font-size: 0.74rem;
+    }
+    .cmp-table th, .cmp-table td {
+      text-align: left; padding: 0.5rem 0.85rem;
+      border-bottom: 1px solid var(--border-dark);
+      color: var(--warm-white-dim);
+      vertical-align: top;
+    }
+    .cmp-table th {
+      color: var(--stone-faint); font-weight: 400;
+      font-size: 0.6rem; letter-spacing: 0.13em; text-transform: uppercase;
+    }
+    .cmp-table td strong { color: var(--warm-white); font-weight: 500; }
+    .cmp-table tr:last-child td { border-bottom: none; }
+
+    /* ── Nav · header · footer ── */
+
+    .demo-nav {
+      display: flex; align-items: center; gap: 1.5rem;
+      padding: 0.95rem 1.25rem;
+      background: var(--void-up);
+      border: 1px solid var(--border-dark);
+      border-radius: 4px;
+    }
+    .demo-nav-left {
+      display: flex; align-items: center; gap: 0.6rem;
+      color: var(--warm-white);
+    }
+    .demo-nav-left svg { width: 22px; height: 22px; color: var(--stone); }
+    .demo-nav-left .wm { font-family: var(--font-mono); font-size: 0.85rem; }
+    .demo-nav-right {
+      margin-left: auto;
+      display: flex; gap: 1.25rem;
+    }
+    .demo-nav-right a {
+      font-family: var(--font-mono); font-size: 0.7rem;
+      color: var(--stone-dim); text-decoration: none;
+      letter-spacing: 0.04em;
+      transition: color 0.15s;
+    }
+    .demo-nav-right a:hover { color: var(--warm-white); }
+
+    .demo-footer {
+      display: flex; gap: 1rem; align-items: baseline;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border-dark);
+      font-family: var(--font-mono); font-size: 0.7rem;
+      color: var(--stone-faint);
+    }
+    .demo-footer a { color: var(--warm-white-dim); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 0.15s, color 0.15s; }
+    .demo-footer a:hover { color: var(--moss); border-bottom-color: currentColor; }
+    .demo-footer .sep { opacity: 0.45; }
+
+    /* ── States ── */
+
+    .state-row {
+      display: grid; gap: 0.55rem;
+      grid-template-columns: 5.5rem 1fr;
+      align-items: center;
+      font-family: var(--font-mono); font-size: 0.7rem;
+      padding: 0.45rem 0;
+      border-bottom: 1px solid var(--border-dark);
+    }
+    .state-row:last-child { border-bottom: none; }
+    .state-row .name {
+      color: var(--stone-faint); font-size: 0.58rem;
+      letter-spacing: 0.16em; text-transform: uppercase;
+    }
+    .state-row .demo {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .state-static-hover { color: var(--moss); border-bottom: 1px solid var(--moss); }
+    .state-static-focus { color: var(--moss); outline: 1px solid var(--moss); outline-offset: 3px; }
+
+    /* ── Out of scope ── */
+
+    .negative-grid {
+      display: grid; gap: 0.7rem;
+      grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    }
+    .negative-cell {
+      font-family: var(--font-mono); font-size: 0.7rem;
+      color: var(--stone-dim);
+      line-height: 1.55;
+      padding: 0.65rem 0.85rem;
+      border: 1px dashed var(--border-dark);
+      border-radius: 3px;
+      background: hsla(0,0%,0%,0.18);
+    }
+    .negative-cell .x {
+      display: inline-block; margin-right: 0.4rem;
+      color: var(--clay-dim); font-weight: 500;
+    }
+    .negative-cell strong {
+      display: block; color: var(--stone); font-weight: 500;
+      margin-bottom: 0.1rem;
+    }
+
     /* ── SVG primitive cells ── */
 
     .svg-cell svg {
@@ -474,7 +742,7 @@
   <div class="workpad-title"><strong>gunb.ai workpad</strong> · v0.2 · primitives + concepts</div>
   <div class="workpad-meta">moodboard palette · thesis: hand translation → structural description → derived artifacts</div>
   <nav class="workpad-nav">
-    <a href="#primitives">primitives</a>
+    <a href="#primitives">primitives (13)</a>
     <a href="#example">example</a>
     <a href="#concepts">concepts</a>
     <a href="legacy/moodboard.html">moodboard ↗</a>
@@ -607,6 +875,227 @@ diagnostics: 0</div></div>
 
   <section class="pad-section">
     <span class="pad-section-label">primitives · 04</span>
+    <h2 class="pad-section-title">Inline marks</h2>
+    <p class="pad-section-note">
+      Six marks for body text. <code>code</code> for compiler nouns. <kbd>kbd</kbd> for command verbs. <strong>strong</strong> for the load-bearing word in a sentence. <em>em</em> for soft emphasis. Inline links pick up underline immediately. External links get a trailing arrow so they don't surprise the reader.
+    </p>
+    <div class="prim-grid">
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">code</span><span class="prim-cell-kind">inline</span></div>
+        <div class="prim-cell-body"><div class="inline-demo">The compiler binary is <code>gunbc</code>.</div></div>
+        <p class="prim-cell-note">Compiler nouns, file paths, identifiers.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">kbd</span><span class="prim-cell-kind">inline</span></div>
+        <div class="prim-cell-body"><div class="inline-demo">Run <kbd>cargo build --release</kbd> to compile.</div></div>
+        <p class="prim-cell-note">Command verbs inline in prose.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">strong</span><span class="prim-cell-kind">inline</span></div>
+        <div class="prim-cell-body"><div class="inline-demo"><strong>daglang</strong> describes the system once.</div></div>
+        <p class="prim-cell-note">The load-bearing noun in a sentence.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">em</span><span class="prim-cell-kind">inline</span></div>
+        <div class="prim-cell-body"><div class="inline-demo">moss is <em>not</em> success green.</div></div>
+        <p class="prim-cell-note">Soft emphasis. Sparingly.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">link</span><span class="prim-cell-kind">inline · always underlined</span></div>
+        <div class="prim-cell-body"><div class="inline-demo">See the <a href="#" class="link-inline">architecture notes</a>.</div></div>
+        <p class="prim-cell-note">Always underlined; hover lifts to moss.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">external link</span><span class="prim-cell-kind">inline · arrow suffix</span></div>
+        <div class="prim-cell-body"><div class="inline-demo"><a href="#" class="link-inline link-external">github.com/gunb-ai/daglang</a></div></div>
+        <p class="prim-cell-note">Arrow signals "leaves the site." No "_blank" without it.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad-section">
+    <span class="pad-section-label">primitives · 05</span>
+    <h2 class="pad-section-title">Lists</h2>
+    <p class="pad-section-note">
+      Four list shapes. Bullet for unordered. Numbered for ordered steps. Tree for structural relations (load-bearing — used wherever we visualize structure without SVG). Definition for short ledger rows.
+    </p>
+    <div class="prim-grid">
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">bullet</span><span class="prim-cell-kind">unordered</span></div>
+        <div class="prim-cell-body" style="justify-content:flex-start; align-items:flex-start">
+          <ul class="list-bullet">
+            <li>structural source</li>
+            <li>checked graph</li>
+            <li>derived artifacts</li>
+          </ul>
+        </div>
+        <p class="prim-cell-note">Mono dash markers. No nested lists in V1.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">numbered</span><span class="prim-cell-kind">ordered</span></div>
+        <div class="prim-cell-body" style="justify-content:flex-start; align-items:flex-start">
+          <ol class="list-numbered">
+            <li>describe</li>
+            <li>check</li>
+            <li>derive</li>
+          </ol>
+        </div>
+        <p class="prim-cell-note">For sequenced steps only.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">tree</span><span class="prim-cell-kind">structural</span></div>
+        <div class="prim-cell-body" style="justify-content:flex-start; align-items:flex-start">
+<pre class="list-tree"><span class="leaf">system.dag</span>
+<span class="branch">├─</span> <span class="leaf">rust</span>
+<span class="branch">├─</span> <span class="leaf">typescript</span>
+<span class="branch">├─</span> <span class="leaf">openapi</span>
+<span class="branch">└─</span> <span class="leaf">tests</span></pre>
+        </div>
+        <p class="prim-cell-note">ASCII branches. The mono substitute for an SVG DAG.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">definition</span><span class="prim-cell-kind">ledger</span></div>
+        <div class="prim-cell-body" style="justify-content:flex-start; align-items:flex-start">
+          <dl class="list-defs">
+            <dt>identity</dt><dd><strong>gunbc</strong></dd>
+            <dt>install</dt><dd>cargo build --release</dd>
+            <dt>status</dt><dd>early access</dd>
+          </dl>
+        </div>
+        <p class="prim-cell-note">Short key/value rows. Inline form of Receipt panel.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad-section">
+    <span class="pad-section-label">primitives · 06</span>
+    <h2 class="pad-section-title">Dividers &amp; section breaks</h2>
+    <p class="pad-section-note">
+      Three rules. Hairline for tight separation. Dashed for in-panel ledger rows. Eyebrow-rule for section boundaries that carry a label.
+    </p>
+    <div class="prim-grid">
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">hairline</span><span class="prim-cell-kind">solid · subtle</span></div>
+        <div class="prim-cell-body"><div class="div-hairline" style="width:100%"></div></div>
+        <p class="prim-cell-note">Default separator. Border-dark.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">dashed</span><span class="prim-cell-kind">in-panel</span></div>
+        <div class="prim-cell-body"><div class="div-dashed" style="width:100%"></div></div>
+        <p class="prim-cell-note">Inside receipts/ledgers. Never on landing pages.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">eyebrow rule</span><span class="prim-cell-kind">section</span></div>
+        <div class="prim-cell-body"><div class="div-eyebrow-rule">primitives · 06</div></div>
+        <p class="prim-cell-note">Label + hairline. Marks a top-level section.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad-section">
+    <span class="pad-section-label">primitives · 07</span>
+    <h2 class="pad-section-title">Quote &amp; callout</h2>
+    <p class="pad-section-note">
+      Pull quote for source material. Note callout for asides — stone left rule, never clay (clay is reserved for the Invariant panel). No "info / warning / success" callout variants — the system does not have those concepts.
+    </p>
+    <div class="panel-row">
+      <div class="panel-proof">
+        <div class="panel-proof-tag"><span class="dot"></span>pull quote</div>
+        <blockquote class="quote-pull">
+          Software drifts when intent is inconsistent. Every layer of this system enforces a single invariant.
+          <cite>— gunbc readme</cite>
+        </blockquote>
+      </div>
+      <div class="panel-proof">
+        <div class="panel-proof-tag"><span class="dot"></span>note</div>
+        <div class="callout-note">
+          <div class="head">note</div>
+          The structural map between source and target is what makes derived artifacts faithful — not the emitter.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad-section">
+    <span class="pad-section-label">primitives · 08</span>
+    <h2 class="pad-section-title">Buttons &amp; affordances</h2>
+    <p class="pad-section-note">
+      No filled CTA buttons. Affordances are textual — link with arrow, quiet mono link for navigation, mode toggle (if/when light mode lands), shell prompt for command intent. If a future surface needs more, it justifies the new primitive in writing first.
+    </p>
+    <div class="prim-grid">
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">text action</span><span class="prim-cell-kind">link · arrow</span></div>
+        <div class="prim-cell-body">
+          <a href="#" class="btn-text">View architecture <span class="arrow">→</span></a>
+        </div>
+        <p class="prim-cell-note">Primary call to action. Moss. Never a filled button.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">quiet link</span><span class="prim-cell-kind">nav · footer</span></div>
+        <div class="prim-cell-body">
+          <a href="#" class="btn-link-quiet">GitHub</a>
+        </div>
+        <p class="prim-cell-note">Secondary destinations. Footer / nav.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">mode toggle</span><span class="prim-cell-kind">dark · light</span></div>
+        <div class="prim-cell-body">
+          <button class="btn-mode" type="button"><span class="dot"></span>Dark</button>
+        </div>
+        <p class="prim-cell-note">Only surface that changes the document mode. Deferred for V1.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">shell prompt</span><span class="prim-cell-kind">decoration</span></div>
+        <div class="prim-cell-body">
+          <div class="prompt">cargo build --release</div>
+        </div>
+        <p class="prim-cell-note">Inline shell marker. Standalone — not used inside command blocks.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad-section">
+    <span class="pad-section-label">primitives · 09</span>
+    <h2 class="pad-section-title">Comparison table</h2>
+    <p class="pad-section-note">
+      Two-column mono table. Used wherever we map "technical vocabulary" to "public language" (architecture page) or contrast pairs. Hairline rules only — no row striping, no header fills.
+    </p>
+    <table class="cmp-table" style="max-width:48rem">
+      <thead><tr><th>technical idea</th><th>public language</th></tr></thead>
+      <tbody>
+        <tr><td><strong>homomorphism</strong></td><td>faithful projection / structure-preserving translation</td></tr>
+        <tr><td><strong>catamorphism</strong></td><td>fold over the graph</td></tr>
+        <tr><td><strong>substrate</strong></td><td>structural model</td></tr>
+        <tr><td><strong>fail-closed</strong></td><td>refuses to guess</td></tr>
+        <tr><td><strong>affected set</strong></td><td>shows what changed downstream</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="pad-section">
+    <span class="pad-section-label">primitives · 10</span>
+    <h2 class="pad-section-title">Nav · header · footer</h2>
+    <p class="pad-section-note">
+      Site-level chrome. V1 may use none of this — the index page can stand alone with no nav. Documenting once so future pages don't reinvent.
+    </p>
+    <nav class="demo-nav" style="margin-bottom:1.25rem">
+      <div class="demo-nav-left">
+        <svg viewBox="0 0 120 120" aria-hidden="true"><use href="#stoic-idle"/></svg>
+        <span class="wm">gunb.ai</span>
+      </div>
+      <div class="demo-nav-right">
+        <a href="#">Architecture</a>
+        <a href="#">Support</a>
+        <a href="#">GitHub ↗</a>
+      </div>
+    </nav>
+    <footer class="demo-footer">
+      <a href="#">GitHub</a><span class="sep">·</span><a href="#">Architecture</a><span class="sep">·</span><span style="margin-left:auto">gunb.ai · early access</span>
+    </footer>
+  </section>
+
+  <section class="pad-section">
+    <span class="pad-section-label">primitives · 11</span>
     <h2 class="pad-section-title">SVG primitives</h2>
     <p class="pad-section-note">
       Eight shapes. One stroke weight. No gradients. No animated draw. Labels in HTML, never SVG <code>&lt;text&gt;</code>. Each primitive shown at canonical size; diagrams compose them.
@@ -720,10 +1209,62 @@ diagnostics: 0</div></div>
     </div>
   </section>
 
+  <section class="pad-section">
+    <span class="pad-section-label">primitives · 12</span>
+    <h2 class="pad-section-title">States</h2>
+    <p class="pad-section-note">
+      Interactive states. Visible focus is mandatory (keyboard / accessibility). Hover lifts to moss for actionable elements. No disabled state — if something isn't available, it isn't shown.
+    </p>
+    <div style="max-width:32rem">
+      <div class="state-row">
+        <span class="name">default</span>
+        <span class="demo"><a href="#" class="link-inline">read the architecture</a></span>
+      </div>
+      <div class="state-row">
+        <span class="name">hover</span>
+        <span class="demo"><span class="state-static-hover">read the architecture</span></span>
+      </div>
+      <div class="state-row">
+        <span class="name">focus</span>
+        <span class="demo"><span class="state-static-focus">read the architecture</span></span>
+      </div>
+      <div class="state-row">
+        <span class="name">visited</span>
+        <span class="demo"><a href="#" class="link-inline" style="color:var(--stone-dim)">read the architecture</a></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad-section">
+    <span class="pad-section-label">primitives · 13</span>
+    <h2 class="pad-section-title">Out of scope</h2>
+    <p class="pad-section-note">
+      Primitives we deliberately don't have. Each is a small commitment to the moodboard's register. If a future surface needs one of these, it justifies the addition against the rule it would violate.
+    </p>
+    <div class="negative-grid">
+      <div class="negative-cell"><span class="x">✕</span><strong>Filled CTA button</strong>Use text action with arrow. Fills read as SaaS.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Status badges</strong>"Available now / Coming soon" → docs, not UI.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Success / warning / info callouts</strong>System has no traffic-light colors.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Tabs</strong>If content needs tabs, it's two pages.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Modal / dialog</strong>Pages don't interrupt themselves.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Toast / notification</strong>Compiler doesn't shout.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Tooltip</strong>Browser default <code>title</code> only.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Accordion / expander</strong>If it's collapsible, it's optional. If it's optional, why show it.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Carousel / slider</strong>Time-gated content hides itself.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Avatar / user chip</strong>No identity surface in the public site.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Progress bar</strong>Receipts show completion, not animation.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Gradient / glow</strong>Materials, not effects.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Iconography pack</strong>One mark. No icon set.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Drop shadow</strong>Borders, not depth.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Hero video / animation</strong>No motion until V2 (rule 6).</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Feature card grid</strong>The drift vector. See PROPOSAL.md.</div>
+    </div>
+  </section>
+
   <!-- ═══════════════════════ COMPOSED EXAMPLE ═══════════════════════ -->
 
   <section class="pad-section" id="example">
-    <span class="pad-section-label">composition · 05</span>
+    <span class="pad-section-label">composition · 14</span>
     <h2 class="pad-section-title">The argument, in primitives</h2>
     <p class="pad-section-note">
       The site's central argument — <em>describe the system once; derive the rest</em> — rendered two ways from the primitives above. The mono version is the V1 default. The SVG version is what later pages may earn.
@@ -778,7 +1319,7 @@ diagnostics: 0</div></div>
   <!-- ═══════════════════════ CONCEPTS ═══════════════════════ -->
 
   <section class="pad-section" id="concepts">
-    <span class="pad-section-label">applications · 06</span>
+    <span class="pad-section-label">applications · 15</span>
     <h2 class="pad-section-title">Concepts — V1 index assembled from the primitives</h2>
     <p class="pad-section-note">
       Same six-section argument in four registers. All four use the updated thesis copy (hand translation → structural description → derived artifacts). Pick a register, or specify which elements to combine across frames.
