@@ -1,0 +1,60 @@
+// Algorithms exercising every complexity class the v2 analyzer derives.
+// Compiled by gunbc and analyzed by build_complexity_report.
+
+module examples.algorithms
+
+
+// O(1): constant body, no recursion, no iteration.
+fn double(n: Int) -> Int {
+  n + n
+}
+
+
+// O(1): bounded pattern match.
+fn classify(n: Int) -> String {
+  if n > 0 { "positive" }
+  else { if n < 0 { "negative" } else { "zero" } }
+}
+
+
+// O(n): linear descent on a structurally-decreasing parameter.
+fn sum_list(xs: List<Int>) -> Int {
+  match xs {
+    Empty => 0
+    Cons { head: h, tail: t } => h + sum_list(xs: t)
+  }
+}
+
+
+// O(n): tail-recursive accumulator pattern.
+fn length_acc(xs: List<Int>, acc: Int) -> Int {
+  match xs {
+    Empty => acc
+    Cons { head: _, tail: t } => length_acc(xs: t, acc: acc + 1)
+  }
+}
+
+
+// O(n): pipeline of map/filter on the same list.
+fn evens_doubled(xs: List<Int>) -> List<Int> {
+  xs |> filter(x => x % 2 == 0) |> map(x => x * 2)
+}
+
+
+// O(n²): for each item, scan the rest of the list to count occurrences.
+// Same shape as bag_eq in v4/std/algebra.dag.
+fn duplicate_count(xs: List<Int>) -> Int {
+  match xs {
+    Empty => 0
+    Cons { head: h, tail: t } => count_in(xs: t, target: h) + duplicate_count(xs: t)
+  }
+}
+
+fn count_in(xs: List<Int>, target: Int) -> Int {
+  match xs {
+    Empty => 0
+    Cons { head: h, tail: t } =>
+      if h == target { 1 + count_in(xs: t, target: target) }
+      else { count_in(xs: t, target: target) }
+  }
+}

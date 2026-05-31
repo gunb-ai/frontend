@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- daglang mark: 3-node DAG glyph in tier-now green. Recognizable at 16px. -->
+  <g fill="hsl(134, 42%, 46%)" stroke="hsl(134, 42%, 46%)" stroke-width="1.6" stroke-linecap="round">
+    <line x1="9"  y1="9"  x2="16" y2="23"/>
+    <line x1="23" y1="9"  x2="16" y2="23"/>
+    <line x1="9"  y1="9"  x2="23" y2="9" stroke-width="1.2" opacity="0.55"/>
+    <circle cx="9"  cy="9"  r="3.6"/>
+    <circle cx="23" cy="9"  r="3.6"/>
+    <circle cx="16" cy="23" r="3.6"/>
+  </g>
+</svg>
