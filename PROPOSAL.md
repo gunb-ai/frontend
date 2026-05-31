@@ -72,7 +72,7 @@ A single internal page (not linked from production) that exhibits every primitiv
 5. Composed examples (showing fractal grammar)
    micro:   single Invariant block
    section: Problem / Proposal / Receipt triptych
-   page:    drift → graph → check → emit → fail closed
+   page:    manual translation → structural description → derived artifacts → refuses to guess
 ```
 
 ## Phase 1 — V1 page
@@ -82,13 +82,13 @@ One page. One argument. Built from the primitives.
 ### The argument the page must carry
 
 ```text
-software drifts
-because facts are duplicated
-gunbc makes facts structural
-the compiler checks that structure
-and emits from it
-or fails closed
+modern systems are full of hand-written translations
+daglang describes the system once as structure
+gunbc checks that description and derives the mechanical pieces
+when the description is incomplete, the compiler refuses to guess
 ```
+
+Public language. Compiler people still see the formal idea underneath (a structure-preserving projection from modeled facts into target artifacts). The site should make that feel obvious without naming the math.
 
 The design language should make this feel true before the reader fully understands it.
 
@@ -101,7 +101,7 @@ Compiler binary: gunbc
 Repo:            gunb-ai/daglang
 ```
 
-Header reads `gunb.ai`. Body refers to `gunbc` and `daglang` explicitly.
+Header reads `gunb.ai`. First body paragraph names both `gunbc` (the compiler) and `daglang` (the language). **Do not use `daglang` as the site brand unless the page is specifically language docs** — it's the language, not the umbrella.
 
 ### Page sections, in order
 
@@ -114,18 +114,26 @@ Header reads `gunb.ai`. Body refers to `gunbc` and `daglang` explicitly.
    Not "one graph, many targets" — that phrasing pulled the old site toward omni-emission and was a major drift vector.
 
 3. **Problem / proposal paragraph.** A Fact panel.
+
+   Two-line identity precedes the paragraph:
    ```text
-   Software drifts when the same fact lives in too many places: code,
-   schemas, clients, tests, docs, workflows, and runtime boundaries.
-   gunbc models the program as a typed graph, checks the graph, and
-   emits from that structure.
+   A structural compiler for composable systems.
+   Describe the system once. Let the compiler derive the rest.
    ```
-   Sharper alternative (decided in implementation):
+
+   Then:
    ```text
-   Programs are graphs before they are files. gunbc checks the graph,
-   then emits from it. Unsupported paths fail closed instead of
-   producing plausible output.
+   Modern systems are full of hand-written translations:
+   backend types to client types, models to schemas, services to docs,
+   code to tests, source to build rules.
+
+   daglang describes the system once.
+   gunbc checks that description and derives the mechanical pieces.
+
+   When the description is incomplete, the compiler refuses to guess.
    ```
+
+   The "hand-written translations" framing is public-friendly while still containing the formal thesis (structure-preserving projection). It avoids "drift" — true but a symptom, not the root.
 
 4. **Install / early access — Command panel.** **Must be a verified command against the real repo.**
    ```text
@@ -166,11 +174,22 @@ Tabs, multi-page nav, theme toggle UI
 Tier color tokens, status badges, "Available now / Stabilizing / …" matrices
 Roadmap UI, capability DAGs, complexity playgrounds
 Affected-set / showcase / examples pages
-Animated SVG (pipelines, schematics, Bode plots, fanouts)
-Cursor-follow hero mark, edge-draw, sweep keyframes
+Illustrative or showcase SVG diagrams (pipelines, schematics, Bode plots, fanouts)
+Animated SVG of any kind (edge-draw, sweep keyframes, cursor-follow hero mark)
 Feature cards, CTA clusters, "Get started" buttons
 Bento grids, gradient blobs, glow effects
 SaaS / dashboard / launch-microsite energy
+```
+
+**SVG nuance.** The blanket "no SVG" was too strict. The real rule:
+
+```text
+Allowed:    the mark; small relation/node/edge glyphs from the primitive
+            vocabulary in DESIGN.md; primitive exploration in the internal
+            workpad.
+
+Disallowed: illustrative pipeline diagrams, schematic renders, Bode plots,
+            capability DAGs, animated edge-draw, feature-showcase SVGs.
 ```
 
 ## V1 acceptance criteria
@@ -181,9 +200,10 @@ SaaS / dashboard / launch-microsite energy
 [ ] All sections use primitives that exist on primitives.html
 [ ] Install command runs against the real repo end to end
 [ ] Mark passes 16 / 24 / 48 / 120 px legibility test
-[ ] No tier colors, no animation, no SVG diagrams, no tabs
-[ ] No production link to legacy/ (it's private reference)
+[ ] No tier colors, no animation, no illustrative SVG diagrams, no tabs
+[ ] No production link to legacy/ or workpad.html (both are private reference)
 [ ] Palette stays light-compatible even though dark is the V1 default
+[ ] Workpad (PR #13) demonstrates at least one light-mode swatch / proof — so dark default never becomes "designed into a dark-only corner"
 [ ] DESIGN.md rules pass manual review before merge
 ```
 
@@ -217,7 +237,10 @@ Ideas from the legacy site are reserved as good content for later. They must be 
 | Mode toggle in V1? | Deferred. Dark default. Palette stays light-compatible. |
 | Install command target? | Verified command against real repo state. Resolved at implementation. |
 | Five-item list missing anything? | Yes — problem/proposal paragraph; added as §3. |
-| Build the page first or the primitives first? | Primitives first (`DESIGN.md` + `primitives.html`). V1 page composes them. |
+| Build the page first or the primitives first? | Primitives first (`DESIGN.md` + workpad on PR #13). V1 page composes them. |
+| Public framing? | "Hand-written translations" over "drift." Drift is a symptom; manual translation is the cause. |
+| All-SVG ban? | No — too strict. Mark and primitive glyphs allowed. Illustrative/showcase SVGs disallowed. |
+| Workpad status? | Internal design primitives sheet (PR #13). Not the public site. Never linked from production. |
 
 ## Recommended framing
 

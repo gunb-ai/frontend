@@ -31,7 +31,7 @@ receipt   → output, compile result, witness, install command, proof line
 
 4. **No new color without deriving it from the material palette.** New tokens must be expressible as a function of `--hue-warm`, `--hue-moss`, `--hue-clay` and the shared saturation/lightness scale defined in `legacy/moodboard.html`. Ad hoc hex values are forbidden.
 
-5. **HTML owns text. SVG owns structure.** No SVG `<text>` for labels that matter. SVG carries node/edge/boundary geometry; HTML overlays the words.
+5. **HTML owns text. SVG owns structure.** No SVG `<text>` for labels that matter. SVG carries node/edge/boundary geometry; HTML overlays the words. SVG is allowed for the mark and the primitive vocabulary in this file; **illustrative or showcase SVG (pipeline diagrams, schematics, Bode plots, capability DAGs, feature-showcase art) is forbidden on V1 production pages.**
 
 6. **No animation unless it clarifies a structural transition.** Decoration is not justification. Cursor-follow, edge-draw, sweep keyframes, parallax, and idle wiggles are out.
 
