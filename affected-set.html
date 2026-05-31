@@ -206,6 +206,27 @@
     }
     .as-art-file { opacity: 0.85; }
 
+    /* Precision callout — explains where the typed graph stops */
+    .as-precision {
+      margin-top: 1.25rem; padding: 1rem 1.25rem;
+      border: 1px dashed; border-radius: 5px;
+      display: grid; grid-template-columns: auto 1fr; gap: 0.85rem; align-items: baseline;
+    }
+    [data-mode="dark"] .as-precision { border-color: var(--tier-now-line); background: var(--tier-now-soft); }
+    [data-mode="light"] .as-precision { border-color: var(--tier-now-line); background: var(--tier-now-soft); }
+    .as-precision-tag {
+      font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.16em;
+      text-transform: uppercase; font-weight: 600; color: var(--tier-now);
+    }
+    .as-precision-body {
+      font-family: var(--font-mono); font-size: 0.76rem; line-height: 1.65;
+    }
+    .as-precision-body strong { color: var(--tier-now); }
+    .as-precision-body em { font-style: normal; opacity: 0.7; }
+    @media (max-width: 640px) {
+      .as-precision { grid-template-columns: 1fr; gap: 0.35rem; }
+    }
+
     /* Node-granularity panel below the main stage */
     .as-grain {
       margin-top: 2.5rem; padding: 1.5rem 1.75rem;
@@ -323,7 +344,7 @@
       <a href="showcase.html" class="nav-link" style="color:var(--tier-now)">Showcase</a>
       <a href="examples.html" class="nav-link">Examples</a>
       <a href="affected-set.html" class="nav-link active">Affected-set</a>
-      <a href="/#roadmap" class="nav-link">Roadmap</a>
+      <a href="roadmap.html" class="nav-link">Roadmap</a>
       <a href="https://github.com/gunb-ai/daglang/blob/main/THESIS.md" class="nav-link">Docs</a>
       <a href="https://github.com/gunb-ai/daglang" class="nav-link">GitHub</a>
     </div>
@@ -407,6 +428,11 @@
       <span class="as-receipt-label">skipped with receipt</span>
       <span class="as-receipt-value" id="r-skipped" style="opacity:0.85;font-size:0.72rem">—</span>
     </div>
+  </div>
+
+  <div class="as-precision" id="as-precision">
+    <div class="as-precision-tag">why does it stop?</div>
+    <div class="as-precision-body" id="as-precision-body">—</div>
   </div>
 
   <p class="muted" style="margin-top:1.5rem;font-size:0.78rem">
@@ -615,6 +641,12 @@ await candidate.emitAffected({ scope: affected });
       gate: { ok: false, label: "FAIL · match on Condition non-exhaustive (missing Hail)" },
       skipped: "to_fahrenheit · freezing_locations · is_freezing · concat · PSpice low_pass · OpenAPI auth schema",
       skipCount: 27,
+      precision:
+        'Notice <strong>L47–L48</strong> are dimmed, not lit. They use <code>desc</code>, the result of the affected ' +
+        '<code>describe_condition</code> call — but <strong>desc: String</strong> is a stable interface. ' +
+        '<code>concat</code> and <code>to_string</code> consume the String, not the <code>Condition</code>, so the typed ' +
+        'graph has nothing to propagate through them. <em>That is the precision argument — not "every line that mentions ' +
+        'the variable," but "every node whose typed dependencies actually moved."</em>',
     },
     temperature: {
       site: { line: 4, label: "Temperature.celsius · rename to fahrenheit", node: "Field.Temperature.celsius" },
@@ -640,6 +672,11 @@ await candidate.emitAffected({ scope: affected });
       gate: { ok: false, label: "FAIL · two unresolved field reads against renamed type" },
       skipped: "describe_condition · Condition match arms · PSpice · Verilog · 14 unrelated tests",
       skipCount: 22,
+      precision:
+        'Notice that <strong>L47–L48</strong> stay cold even though they reference <code>high_f</code> and <code>desc</code>. ' +
+        'Those bindings are typed <strong>Float</strong> and <strong>String</strong> respectively — both unchanged by ' +
+        'the field rename. <code>concat</code> and <code>to_string</code> work the same way. The affected set stops at ' +
+        'the interface boundary where types hold steady, even though the textual variable still appears further down.',
     },
     threshold: {
       site: { line: 21, label: "is_freezing · 0.0 → 2.0 (tighten band)", node: "Literal.0.0@is_freezing" },
@@ -658,6 +695,11 @@ await candidate.emitAffected({ scope: affected });
       gate: { ok: true, label: "PASS · types intact · snapshot flags filter-cardinality drift" },
       skipped: "describe_condition · to_fahrenheit · daily_summary · Condition arms · TS/Python/OpenAPI emits (no shape change)",
       skipCount: 31,
+      precision:
+        'A literal value change — not a shape change. <code>is_freezing</code> still returns <strong>Bool</strong>, ' +
+        '<code>filter</code> still takes the same predicate signature, and every artifact's type-level surface is ' +
+        'unchanged. The whole right column (TypeScript, Python, OpenAPI) skips with a receipt — only Rust re-emits ' +
+        'because the literal constant lives in the emitted body. <em>Zero transitives. Precision, not paranoia.</em>',
     },
   };
 
@@ -844,6 +886,8 @@ await candidate.emitAffected({ scope: affected });
     gate.style.color = s.gate.ok ? "var(--tier-now)" : "var(--diag-fail)";
     var skipped = document.getElementById("r-skipped");
     if (skipped) skipped.textContent = (s.skipCount || 0) + " · " + (s.skipped || "—");
+    var precision = document.getElementById("as-precision-body");
+    if (precision) precision.innerHTML = s.precision || "";
   }
 
   function applyScenario(id) {
