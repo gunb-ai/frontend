@@ -542,6 +542,12 @@
       transition: border-color 0.12s ease, color 0.12s ease;
     }
     .dl-btn:hover { border-color: var(--moss); color: var(--moss); }
+    .dl-size {
+      font-family: var(--font-mono); font-size: 0.7rem;
+      padding: 0.4rem 0.5rem; border-radius: 2px; cursor: pointer;
+      background: transparent; color: inherit;
+      border: 1px solid var(--border-dark);
+    }
     .dl-note { font-family: var(--font-mono); font-size: 0.62rem; opacity: 0.6; margin-top: 0.5rem; }
 
     .proto-dark {
@@ -1186,6 +1192,15 @@
       <div class="dl-row">
         <button class="dl-btn" data-dl-symbol="#stoic-idle" data-dl-mode="light" data-dl-name="gunb-mark-idle">&darr; PNG (ink)</button>
         <button class="dl-btn" data-dl-symbol="#stoic-idle" data-dl-mode="dark" data-dl-name="gunb-mark-idle">&darr; PNG (stone)</button>
+        <select class="dl-size" aria-label="PNG size">
+          <option value="1024">1024px</option>
+          <option value="512">512px</option>
+          <option value="256">256px</option>
+          <option value="128">128px</option>
+          <option value="64">64px</option>
+          <option value="32">32px</option>
+          <option value="16">16px</option>
+        </select>
       </div>
 
       <div class="body" style="margin: 1.75rem 0 1rem">
@@ -1203,8 +1218,17 @@
       <div class="dl-row">
         <button class="dl-btn" data-dl-symbol="#stoic-robot" data-dl-mode="light" data-dl-name="gunb-mark-robot">&darr; PNG (ink)</button>
         <button class="dl-btn" data-dl-symbol="#stoic-robot" data-dl-mode="dark" data-dl-name="gunb-mark-robot">&darr; PNG (stone)</button>
+        <select class="dl-size" aria-label="PNG size">
+          <option value="1024">1024px</option>
+          <option value="512">512px</option>
+          <option value="256">256px</option>
+          <option value="128">128px</option>
+          <option value="64">64px</option>
+          <option value="32">32px</option>
+          <option value="16">16px</option>
+        </select>
       </div>
-      <p class="dl-note">Tip: click any tile above to download a PNG at that tile&rsquo;s pixel size (16&ndash;128px); the buttons give a 1024px master. Background is baked in (ink on cream <code>#F4F1EC</code>, or stone on void <code>#151514</code>). Need a transparent vector? Hold &#8997;&nbsp;Option (Alt) while clicking for an SVG.</p>
+      <p class="dl-note">Tip: the tile grid is a legibility preview &mdash; clicking any tile downloads a crisp 1024px master. For a specific size, use the buttons with the size dropdown. Background is baked in (ink on cream <code>#F4F1EC</code>, or stone on void <code>#151514</code>). Need a transparent vector? Hold &#8997;&nbsp;Option (Alt) while clicking for an SVG.</p>
     </div>
 
     <!-- ═══════════════════ VOICE ═══════════════════ -->
@@ -1501,7 +1525,7 @@
           var cell = document.createElement("div");
           cell.className = "mark-cell on-" + mode;
           cell.setAttribute("data-dl", "");
-          cell.title = "Click: PNG  ·  Alt-click: SVG  (" + mode + ", " + s.label + ")";
+          cell.title = "Click: 1024px PNG  ·  Alt-click: SVG  (" + mode + ")";
           cell.appendChild(makeMark(s.px, m.mark, symbol));
           var hint = document.createElement("span");
           hint.className = "dl-hint";
@@ -1512,8 +1536,10 @@
           lbl.textContent = s.label;
           cell.appendChild(lbl);
           cell.addEventListener("click", function (e) {
+            // Tiles always export a crisp 1024 master regardless of preview
+            // size; the tile px is just a legibility preview. Alt = vector SVG.
             if (e.altKey) downloadSVG(symbol, m.mark, name + "-" + mode);
-            else downloadPNG(symbol, m.mark, m.bg, s.px, name + "-" + mode + "-" + s.px + "px");
+            else downloadPNG(symbol, m.mark, m.bg, 1024, name + "-" + mode + "-1024px");
           });
           target.appendChild(cell);
         }
@@ -1531,10 +1557,12 @@
         btn.addEventListener("click", function (e) {
           var mode = btn.getAttribute("data-dl-mode");
           var m = MODE[mode] || MODE.light;
-          var name = btn.getAttribute("data-dl-name") + "-" + mode;
           var symbol = btn.getAttribute("data-dl-symbol");
-          if (e.altKey) downloadSVG(symbol, m.mark, name);
-          else downloadPNG(symbol, m.mark, m.bg, 1024, name + "-1024px");
+          var sizeSel = btn.closest(".dl-row").querySelector(".dl-size");
+          var size = sizeSel ? parseInt(sizeSel.value, 10) : 1024;
+          var name = btn.getAttribute("data-dl-name") + "-" + mode + "-" + size + "px";
+          if (e.altKey) downloadSVG(symbol, m.mark, btn.getAttribute("data-dl-name") + "-" + mode);
+          else downloadPNG(symbol, m.mark, m.bg, size, name);
         });
       });
     })();
