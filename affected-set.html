@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>daglang · affected-set propagation</title>
-  <meta name="description" content="Change one line of .dag source. Watch every downstream node light up. affected_set is the v4 substrate primitive that drives incremental rebuild, lens re-runs, and agent-native editing." />
+  <meta name="description" content="Change one line of .dag source. Watch every downstream node light up. affected_set is the v4 substrate primitive that drives incremental rebuild, lens re-runs, and programmatic graph editing." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -593,12 +593,12 @@ await candidate.emitAffected({ scope: affected });
 // emitted: weather.rs · weather.ts · weather.py · WeatherCondition.yaml
 // skipped: PSpice low_pass · OpenAPI auth · 27 unrelated</pre>
     <p class="muted" style="font-size:0.74rem;margin:0.85rem 0 0">
-      See <a href="examples.html#agent">agent-native editing</a> for the full SDK sketch and CLI surface.
+      See <a href="examples.html#agent">programmatic graph editing</a> for the full SDK sketch and CLI surface.
     </p>
   </section>
 
   <p style="margin-top:2rem;display:flex;gap:0.6rem;flex-wrap:wrap">
-    <a href="examples.html#agent" class="hero-cta-secondary">← Agent-native editing</a>
+    <a href="examples.html#agent" class="hero-cta-secondary">← Programmatic graph editing</a>
     <a href="examples.html#complexity" class="hero-cta-secondary">Complexity playground</a>
     <a href="/" class="hero-cta-secondary">Home</a>
   </p>
