@@ -231,18 +231,18 @@ a { color: inherit; }
   opacity: 1; animation: none;
 }
 
-/* Runtime topology arcs — show that artifacts collaborate at runtime
-   (HTTP between Rust and TS via OpenAPI; mixed-signal co-sim between
-   Verilog and PSpice). Thin + dashed so they read as "annotations,"
-   not as part of the primary compile flow. */
+/* Runtime topology — shared-bus brackets showing that the artifacts
+   are wired together at runtime through a shared interface (HTTP/OpenAPI
+   for the web stack; mixed-signal co-sim for the HDL stack). Solid bus
+   lines (these connections exist in the running system); tier-coded. */
 .hero-diagram .topo {
-  fill: none; stroke-width: 1; stroke-dasharray: 3 3;
-  stroke-linecap: round; opacity: 0.7;
+  fill: none; stroke-width: 1.2;
+  stroke-linecap: round; opacity: 0.85;
 }
 .hero-diagram .topo.topo-web { stroke: var(--tier-now); }
 .hero-diagram .topo.topo-hw  { stroke: var(--tier-vision); }
-.hero-diagram .topo-label-web { fill: var(--tier-now);    opacity: 0.85; font-weight: 500; }
-.hero-diagram .topo-label-hw  { fill: var(--tier-vision); opacity: 0.85; font-weight: 500; }
+.hero-diagram .topo-label-web { fill: var(--tier-now);    opacity: 0.95; }
+.hero-diagram .topo-label-hw  { fill: var(--tier-vision); opacity: 0.95; }
 
 @keyframes edge-draw {
   to { stroke-dashoffset: 0; }
