@@ -436,7 +436,7 @@ CREATE INDEX ON todos
                 $ref: "#/Todo[]"</pre>
         </div>
         <div class="tile t-vision">
-          <div class="tile-head">Docs <span class="badge badge-vision">Vision</span></div>
+          <div class="tile-head">Docs <span class="badge badge-vision">Planned</span></div>
           <div class="tile-mock" aria-hidden="true">
             <div style="font-weight:600;margin-bottom:0.4rem">TodoApi.list_todos</div>
             <div style="opacity:0.65">GET /todos → List&lt;Todo&gt;</div>
@@ -447,7 +447,7 @@ CREATE INDEX ON todos
           </div>
         </div>
         <div class="tile t-vision">
-          <div class="tile-head">CI lens receipt <span class="badge badge-vision">Vision</span></div>
+          <div class="tile-head">CI lens receipt <span class="badge badge-vision">Planned</span></div>
           <div class="tile-mock" aria-hidden="true">
             <div><span class="diag-ok">✓</span> type_shape_consistency &nbsp;&nbsp; pass</div>
             <div><span class="diag-ok">✓</span> migration_safety &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; pass</div>
@@ -461,7 +461,7 @@ CREATE INDEX ON todos
 
     <p class="muted" style="margin-top:1.5rem;font-size:0.82rem">
       Real source for the in-progress Todo service: <a href="https://github.com/gunb-ai/daglang/blob/main/dsl/demos/todo_service.dag">dsl/demos/todo_service.dag</a>.
-      Each tile's tier badge matches the <a href="roadmap.html">roadmap</a> — Rust is stabilizing today; TypeScript, SQL and OpenAPI are next; generated docs and CI lens receipts are the vision.
+      Each tile's tier badge matches the <a href="roadmap.html">roadmap</a> — Rust is stabilizing today; TypeScript, SQL and OpenAPI are next; generated docs and CI lens receipts are planned.
     </p>
   </section>
 
@@ -653,7 +653,7 @@ await emit(candidate.value, { target: "rust", outDir: "/tmp/weather-out" });</pr
       folding over typed <code>Component</code> values, modeled at
       <a href="https://github.com/gunb-ai/daglang/blob/main/src/v4/extdeps/formats/spice.dag">v4/extdeps/formats/spice.dag</a>
       (T-4.10 omni-emission probe, modeled 2026-05-16). End-to-end <code>gunbc compile --target spice</code> /
-      <code>--target verilog</code> is still Vision-tier; the substrate types below are real.
+      <code>--target verilog</code> is still Planned-tier; the substrate types below are real.
     </p>
 
     <!-- ── PSpice ── -->
@@ -666,7 +666,7 @@ await emit(candidate.value, { target: "rust", outDir: "/tmp/weather-out" });</pr
     </p>
     <div class="demo-grid">
       <div class="demo-panel">
-        <header><span>low_pass.dag — Shape B netlist value</span><span class="badge badge-vision">Vision · uses real types</span></header>
+        <header><span>low_pass.dag — Shape B netlist value</span><span class="badge badge-vision">Planned · uses real types</span></header>
         <pre>module examples.spice.low_pass
 
 import v4.extdeps.formats.spice {
@@ -704,7 +704,7 @@ data low_pass_rc: SpiceNetlist = SpiceNetlist {
 }</pre>
       </div>
       <div class="demo-panel">
-        <header><span>Emitted SPICE3F5 deck</span><span class="badge badge-vision">Vision · canonical format</span></header>
+        <header><span>Emitted SPICE3F5 deck</span><span class="badge badge-vision">Planned · canonical format</span></header>
         <pre>* RC low-pass filter — emitted from low_pass.dag
 V1 in  0   AC 1
 R1 in  out 1k
@@ -720,7 +720,7 @@ C1 out 0   100n
     </div>
     <div class="demo-grid" style="margin-top:1.25rem">
       <div class="demo-panel">
-        <header><span>Schematic (rendered from graph)</span><span class="badge badge-vision">Vision</span></header>
+        <header><span>Schematic (rendered from graph)</span><span class="badge badge-vision">Planned</span></header>
         <svg class="artwork" viewBox="0 0 320 140" aria-label="Low-pass RC filter schematic">
           <!-- input node -->
           <circle class="node-pt" cx="30" cy="60" r="2.5"/>
@@ -756,7 +756,7 @@ C1 out 0   100n
         </svg>
       </div>
       <div class="demo-panel">
-        <header><span>Simulated response (Bode magnitude)</span><span class="badge badge-vision">Vision</span></header>
+        <header><span>Simulated response (Bode magnitude)</span><span class="badge badge-vision">Planned</span></header>
         <svg class="artwork" viewBox="0 0 320 140" aria-label="Simulated Bode magnitude of low-pass filter">
           <!-- grid -->
           <line class="signal-bg" x1="40" y1="30"  x2="305" y2="30"/>
@@ -798,7 +798,7 @@ C1 out 0   100n
     </p>
     <div class="demo-grid">
       <div class="demo-panel">
-        <header><span>counter.dag — built from real carriers</span><span class="badge badge-vision">Vision · uses real types</span></header>
+        <header><span>counter.dag — built from real carriers</span><span class="badge badge-vision">Planned · uses real types</span></header>
         <pre>module examples.verilog.counter
 
 import v4.extdeps.languages.verilog {
@@ -836,7 +836,7 @@ data counter_module: VerilogModule = NoPortListModule {
 }</pre>
       </div>
       <div class="demo-panel">
-        <header><span>Emitted Verilog (IEEE 1364-2005)</span><span class="badge badge-vision">Vision · same path as Rust</span></header>
+        <header><span>Emitted Verilog (IEEE 1364-2005)</span><span class="badge badge-vision">Planned · same path as Rust</span></header>
         <pre>module Counter (
   input            clk,
   input            reset,
@@ -855,7 +855,7 @@ endmodule</pre>
     </div>
     <div class="demo-grid" style="margin-top:1.25rem">
       <div class="demo-panel">
-        <header><span>Register-block schematic (synthesis target)</span><span class="badge badge-vision">Vision · derived from same module</span></header>
+        <header><span>Register-block schematic (synthesis target)</span><span class="badge badge-vision">Planned · derived from same module</span></header>
         <svg class="artwork" viewBox="0 0 320 160" aria-label="Counter register-block schematic">
           <!-- adder block: count + 1 -->
           <rect class="comp" x="40"  y="40" width="60" height="44" rx="3"/>
@@ -908,7 +908,7 @@ endmodule</pre>
         </div>
       </div>
       <div class="demo-panel">
-        <header><span>Simulated waveform — counter rolling, reset released after t=2</span><span class="badge badge-vision">Vision</span></header>
+        <header><span>Simulated waveform — counter rolling, reset released after t=2</span><span class="badge badge-vision">Planned</span></header>
         <svg class="artwork" viewBox="0 0 320 160" aria-label="Counter waveform">
         <!-- grid -->
         <line class="signal-bg" x1="60" y1="30"  x2="305" y2="30"/>

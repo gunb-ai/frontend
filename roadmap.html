@@ -131,18 +131,18 @@
   <h1 style="font-size:2rem;margin:0 0 0.6rem;letter-spacing:-0.02em">The roadmap is a graph.</h1>
   <p class="muted" style="max-width:46em;margin:0 0 0.5rem;font-size:1.05rem">
     Capabilities are nodes. Dependencies are edges. The compiler core is the root; everything else
-    composes from it. Tier color = maturity; dashed blue edges = vision dependencies. The structure
+    composes from it. Tier color = maturity; dashed purple edges = planned dependencies. The structure
     is the honesty mechanism — no percentages, no shipping dates we can't keep.
   </p>
   <p style="font-family:var(--font-mono);font-size:0.78rem;letter-spacing:0.04em;margin:0 0 1.5rem;color:var(--tier-now)">
-    The vision: <strong>one graph, every target.</strong>
+    The plan: <strong>one graph, every target.</strong>
   </p>
 
   <div class="rd-legend">
     <span><i class="lg-now"></i> available now</span>
     <span><i class="lg-stable"></i> stabilizing</span>
     <span><i class="lg-next"></i> building next</span>
-    <span><i class="lg-vision"></i> vision</span>
+    <span><i class="lg-vision"></i> planned</span>
   </div>
 
   <!-- ── Capability DAG ── -->
@@ -267,7 +267,7 @@
     </div>
     <div class="rd-tier-row t-vision">
       <span class="rd-tier-marker">◇</span>
-      <span class="rd-tier-name">Vision</span>
+      <span class="rd-tier-name">Planned</span>
       <span class="rd-tier-items">
         full-stack omni-emission (backend · client · schema · docs · tests · CI gates from one graph) ·
         <strong>Verilog</strong> (Shape A language target) · <strong>SPICE</strong> (Shape B data format) ·
@@ -280,7 +280,7 @@
     The graph above shows dependencies between capabilities; the text rows below it list specifics by tier.
     <code>apply_diff</code> sits in <em>Building next</em> because it composes from <code>fold_node</code>
     (shipped). Omni-ingestion is the inverse arrow of omni-emission, sharing the language-spec grammars in
-    both directions. Vision-tier edges are dashed to mark them as design direction, not delivery promise.
+    both directions. Planned-tier edges are dashed to mark them as design direction, not delivery promise.
   </p>
 
   <p style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-top:2rem">
