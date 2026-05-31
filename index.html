@@ -32,6 +32,7 @@
     <div class="nav-links">
       <a href="showcase.html" class="nav-link" style="color:var(--tier-now)">Showcase</a>
       <a href="examples.html" class="nav-link">Examples</a>
+      <a href="affected-set.html" class="nav-link">Affected-set</a>
       <a href="#roadmap" class="nav-link">Roadmap</a>
       <a href="https://github.com/gunb-ai/daglang/blob/main/THESIS.md" class="nav-link">Docs</a>
       <a href="https://github.com/gunb-ai/daglang" class="nav-link">GitHub</a>
@@ -237,6 +238,40 @@ type Condition
       </div>
     </div>
     <p style="margin-top:1rem"><a href="examples.html#contract" class="hero-cta-secondary">Full example →</a></p>
+  </section>
+
+  <section class="section wrap">
+    <p class="section-eyebrow">Flagship demos</p>
+    <h2>See the graph make itself.</h2>
+    <p class="section-lead muted">
+      Two standalone walkthroughs that make "code is a graph" tangible — the showcase puts every feature
+      on one circuit with a live slider; affected-set propagation shows exactly which downstream nodes
+      light up when you touch a line.
+    </p>
+    <div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(20rem,1fr))">
+      <article class="card t-now" style="border-color:var(--tier-now-line)">
+        <span class="card-tier">Showcase · live</span>
+        <h3>Every feature, on one circuit.</h3>
+        <p>
+          A low-pass RC filter as the protagonist. One slider drives every projection — schematic,
+          SPICE netlist, TypeScript knob UI, Rust handler, OpenAPI snippet, Bode plot, lens gate, agent SDK.
+          Watch the <em>affected-set sweep</em> across tiles when you move the slider — and notice which tile
+          stays cold because it isn't structurally dependent.
+        </p>
+        <a class="card-link" href="showcase.html">Open the showcase →</a>
+      </article>
+      <article class="card t-next" style="border-color:var(--tier-next-line)">
+        <span class="card-tier">Affected-set · interactive</span>
+        <h3>Change one line. See every downstream node light up.</h3>
+        <p>
+          The standalone <code>affected_set</code> demo. Pick a scenario on <code>weather.dag</code> — add a
+          <code>Hail</code> variant, swap the <code>Temperature</code> unit, tighten <code>is_freezing</code>'s
+          threshold — and the page draws the curved-edge fan-out from the changed line to every affected
+          downstream node. With a "skipped with receipt" cell showing what safely doesn't run.
+        </p>
+        <a class="card-link" href="affected-set.html">Open affected-set →</a>
+      </article>
+    </div>
   </section>
 
   <section class="section wrap">
