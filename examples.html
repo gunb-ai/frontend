@@ -589,6 +589,45 @@ CREATE INDEX ON todos
             </div>
           </div>
         </div>
+        <div class="tile t-next">
+          <div class="tile-head">Generated tests · testgen <span class="badge badge-next">Building next</span></div>
+<pre class="tile-body">// Derived from app TodoApp — no hand-authored
+// arbitraries, no hand-authored fixtures.
+
+#[test]
+fn condition_variants_covered() {
+    // Exhaustiveness lens: every Condition arm has a
+    // match handler somewhere. Auto-generated from
+    // the type declaration.
+    for v in Condition::all_variants() {
+        let _ = describe_condition(Rc::new(v));
+    }
+}
+
+#[proptest]
+fn roundtrip_todo_json(t: Arbitrary&lt;Todo&gt;) {
+    // Arbitrary derived from the Todo type shape;
+    // serde roundtrip generated from the @serialize
+    // realization fact.
+    let bytes = serde_json::to_vec(&amp;t).unwrap();
+    let back: Todo = serde_json::from_slice(&amp;bytes)?;
+    prop_assert_eq!(t, back);
+}
+
+#[test]
+fn list_in_list_index_used() {
+    // Cost-lens fact: list_in_list resolves through
+    // index (list_id, completed). Generated assertion
+    // checks the plan stays on the indexed path.
+    assert_uses_index!(
+        TodoApi::list_in_list,
+        "todos_list_id_completed_idx",
+    );
+}</pre>
+          <div class="sb-tile-foot" style="padding:0.5rem 0.9rem;font-family:var(--font-mono);font-size:0.66rem;opacity:0.6;border-top:1px solid var(--border-dark)">
+            Variant coverage · type roundtrips · index-use assertions — all derived from the same graph
+          </div>
+        </div>
         <div class="tile t-vision">
           <div class="tile-head">CI lens receipt <span class="badge badge-vision">Planned</span></div>
           <div class="tile-mock" aria-hidden="true">
@@ -596,7 +635,8 @@ CREATE INDEX ON todos
             <div><span class="diag-ok">✓</span> migration_safety &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; pass</div>
             <div><span class="diag-ok">✓</span> openapi_round_trip &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; pass</div>
             <div><span class="diag-ok">✓</span> client_compat &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; pass</div>
-            <div style="margin-top:0.4rem;opacity:0.6">6 / 6 lenses green · 0 affected downstream</div>
+            <div><span class="diag-ok">✓</span> testgen_pass &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 14/14 pass</div>
+            <div style="margin-top:0.4rem;opacity:0.6">7 / 7 lenses green · 0 affected downstream</div>
           </div>
         </div>
       </div>

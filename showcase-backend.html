@@ -473,6 +473,37 @@ budget: 50ms p95. Cost class: O(log n).</pre>
         <div class="sb-tile-foot">cost class + latency budget pulled live from the lens</div>
       </article>
 
+      <article class="sb-tile t-next">
+        <header><span class="sb-tile-title">Generated tests · testgen</span><span class="badge badge-next">Building next</span></header>
+<pre>// Derived from app TodoApp.
+// No hand-authored arbitraries, no hand fixtures.
+
+#[proptest]
+fn roundtrip_todo_json(t: Arbitrary&lt;Todo&gt;) {
+    let bytes = serde_json::to_vec(&amp;t)?;
+    let back: Todo = serde_json::from_slice(&amp;bytes)?;
+    prop_assert_eq!(t, back);
+}
+
+#[test]
+fn list_in_list_uses_index() {
+    // Cost-lens fact → plan assertion
+    assert_uses_index!(
+        TodoApi::list_in_list,
+        "todos_list_id_completed_idx",
+    );
+}
+
+#[test]
+fn duplicates_quadratic_warning() {
+    // Latency lens caught this; testgen pins it
+    assert_complexity_class!(
+        TodoApi::duplicates, "O(n^2)",
+    );
+}</pre>
+        <div class="sb-tile-foot">type roundtrips · index-use · cost-class assertions, all derived from the same graph</div>
+      </article>
+
       <article class="sb-tile t-vision">
         <header><span class="sb-tile-title">CI lens receipt</span><span class="badge badge-vision">Planned</span></header>
 <pre>✓ type_shape_consistency      pass
@@ -480,9 +511,9 @@ budget: 50ms p95. Cost class: O(log n).</pre>
 ✓ openapi_round_trip          pass
 ✓ client_compat               pass
 ✓ complexity (per handler)    pass
-✓ latency_budget              pass
-6 / 6 lenses green
-0 affected downstream</pre>
+✓ latency_budget              fail · duplicates
+✓ testgen                     14/14 pass
+7 / 7 lenses · 1 fail · 0 emit</pre>
         <div class="sb-tile-foot">structural facts checked before any artifact ships</div>
       </article>
     </div>
@@ -764,6 +795,12 @@ await emit(candidate.value, { target: "sql",        outDir: "./migrations" });</
         <span class="sb-recap-step">6</span>
         <span class="sb-recap-title">Agent <code>apply_diff</code> SDK</span>
         <span class="sb-recap-detail">substrate primitive specified; SDK ships with the v4 cut</span>
+        <span class="badge badge-next">Building next</span>
+      </div>
+      <div class="sb-recap-row">
+        <span class="sb-recap-step">2d</span>
+        <span class="sb-recap-title">Testgen · generated tests</span>
+        <span class="sb-recap-detail">variant exhaustiveness, type roundtrips, index-use assertions, cost-class pinning — derived from the same graph the artifacts emit from</span>
         <span class="badge badge-next">Building next</span>
       </div>
     </div>
