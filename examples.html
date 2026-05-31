@@ -176,23 +176,21 @@ fn describe_condition(cond: Condition) -> String {
           <text class="axis-label" x="32" y="115" text-anchor="end" transform="rotate(-90 32 115)">operations</text>
 
           <!-- curves: emitted by site.js, but pre-render fallback paths -->
-          <path class="curve c-O1"    id="curve-O1"    d="" />
-          <path class="curve c-On"    id="curve-On"    d="" />
+          <path class="curve c-O1"     id="curve-O1"     d="" />
+          <path class="curve c-On"     id="curve-On"     d="" />
           <path class="curve c-OnlogN" id="curve-OnlogN" d="" />
-          <path class="curve c-On2"   id="curve-On2"   d="" />
-          <path class="curve c-OQ"    id="curve-OQ"    d="" />
+          <path class="curve c-On2"    id="curve-On2"    d="" />
 
           <!-- active dots -->
-          <circle class="curve-dot c-O1"    id="dot-O1"    cx="0" cy="0" />
-          <circle class="curve-dot c-On"    id="dot-On"    cx="0" cy="0" />
+          <circle class="curve-dot c-O1"     id="dot-O1"     cx="0" cy="0" />
+          <circle class="curve-dot c-On"     id="dot-On"     cx="0" cy="0" />
           <circle class="curve-dot c-OnlogN" id="dot-OnlogN" cx="0" cy="0" />
-          <circle class="curve-dot c-On2"   id="dot-On2"   cx="0" cy="0" />
-          <circle class="curve-dot c-OQ"    id="dot-OQ"    cx="0" cy="0" />
+          <circle class="curve-dot c-On2"    id="dot-On2"    cx="0" cy="0" />
         </svg>
 
         <div class="playground-side">
           <button class="pg-fn c-O1" data-class="O1" aria-selected="true">
-            <span class="pg-fn-name">daily_summary</span>
+            <span class="pg-fn-name">to_fahrenheit</span>
             <span class="pg-fn-class">O(1)</span>
           </button>
           <button class="pg-fn c-On" data-class="On" aria-selected="false">
@@ -200,16 +198,12 @@ fn describe_condition(cond: Condition) -> String {
             <span class="pg-fn-class">O(n)</span>
           </button>
           <button class="pg-fn c-OnlogN" data-class="OnlogN" aria-selected="false">
-            <span class="pg-fn-name">sort_forecasts</span>
+            <span class="pg-fn-name">ranked_forecasts</span>
             <span class="pg-fn-class">O(n log n)</span>
           </button>
           <button class="pg-fn c-On2" data-class="On2" aria-selected="false">
-            <span class="pg-fn-name">processOrders</span>
+            <span class="pg-fn-name">bag_eq</span>
             <span class="pg-fn-class">O(n²)</span>
-          </button>
-          <button class="pg-fn c-OQ" data-class="OQ" aria-selected="false">
-            <span class="pg-fn-name">count_up</span>
-            <span class="pg-fn-class">O(?)</span>
           </button>
 
           <div class="pg-slider-row">
@@ -219,9 +213,34 @@ fn describe_condition(cond: Condition) -> String {
           </div>
         </div>
       </div>
+
+      <!-- ── Per-function source + structural-graph swap ── -->
+      <div class="pg-source-row">
+        <div class="pg-source" id="pg-source">
+          <header>
+            <span id="pg-source-name">to_fahrenheit · weather.dag</span>
+            <span class="badge badge-now" id="pg-source-tag">Available now · measured</span>
+          </header>
+          <pre id="pg-source-code">fn to_fahrenheit(temp: Temperature) -&gt; Float {
+  temp.celsius * 1.8 + 32.0
+}</pre>
+          <div class="pg-source-why" id="pg-source-why">
+            <strong>Why O(1):</strong> body is one arithmetic expression — no recursion, no iteration, no
+            dispatch on input size. The cost-lens algebra folds across the body and finds a constant tree,
+            so the bound is constant by construction.
+          </div>
+        </div>
+        <div class="pg-shape">
+          <header><span id="pg-shape-name">Structural shape</span><span style="opacity:0.55" id="pg-shape-tag">cost-lens algebra</span></header>
+          <svg class="pg-shape-svg" id="pg-shape-svg" viewBox="0 0 320 220" aria-hidden="true"></svg>
+        </div>
+      </div>
+
       <p class="muted" style="font-size:0.72rem;margin:1rem 0 0">
-        Curves are aesthetic, not to scale — they show <em>how</em> bounds diverge, not exact op counts.
-        <code>O(?)</code> is dashed and red because the analyzer refused to assign a bound, not because the function is slow.
+        Curves are aesthetic, not to scale — they show <em>how</em> bounds diverge across <code>n</code>, not
+        exact op counts. Cost classes are derived from the graph's structural shape by the cost lens
+        (<a href="https://github.com/gunb-ai/daglang/blob/main/src/v4/lens/synthesis.dag">v4/lens/synthesis.dag</a>);
+        the source panel above is the actual <code>.dag</code> the lens reads.
       </p>
     </div>
 
