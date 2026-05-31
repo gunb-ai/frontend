@@ -22,20 +22,34 @@
     }
     .as-scenario::before {
       content: ""; width: 7px; height: 7px; border-radius: 50%;
-      background: var(--diag-fail); opacity: 0.85;
+      background: var(--tier-next); opacity: 0.85;
     }
     [data-mode="dark"] .as-scenario { border-color: var(--border-dark-strong); color: var(--warm-white-dim); }
     [data-mode="light"] .as-scenario { border-color: var(--border-light-strong); color: var(--text-dark-dim); }
     .as-scenario[aria-selected="true"] {
-      border-color: var(--diag-fail);
-      background: var(--diag-fail-soft);
-      color: var(--diag-fail);
+      border-color: var(--tier-next-line);
+      background: var(--tier-next-soft);
+      color: var(--tier-next);
     }
+
+    /* Legend */
+    .as-legend {
+      display: flex; flex-wrap: wrap; gap: 1.25rem; margin: 0 0 1rem;
+      font-family: var(--font-mono); font-size: 0.7rem;
+    }
+    .as-legend span { display: inline-flex; align-items: center; gap: 0.4rem; opacity: 0.85; }
+    .as-legend i {
+      width: 10px; height: 10px; border-radius: 2px; display: inline-block;
+    }
+    .as-legend .lg-changed    { background: var(--diag-fail); }
+    .as-legend .lg-direct     { background: var(--tier-next); }
+    .as-legend .lg-transitive { background: var(--tier-vision); }
+    .as-legend .lg-skipped    { background: var(--stone-faint); }
 
     /* Three-column stage: code | fanout svg | affected tree */
     .as-stage {
       display: grid;
-      grid-template-columns: minmax(0, 1.4fr) 64px minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1.25fr) 96px minmax(17rem, 0.9fr);
       gap: 0; align-items: stretch;
       border: 1px solid; border-radius: 6px; overflow: hidden;
     }
@@ -46,7 +60,7 @@
       padding: 1.25rem 1.25rem 1.25rem 0;
       font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.7;
     }
-    .as-code { padding-right: 0.5rem; padding-left: 0; min-width: 0; }
+    .as-code { padding-right: 0.5rem; padding-left: 0; min-width: 0; overflow-x: auto; }
     .as-tree {
       padding-left: 0.5rem; padding-right: 1.25rem;
       border-left: 1px solid;
@@ -106,21 +120,24 @@
 
     /* Fan-out SVG column */
     .as-fanout {
-      width: 64px;
+      width: 96px;
       align-self: stretch;
       pointer-events: none;
     }
     .as-fanout path {
-      fill: none; stroke-width: 1.4; opacity: 0.85;
-      stroke-dasharray: 220; stroke-dashoffset: 220;
-      animation: as-edge-draw 0.6s ease forwards;
+      fill: none; stroke-width: 1.5; opacity: 0.85;
+      stroke-linecap: round;
+      stroke-dasharray: 320; stroke-dashoffset: 320;
+      animation: as-edge-draw 0.65s ease forwards;
     }
     .as-fanout path.e-direct { stroke: var(--tier-next); }
-    .as-fanout path.e-transitive { stroke: var(--tier-vision); opacity: 0.7; }
-    .as-fanout circle { r: 2.6; }
+    .as-fanout path.e-transitive { stroke: var(--tier-vision); opacity: 0.75; }
     .as-fanout circle.dot-changed     { fill: var(--diag-fail); }
     .as-fanout circle.dot-direct      { fill: var(--tier-next); }
     .as-fanout circle.dot-transitive  { fill: var(--tier-vision); }
+    .as-fanout circle.dot-changed     { r: 3.6; }
+    .as-fanout circle.dot-direct      { r: 3.0; }
+    .as-fanout circle.dot-transitive  { r: 3.0; }
 
     @keyframes as-edge-draw { to { stroke-dashoffset: 0; } }
     @media (prefers-reduced-motion: reduce) {
@@ -157,8 +174,9 @@
       margin-top: 1.25rem; padding: 1rem 1.25rem;
       border: 1px solid; border-radius: 5px;
       font-family: var(--font-mono); font-size: 0.76rem;
-      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem;
+      display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1rem;
     }
+    @media (max-width: 980px) { .as-receipt { grid-template-columns: 1fr 1fr; } }
     [data-mode="dark"] .as-receipt { border-color: var(--border-dark); background: var(--void-up2); }
     [data-mode="light"] .as-receipt { border-color: var(--border-light); background: var(--warm-white); }
     .as-receipt-cell { display: flex; flex-direction: column; gap: 0.2rem; }
@@ -221,14 +239,21 @@
 
   <div class="as-scenarios" role="tablist" aria-label="Edit scenarios">
     <button class="as-scenario" role="tab" data-scenario="condition" aria-selected="true">
-      Add <code>Refunded</code> variant to <code>Condition</code>
+      Add <code>Hail</code> variant to <code>Condition</code>
     </button>
     <button class="as-scenario" role="tab" data-scenario="temperature" aria-selected="false">
-      Change <code>Temperature</code> unit to Celsius
+      Swap <code>Temperature</code> unit Celsius → Fahrenheit
     </button>
-    <button class="as-scenario" role="tab" data-scenario="lookup" aria-selected="false">
-      Make <code>lookupCustomer</code> a linear scan
+    <button class="as-scenario" role="tab" data-scenario="threshold" aria-selected="false">
+      Tighten <code>is_freezing</code> threshold 0°C → 2°C
     </button>
+  </div>
+
+  <div class="as-legend">
+    <span><i class="lg-changed"></i> changed line</span>
+    <span><i class="lg-direct"></i> direct dependent</span>
+    <span><i class="lg-transitive"></i> transitive dependent</span>
+    <span><i class="lg-skipped"></i> skipped with receipt</span>
   </div>
 
   <div class="as-stage">
@@ -258,6 +283,10 @@
     <div class="as-receipt-cell">
       <span class="as-receipt-label">gate result</span>
       <span class="as-receipt-value" id="r-gate">—</span>
+    </div>
+    <div class="as-receipt-cell">
+      <span class="as-receipt-label">skipped with receipt</span>
+      <span class="as-receipt-value" id="r-skipped" style="opacity:0.85">—</span>
     </div>
   </div>
 
@@ -289,11 +318,12 @@
  * CoreNode graph; here we ship it as data so the visual story is clear.
  * ─────────────────────────────────────────────────────── */
 (function () {
+  // Source matches dsl/examples/weather/weather.dag (Temperature is celsius-keyed there).
   var SOURCE = [
     "module examples.weather",                                       // 1
     "",                                                              // 2
     "type Temperature {",                                            // 3
-    "  fahrenheit: Float",                                           // 4
+    "  celsius: Float",                                              // 4
     "}",                                                             // 5
     "",                                                              // 6
     "type Condition",                                                // 7
@@ -310,11 +340,11 @@
     "}",                                                             // 18
     "",                                                              // 19
     "fn is_freezing(temp: Temperature) -> Bool {",                   // 20
-    "  temp.fahrenheit < 32.0",                                      // 21
+    "  temp.celsius <= 0.0",                                         // 21
     "}",                                                             // 22
     "",                                                              // 23
     "fn to_fahrenheit(temp: Temperature) -> Float {",                // 24
-    "  temp.fahrenheit",                                             // 25
+    "  temp.celsius * 1.8 + 32.0",                                   // 25
     "}",                                                             // 26
     "",                                                              // 27
     "fn describe_condition(cond: Condition) -> String {",            // 28
@@ -344,45 +374,44 @@
   // Lines that begin a function header (used purely for spacing).
   var FN_HEADS = [20, 24, 28, 38, 44];
 
+  // All three scenarios are internally coherent on dsl/examples/weather/weather.dag.
+  // No domain mixing, no fake transitives — each affected line really depends on the edit.
   var SCENARIOS = {
     condition: {
-      site: { line: 7, label: "type Condition (add Refunded variant)" },
+      site: { line: 7, label: "type Condition · add Hail variant" },
       direct: [
-        { line: 29, name: "describe_condition · match cond", note: "+1 arm" },
+        { line: 29, name: "describe_condition · match cond", note: "+1 arm required" },
       ],
       transitive: [
-        { line: 46, name: "daily_summary · uses describe_condition", note: "re-typecheck" },
+        { line: 46, name: "daily_summary · calls describe_condition", note: "re-typecheck" },
       ],
       lenses: ["exhaustiveness", "type-check"],
-      gate: { ok: true, label: "fails closed until match arm added · then PASS" },
+      gate: { ok: false, label: "FAIL · match on Condition non-exhaustive (missing Hail)" },
+      skipped: "to_fahrenheit · freezing_locations · is_freezing · concat",
     },
     temperature: {
-      site: { line: 3, label: "type Temperature (swap unit to Celsius)" },
+      site: { line: 4, label: "Temperature.celsius · rename to fahrenheit" },
       direct: [
-        { line: 20, name: "is_freezing · reads temp.fahrenheit", note: "field rename" },
-        { line: 24, name: "to_fahrenheit · returns temp.fahrenheit", note: "field rename" },
+        { line: 21, name: "is_freezing · reads temp.celsius", note: "field access broken" },
+        { line: 25, name: "to_fahrenheit · reads temp.celsius", note: "field access broken" },
       ],
       transitive: [
         { line: 40, name: "freezing_locations · calls is_freezing", note: "re-typecheck" },
         { line: 45, name: "daily_summary · calls to_fahrenheit", note: "re-typecheck" },
-        { line: 47, name: "daily_summary · interpolates high_f", note: "re-typecheck" },
       ],
       lenses: ["type-check", "complexity", "effects"],
-      gate: { ok: false, label: "FAIL · is_freezing still compares to 32.0 (now °C)" },
+      gate: { ok: false, label: "FAIL · two unresolved field reads against renamed type" },
+      skipped: "describe_condition · Condition match arms",
     },
-    lookup: {
-      // Reuse the freezing_locations / map / filter chain as the analog: switching
-      // `filter` from a structural pass to a linear scan (illustrative — same
-      // O(n) → O(n²) story as lookupCustomer in the complexity demo).
-      site: { line: 40, label: "filter(...) — switch indexed lookup → linear scan" },
+    threshold: {
+      site: { line: 21, label: "is_freezing · 0.0 → 2.0 (tighten band)" },
       direct: [
-        { line: 38, name: "freezing_locations · body", note: "complexity changes" },
+        { line: 40, name: "freezing_locations · calls is_freezing", note: "filter predicate semantics shift" },
       ],
-      transitive: [
-        { line: 46, name: "daily_summary · indirect via describe", note: "no callers of freezing_locations here, but the lens marks the path" },
-      ],
-      lenses: ["complexity"],
-      gate: { ok: false, label: "FAIL · complexity(freezing_locations) O(n) → O(n²)" },
+      transitive: [],
+      lenses: ["semantic-snapshot · freezing_locations"],
+      gate: { ok: true, label: "PASS · types intact · semantic-snapshot lens flags filter-cardinality drift" },
+      skipped: "describe_condition · to_fahrenheit · daily_summary · Condition arms (no dep on is_freezing)",
     },
   };
 
@@ -460,22 +489,22 @@
     fanoutEl.style.height = fanH + "px";
 
     var svgParts = [
-      // origin dot at the changed line
-      '<circle class="dot-changed" cx="2" cy="' + siteY + '" />',
+      // origin dot at the changed line — r set as attribute, not CSS
+      '<circle class="dot-changed" cx="4" cy="' + siteY + '" r="3.6" />',
     ];
 
     function addEdge(targetLine, kind) {
       var tEl = codeEl.querySelector('[data-line="' + targetLine + '"]');
       if (!tEl) return;
       var tY = tEl.getBoundingClientRect().top - codeBox.top + tEl.offsetHeight / 2;
-      var midX = 36;
-      // curved bezier from (2, siteY) to (62, tY)
-      var d = "M2," + siteY +
-              " C" + midX + "," + siteY +
-              " " + midX + "," + tY +
-              " 62," + tY;
+      // curved bezier across a wider 96px column for visual breathing room
+      var ctrlA = 38, ctrlB = 58, targetX = 92;
+      var d = "M4," + siteY +
+              " C" + ctrlA + "," + siteY +
+              " " + ctrlB + "," + tY +
+              " " + targetX + "," + tY;
       svgParts.push('<path class="e-' + kind + '" d="' + d + '" />');
-      svgParts.push('<circle class="dot-' + kind + '" cx="62" cy="' + tY + '" />');
+      svgParts.push('<circle class="dot-' + kind + '" cx="' + targetX + '" cy="' + tY + '" r="3" />');
     }
 
     s.direct.forEach(function (d)  { addEdge(d.line, "direct"); });
@@ -493,6 +522,8 @@
     var gate = document.getElementById("r-gate");
     gate.textContent = s.gate.label;
     gate.style.color = s.gate.ok ? "var(--tier-now)" : "var(--diag-fail)";
+    var skipped = document.getElementById("r-skipped");
+    if (skipped) skipped.textContent = s.skipped || "—";
   }
 
   function applyScenario(id) {
@@ -522,10 +553,19 @@
     });
   });
 
-  window.addEventListener("resize", function () {
+  function reapplyCurrent() {
     var current = document.querySelector('.as-scenario[aria-selected="true"]');
     if (current) applyScenario(current.getAttribute("data-scenario"));
-  });
+  }
+  window.addEventListener("resize", reapplyCurrent);
+  // Webfont metrics change line heights — re-measure once fonts settle so the
+  // fan-out bezier endpoints land on the right line centers.
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(reapplyCurrent);
+  }
+  if ("ResizeObserver" in window) {
+    new ResizeObserver(reapplyCurrent).observe(codeEl);
+  }
 
   renderCode();
   applyScenario("condition");

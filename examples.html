@@ -43,7 +43,7 @@
 
 <main class="wrap" style="padding:3.5rem 0 4rem">
   <p class="section-eyebrow">Examples</p>
-  <h1 style="font-size:2rem;margin:0 0 0.6rem;letter-spacing:-0.02em">Try what's shipped. Preview what's coming.</h1>
+  <h1 style="font-size:2rem;margin:0 0 0.6rem;letter-spacing:-0.02em">Try today. Explore the roadmap.</h1>
   <p class="muted" style="max-width:42em;margin:0 0 2.25rem">
     The first row of tabs is things you can run against the public compiler today. The second row is the
     same graph model pointed at targets that are still being built — full stacks, then hardware.
@@ -280,31 +280,34 @@ fn daily_summary(forecast: Forecast) -> String {
       Checked-in fixture: <a href="fixtures/weather.complexity.txt">fixtures/weather.complexity.txt</a>.
     </p>
 
-    <h3 style="font-size:1rem;margin:2.5rem 0 0.75rem">Fail closed when the bound is unproven</h3>
+    <h3 style="font-size:1rem;margin:2.5rem 0 0.75rem">Server loops have a defined bound too</h3>
     <p class="muted" style="margin:0 0 1rem">
-      When the analyzer cannot prove a safe structural bound, it reports <code>O(?)</code> and emits a violation
-      instead of guessing — the same fail-closed principle as the type checker.
+      Non-terminating loops aren't <code>O(?)</code>. The substrate has a named <code>Forever</code> bound
+      (the system-limit representable bound) and structured iteration via <code>repeat(Forever, body)</code>,
+      so the cost lens still derives a defined per-iteration class — never "I don't know."
+      See <a href="https://github.com/gunb-ai/daglang/blob/main/docs/v3-modeling-analysis.md">v3-modeling-analysis.md §"Forever and Bounded Iteration"</a>.
     </p>
     <div class="demo-grid">
       <div class="demo-panel">
-        <header><span>Minimal module (soundness)</span><span class="badge badge-now">Measured</span></header>
-        <pre>fn count_up(n: Int) -> Int {
-  if n > 100 { n }
-  else { count_up(n: n + 1) }  // no proven descent
+        <header><span>request_loop.dag (illustrative)</span><span class="badge badge-now">defined bound</span></header>
+        <pre>fn run_server(state: ServerState) -> Forever {
+  repeat(Forever, fn() {
+    let req = accept_request()         // O(1) per-iter
+    let resp = handle(req: req)        // O(1) per-iter
+    send_response(resp: resp)
+  })
 }</pre>
       </div>
       <div class="demo-panel">
-        <header><span>function_classes + violations</span><span class="badge badge-diag">Diagnostic</span></header>
+        <header><span>cost lens output</span><span class="badge badge-now">measured</span></header>
         <div class="demo-out">
-          <span class="diag-fail">count_up &nbsp; O(?)</span><br /><br />
-          violation: recursion has no structural decreasing argument<br />
-          (no silent O(1) guess)
+          <span class="diag-ok">run_server</span> &nbsp; Forever × O(1) per iteration<br /><br />
+          structured as <code>repeat(Forever, body)</code><br />
+          per-iter body cost is structurally bounded<br />
+          (a non-bounded loop is a compiler bug, not a user-facing class)
         </div>
       </div>
     </div>
-    <p class="muted" style="margin-top:0.75rem;font-size:0.78rem">
-      Fixture: <a href="fixtures/count_up.complexity.txt">fixtures/count_up.complexity.txt</a>.
-    </p>
 
     <h3 style="font-size:1rem;margin:2.5rem 0 0.75rem">Composed cost drift across the graph</h3>
     <p class="muted" style="margin:0 0 1rem">
@@ -848,9 +851,63 @@ endmodule</pre>
         </div>
       </div>
     </div>
-    <div class="demo-panel" style="margin-top:1.25rem">
-      <header><span>Simulated waveform — counter rolling, reset released after t=2</span><span class="badge badge-vision">Vision</span></header>
-      <svg class="artwork" viewBox="0 0 320 160" aria-label="Counter waveform">
+    <div class="demo-grid" style="margin-top:1.25rem">
+      <div class="demo-panel">
+        <header><span>Register-block schematic (synthesis target)</span><span class="badge badge-vision">Vision · derived from same module</span></header>
+        <svg class="artwork" viewBox="0 0 320 160" aria-label="Counter register-block schematic">
+          <!-- adder block: count + 1 -->
+          <rect class="comp" x="40"  y="40" width="60" height="44" rx="3"/>
+          <text class="label" x="70" y="58" text-anchor="middle">+1</text>
+          <text class="label-sub" x="70" y="74" text-anchor="middle">8-bit</text>
+          <line class="wire" x1="20" y1="62" x2="40" y2="62"/>
+          <text class="label" x="14" y="64" text-anchor="end">count[t]</text>
+
+          <!-- mux: reset ? 0 : count+1 -->
+          <polygon class="comp" points="130,30 170,40 170,84 130,94"/>
+          <text class="label" x="150" y="62" text-anchor="middle">MUX</text>
+          <line class="wire" x1="100" y1="62" x2="130" y2="58"/>
+          <text class="label-sub" x="118" y="55">count+1</text>
+          <!-- constant 0 input -->
+          <line class="wire" x1="100" y1="82" x2="130" y2="78"/>
+          <text class="label-sub" x="118" y="92">8'd0</text>
+          <text class="label" x="105" y="80" text-anchor="end" style="opacity:0.6">0</text>
+          <!-- select line: reset -->
+          <line class="wire" x1="150" y1="20" x2="150" y2="30"/>
+          <text class="label" x="155" y="18">reset</text>
+
+          <!-- D flip-flop bank -->
+          <rect class="comp" x="200" y="40" width="60" height="44" rx="3"/>
+          <text class="label" x="230" y="58" text-anchor="middle">D-FF × 8</text>
+          <text class="label-sub" x="230" y="74" text-anchor="middle">posedge clk</text>
+          <line class="wire" x1="170" y1="62" x2="200" y2="62"/>
+          <text class="label-sub" x="185" y="58" text-anchor="middle">D</text>
+
+          <!-- clk into flip-flop (triangle marker) -->
+          <line class="wire" x1="220" y1="100" x2="220" y2="84"/>
+          <polygon class="comp polarity-dot" points="217,84 223,84 220,80" style="fill:currentColor"/>
+          <text class="label" x="225" y="108">clk</text>
+
+          <!-- Q output back to count + readout -->
+          <line class="wire" x1="260" y1="62" x2="300" y2="62"/>
+          <circle class="node-pt" cx="290" cy="62" r="2.5"/>
+          <text class="label" x="306" y="64">count[t+1]</text>
+
+          <!-- feedback path: Q → count register input on next cycle (drawn dashed) -->
+          <path class="wire" d="M290,62 L290,130 L20,130 L20,80 L20,62" style="stroke-dasharray:3 3;opacity:0.5"/>
+          <text class="label-sub" x="160" y="142" text-anchor="middle" style="opacity:0.6">feedback · next cycle</text>
+
+          <!-- title -->
+          <text class="label-sub" x="160" y="14" text-anchor="middle">counter.dag · count[t+1] = reset ? 0 : count[t] + 1</text>
+        </svg>
+        <div class="demo-out muted" style="font-size:0.72rem">
+          The schematic is a projection of the same <code>AlwaysBlock</code>/<code>NetAssignment</code> graph
+          the Verilog emitter walks — adder + mux + clocked register bank. Same structural carriers,
+          different surface.
+        </div>
+      </div>
+      <div class="demo-panel">
+        <header><span>Simulated waveform — counter rolling, reset released after t=2</span><span class="badge badge-vision">Vision</span></header>
+        <svg class="artwork" viewBox="0 0 320 160" aria-label="Counter waveform">
         <!-- grid -->
         <line class="signal-bg" x1="60" y1="30"  x2="305" y2="30"/>
         <line class="signal-bg" x1="60" y1="70"  x2="305" y2="70"/>
@@ -881,9 +938,12 @@ endmodule</pre>
         <text class="label" x="60" y="153">t=0</text>
         <text class="label" x="305" y="153" text-anchor="end">8 cycles</text>
       </svg>
+      </div>
     </div>
     <p class="muted" style="margin-top:0.75rem;font-size:0.78rem">
-      Same shape, different physics. The <code>.dag</code> module compiles to Verilog and, on the same graph, a structural lens checks that the testbench covers every <code>state</code> transition it declares.
+      Same shape, three projections — Verilog source, synthesized register-block schematic, and the
+      waveform that proves the recurrence <code>count[t+1] = reset ? 0 : count[t] + 1</code> holds.
+      A structural lens checks that the testbench covers every <code>state</code> transition the module declares.
     </p>
 
     <p style="margin-top:2.5rem">
