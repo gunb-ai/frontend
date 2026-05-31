@@ -480,48 +480,71 @@
   }
 
   function renderFanout(s) {
-    // Compute y centers relative to the code container, and match the SVG's
-    // viewBox to its actual rendered pixel dimensions so the bezier coordinates
-    // are 1:1 with pixels. No stretching, no preserveAspectRatio surprises.
+    // The fanout sits as a left-margin gutter on the code. Both origin and
+    // target dots live on the RIGHT edge of this column (flush with the code's
+    // colored line-border). Bezier control points push deep into the column on
+    // the LEFT, so each curve arcs out to the left and back to the right —
+    // visually "hanging off" the source code's left margin.
     var codeBox = codeEl.getBoundingClientRect();
     var siteEl = codeEl.querySelector('[data-line="' + s.site.line + '"]');
     if (!siteEl) { fanoutEl.innerHTML = ""; return; }
 
-    var fanW = Math.max(48, fanoutEl.clientWidth | 0);   // safety floor for the rare zero-width pass
+    // viewBox is matched to actual rendered pixel dimensions so the bezier
+    // coordinates are 1:1 with pixels — no preserveAspectRatio surprises.
+    var fanW = Math.max(48, fanoutEl.clientWidth | 0);
     var fanH = codeBox.height;
     fanoutEl.setAttribute("viewBox", "0 0 " + fanW + " " + fanH);
     fanoutEl.style.height = fanH + "px";
 
-    // Origin sits ~6% in from the left edge; target sits ~6% in from the right.
-    var originX = Math.max(4, Math.round(fanW * 0.06));
-    var targetX = Math.min(fanW - 4, Math.round(fanW * 0.94));
-    // Bezier control points roughly straddle the midline so the curve has
-    // gentle horizontal symmetry no matter the column width.
-    var ctrlA = Math.round(fanW * 0.42);
-    var ctrlB = Math.round(fanW * 0.58);
+    // Both endpoints hug the right edge (next to the code). Control points sit
+    // around 15-25% from the left so the curves bulge into the empty gutter.
+    var endX  = Math.max(8, fanW - 4);
+    var ctrl1 = Math.round(fanW * 0.18);
+    var ctrl2 = Math.round(fanW * 0.18);
     var siteY = siteEl.getBoundingClientRect().top - codeBox.top + siteEl.offsetHeight / 2;
 
     var svgParts = [
-      // origin dot at the changed line — r set as attribute for cross-browser SVG2 safety
-      '<circle class="dot-changed" cx="' + originX + '" cy="' + siteY + '" r="3.6" />',
+      // Origin dot — sits flush against the changed code line's left border
+      '<circle class="dot-changed" cx="' + endX + '" cy="' + siteY + '" r="3.6" />',
     ];
 
     function addEdge(targetLine, kind) {
       var tEl = codeEl.querySelector('[data-line="' + targetLine + '"]');
       if (!tEl) return;
       var tY = tEl.getBoundingClientRect().top - codeBox.top + tEl.offsetHeight / 2;
-      var d = "M" + originX + "," + siteY +
-              " C" + ctrlA + "," + siteY +
-              " " + ctrlB + "," + tY +
-              " " + targetX + "," + tY;
+      // Curve fans LEFT into the gutter and lands flush against the affected line.
+      var d = "M" + endX + "," + siteY +
+              " C" + ctrl1 + "," + siteY +
+              " " + ctrl2 + "," + tY +
+              " " + endX + "," + tY;
       svgParts.push('<path class="e-' + kind + '" d="' + d + '" />');
-      svgParts.push('<circle class="dot-' + kind + '" cx="' + targetX + '" cy="' + tY + '" r="3" />');
+      svgParts.push('<circle class="dot-' + kind + '" cx="' + endX + '" cy="' + tY + '" r="3" />');
     }
 
     s.direct.forEach(function (d)  { addEdge(d.line, "direct"); });
     s.transitive.forEach(function (t) { addEdge(t.line, "transitive"); });
 
     fanoutEl.innerHTML = svgParts.join("");
+
+    // Per-path draw-in animation: dasharray = the path's actual length, so
+    // there's never a hard-coded length that's shorter than the curve (which
+    // produced the "break/slice" mid-bezier with the old CSS-based dasharray).
+    var reduceMotion = window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    fanoutEl.querySelectorAll("path").forEach(function (p, i) {
+      var len = p.getTotalLength();
+      p.style.strokeDasharray = len + " " + len;
+      if (reduceMotion) {
+        p.style.strokeDashoffset = "0";
+        return;
+      }
+      p.style.strokeDashoffset = len;
+      // Force layout so the browser registers the starting state before the
+      // transition kicks in — otherwise it snaps straight to 0.
+      void p.getBoundingClientRect();
+      p.style.transition = "stroke-dashoffset 0.55s ease " + (i * 60) + "ms";
+      p.style.strokeDashoffset = "0";
+    });
   }
 
   function renderReceipt(s) {
