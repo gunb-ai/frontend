@@ -263,8 +263,8 @@
     <!-- ── Code column ── -->
     <div class="as-code" id="as-code"><!-- populated by JS --></div>
 
-    <!-- ── Fan-out SVG ── -->
-    <svg class="as-fanout" id="as-fanout" viewBox="0 0 64 600" preserveAspectRatio="none" aria-hidden="true"></svg>
+    <!-- ── Fan-out SVG (viewBox computed from rendered size — coords are 1:1 with pixels) ── -->
+    <svg class="as-fanout" id="as-fanout" aria-hidden="true"></svg>
 
     <!-- ── Affected tree ── -->
     <div class="as-tree" id="as-tree"><!-- populated by JS --></div>
@@ -481,28 +481,37 @@
   }
 
   function renderFanout(s) {
-    // Compute y centers for each line relative to the code container.
+    // Compute y centers relative to the code container, and match the SVG's
+    // viewBox to its actual rendered pixel dimensions so the bezier coordinates
+    // are 1:1 with pixels. No stretching, no preserveAspectRatio surprises.
     var codeBox = codeEl.getBoundingClientRect();
     var siteEl = codeEl.querySelector('[data-line="' + s.site.line + '"]');
     if (!siteEl) { fanoutEl.innerHTML = ""; return; }
-    var siteY = siteEl.getBoundingClientRect().top - codeBox.top + siteEl.offsetHeight / 2;
 
+    var fanW = Math.max(48, fanoutEl.clientWidth | 0);   // safety floor for the rare zero-width pass
     var fanH = codeBox.height;
-    fanoutEl.setAttribute("viewBox", "0 0 64 " + fanH);
+    fanoutEl.setAttribute("viewBox", "0 0 " + fanW + " " + fanH);
     fanoutEl.style.height = fanH + "px";
 
+    // Origin sits ~6% in from the left edge; target sits ~6% in from the right.
+    var originX = Math.max(4, Math.round(fanW * 0.06));
+    var targetX = Math.min(fanW - 4, Math.round(fanW * 0.94));
+    // Bezier control points roughly straddle the midline so the curve has
+    // gentle horizontal symmetry no matter the column width.
+    var ctrlA = Math.round(fanW * 0.42);
+    var ctrlB = Math.round(fanW * 0.58);
+    var siteY = siteEl.getBoundingClientRect().top - codeBox.top + siteEl.offsetHeight / 2;
+
     var svgParts = [
-      // origin dot at the changed line — r set as attribute, not CSS
-      '<circle class="dot-changed" cx="4" cy="' + siteY + '" r="3.6" />',
+      // origin dot at the changed line — r set as attribute for cross-browser SVG2 safety
+      '<circle class="dot-changed" cx="' + originX + '" cy="' + siteY + '" r="3.6" />',
     ];
 
     function addEdge(targetLine, kind) {
       var tEl = codeEl.querySelector('[data-line="' + targetLine + '"]');
       if (!tEl) return;
       var tY = tEl.getBoundingClientRect().top - codeBox.top + tEl.offsetHeight / 2;
-      // curved bezier across a wider 96px column for visual breathing room
-      var ctrlA = 38, ctrlB = 58, targetX = 92;
-      var d = "M4," + siteY +
+      var d = "M" + originX + "," + siteY +
               " C" + ctrlA + "," + siteY +
               " " + ctrlB + "," + tY +
               " " + targetX + "," + tY;
