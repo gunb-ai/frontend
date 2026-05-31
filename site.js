@@ -3,11 +3,25 @@
   var html = document.documentElement;
   var btn = document.getElementById("mode-toggle");
   var label = document.getElementById("mode-label-text");
+
+  // Initial mode: saved preference > system preference > the HTML default.
+  // Done early so the page paints in the right mode (a tiny inline <head>
+  // script could remove the brief flash; see TODO below).
+  try {
+    var saved = localStorage.getItem("daglang-mode");
+    var systemLight = window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: light)").matches;
+    var initial = saved || (systemLight ? "light" : "dark");
+    html.setAttribute("data-mode", initial);
+    if (label) label.textContent = initial.charAt(0).toUpperCase() + initial.slice(1);
+  } catch (_) { /* localStorage may be blocked; fall back to HTML default */ }
+
   if (btn && label) {
     btn.addEventListener("click", function () {
       var next = (html.getAttribute("data-mode") || "dark") === "dark" ? "light" : "dark";
       html.setAttribute("data-mode", next);
       label.textContent = next.charAt(0).toUpperCase() + next.slice(1);
+      try { localStorage.setItem("daglang-mode", next); } catch (_) {}
     });
   }
 

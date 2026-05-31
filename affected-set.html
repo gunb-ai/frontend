@@ -322,10 +322,55 @@
 
     @media (max-width: 880px) {
       .as-stage { grid-template-columns: 1fr; }
-      .as-fanout { display: none; } /* overlay arrows hidden on narrow screens; tree below replaces them */
+      .as-fanout { display: none; } /* overlay arrows hidden on narrow screens; impact chain below replaces them */
       .as-tree { border-left: 0; border-top: 1px solid var(--border-dark); padding: 1.25rem; }
       [data-mode="light"] .as-tree { border-top-color: var(--border-light); }
       .as-receipt { grid-template-columns: 1fr 1fr; }
+      .as-mobile-chain { display: grid; }
+    }
+
+    /* ─── Mobile impact chain ─── desktop hides the fanout SVG cleanly,
+       but the graph meaning shouldn't disappear with it. On mobile we
+       render the same propagation as a stacked card chain so the demo
+       still tells its story. Hidden on desktop. */
+    .as-mobile-chain {
+      display: none; /* enabled inside the 880px media query above */
+      gap: 0.5rem;
+      margin: 1.25rem 0 0;
+      padding: 0;
+      list-style: none;
+      font-family: var(--font-mono); font-size: 0.74rem;
+    }
+    .as-mobile-chain li {
+      border: 1px solid; border-radius: 4px;
+      padding: 0.7rem 0.9rem;
+      border-left-width: 3px;
+      display: grid; gap: 0.25rem;
+    }
+    [data-mode="dark"] .as-mobile-chain li { background: var(--void-up); border-color: var(--border-dark); }
+    [data-mode="light"] .as-mobile-chain li { background: var(--warm-white-up); border-color: var(--border-light); }
+    .as-mobile-chain li.c-changed     { border-left-color: var(--diag-fail);    color: var(--diag-fail); }
+    .as-mobile-chain li.c-direct      { border-left-color: var(--tier-next);    color: var(--tier-next); }
+    .as-mobile-chain li.c-transitive  { border-left-color: var(--tier-vision);  color: var(--tier-vision); }
+    .as-mobile-chain li.c-gen, .as-mobile-chain li.c-art {
+      border-left-color: var(--stone-faint); color: currentColor;
+    }
+    .as-mobile-chain .as-mc-label {
+      font-size: 0.62rem; letter-spacing: 0.16em;
+      text-transform: uppercase; opacity: 0.75;
+    }
+    .as-mobile-chain .as-mc-body {
+      font-size: 0.78rem; line-height: 1.55;
+      color: currentColor;
+    }
+    .as-mobile-chain code { font-size: 0.74rem; }
+    .as-mobile-chain .as-mc-arrow {
+      grid-column: 1 / -1;
+      text-align: center;
+      font-size: 0.85rem;
+      opacity: 0.45;
+      margin: -0.25rem 0;
+      color: currentColor;
     }
   </style>
 </head>
@@ -406,6 +451,9 @@
     <!-- ── Affected tree ── -->
     <div class="as-tree" id="as-tree"><!-- populated by JS --></div>
   </div>
+
+  <!-- ── Mobile-only impact chain: stacked cards replacing the hidden fanout SVG ── -->
+  <ol class="as-mobile-chain" id="as-mobile-chain" aria-label="impact chain (mobile)"><!-- populated by JS --></ol>
 
   <div class="as-receipt" id="as-receipt">
     <div class="as-receipt-cell">
@@ -804,6 +852,61 @@ await candidate.emitAffected({ scope: affected });
     }
 
     treeEl.innerHTML = html;
+    renderMobileChain(s);
+  }
+
+  // Mobile-only impact chain — same data the tree shows, in a stacked
+  // card sequence with arrows. Visible only at <880px (the media query
+  // toggles display:grid). Replaces the hidden fanout SVG so the
+  // propagation story still works on phones.
+  function renderMobileChain(s) {
+    var mc = document.getElementById("as-mobile-chain");
+    if (!mc) return;
+    var arr = '<li class="as-mc-arrow" aria-hidden="true">↓</li>';
+    var html = "";
+    html += '<li class="c-changed"><span class="as-mc-label">Edit · L' + s.site.line +
+      '</span><span class="as-mc-body">' + escapeHtml(s.site.label) +
+      '<br /><code>' + escapeHtml(s.site.node) + '</code></span></li>';
+    if (s.direct && s.direct.length) {
+      html += arr;
+      html += '<li class="c-direct"><span class="as-mc-label">Direct dependents · ' + s.direct.length +
+        '</span><span class="as-mc-body">' +
+        s.direct.map(function (d) {
+          return escapeHtml(d.name) + ' <small style="opacity:0.7">L' + d.line + '</small>';
+        }).join("<br />") +
+        '</span></li>';
+    }
+    if (s.transitive && s.transitive.length) {
+      html += arr;
+      html += '<li class="c-transitive"><span class="as-mc-label">Transitive · ' + s.transitive.length +
+        '</span><span class="as-mc-body">' +
+        s.transitive.map(function (t) {
+          return escapeHtml(t.name) + ' <small style="opacity:0.7">L' + t.line + '</small>';
+        }).join("<br />") +
+        '</span></li>';
+    }
+    if (s.generated && s.generated.length) {
+      html += arr;
+      var failing = s.generated.filter(function (g) { return g.state === "fail"; }).length;
+      html += '<li class="c-gen"><span class="as-mc-label">Generated checks · ' +
+        s.generated.length + (failing ? ' (' + failing + ' fail)' : '') +
+        '</span><span class="as-mc-body">' +
+        s.generated.map(function (g) {
+          var icon = g.state === "fail" ? "✕" : g.state === "warn" ? "!" : "✓";
+          return icon + ' ' + escapeHtml(g.label);
+        }).join("<br />") +
+        '</span></li>';
+    }
+    if (s.artifacts && s.artifacts.length) {
+      html += arr;
+      html += '<li class="c-art"><span class="as-mc-label">Artifacts to re-emit · ' + s.artifacts.length +
+        '</span><span class="as-mc-body">' +
+        s.artifacts.map(function (a) {
+          return '<strong>' + escapeHtml(a.lang) + '</strong> · ' + escapeHtml(a.file);
+        }).join("<br />") +
+        '</span></li>';
+    }
+    mc.innerHTML = html;
   }
 
   // Helper: vertical center of `el` relative to `rootBox`.
