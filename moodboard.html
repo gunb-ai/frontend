@@ -710,16 +710,20 @@
        eyes/mouth; the antenna is a separate solid path so its ball can overlap
        the stalk without punching an evenodd hole. -->
   <symbol id="stoic-robot" viewBox="0 0 120 120">
-    <path fill-rule="evenodd" fill="currentColor" d="
-      M40,20 H80 A30,30 0 0,1 110,50 V70 A30,30 0 0,1 80,100 H40 A30,30 0 0,1 10,70 V50 A30,30 0 0,1 40,20 Z
-      M30,41 H40 A2,2 0 0,1 42,43 V53 A2,2 0 0,1 40,55 H30 A2,2 0 0,1 28,53 V43 A2,2 0 0,1 30,41 Z
-      M80,41 H90 A2,2 0 0,1 92,43 V53 A2,2 0 0,1 90,55 H80 A2,2 0 0,1 78,53 V43 A2,2 0 0,1 80,41 Z
-      M54,54 H66 A2,2 0 0,1 68,56 V58 A2,2 0 0,1 66,60 H54 A2,2 0 0,1 52,58 V56 A2,2 0 0,1 54,54 Z
-    "/>
-    <path fill="currentColor" d="
-      M58,12 H62 V20 H58 Z
-      M54,8 A6,6 0 0,1 66,8 A6,6 0 0,1 54,8 Z
-    "/>
+    <!-- antenna raises the bbox top to y2; shift the whole mark down 9 so the
+         full bbox y[2,100] -> y[11,109] is centered in the 120 frame -->
+    <g transform="translate(0 9)">
+      <path fill-rule="evenodd" fill="currentColor" d="
+        M40,20 H80 A30,30 0 0,1 110,50 V70 A30,30 0 0,1 80,100 H40 A30,30 0 0,1 10,70 V50 A30,30 0 0,1 40,20 Z
+        M30,41 H40 A2,2 0 0,1 42,43 V53 A2,2 0 0,1 40,55 H30 A2,2 0 0,1 28,53 V43 A2,2 0 0,1 30,41 Z
+        M80,41 H90 A2,2 0 0,1 92,43 V53 A2,2 0 0,1 90,55 H80 A2,2 0 0,1 78,53 V43 A2,2 0 0,1 80,41 Z
+        M54,54 H66 A2,2 0 0,1 68,56 V58 A2,2 0 0,1 66,60 H54 A2,2 0 0,1 52,58 V56 A2,2 0 0,1 54,54 Z
+      "/>
+      <path fill="currentColor" d="
+        M58,12 H62 V20 H58 Z
+        M54,8 A6,6 0 0,1 66,8 A6,6 0 0,1 54,8 Z
+      "/>
+    </g>
   </symbol>
 </svg>
 
