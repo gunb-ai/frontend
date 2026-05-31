@@ -221,9 +221,6 @@ a { color: inherit; }
   transition: transform 3.6s cubic-bezier(.22, .61, .36, 1);
 }
 .hero-logo .features.is-snap { transition: none; }
-@media (prefers-reduced-motion: reduce) {
-  .hero-logo .features { transform: none !important; transition: none !important; }
-}
 .hero-eyebrow {
   font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.18em;
   text-transform: uppercase; color: var(--tier-now);
@@ -812,7 +809,10 @@ a { color: inherit; }
 
 /* ─── Reduced motion (site-wide) ──────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .hero-logo .features,
+  .hero-logo .features {
+    transform: none !important;
+    transition: none !important;
+  }
   .hero-cta, .hero-cta-secondary,
   .card, .tile, .beyond-tile, .pg-fn, .tab,
   .cx-row,
