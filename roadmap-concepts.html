@@ -154,7 +154,7 @@
   </style>
 </head>
 <body>
-<a href="#main-content" class="skip-link">Skip to main content</a>
+<a href="#main" class="skip-link">Skip to main content</a>
 
 <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
   <symbol id="stoic-idle" viewBox="0 0 120 120">
@@ -187,7 +187,7 @@
   </div>
 </nav>
 
-<main id="main-content" class="wrap" style="padding:3rem 0 5rem">
+<main id="main" class="wrap" style="padding:3rem 0 5rem">
   <p class="section-eyebrow">Picking a roadmap visualization</p>
   <h1 style="font-size:2rem;margin:0 0 0.6rem;letter-spacing:-0.02em">Three candidates. Pick one.</h1>
   <p class="muted" style="max-width:42em;margin:0 0 2rem">
@@ -205,8 +205,12 @@
       builds on <code>fold_node</code>; omni-ingestion is the inverse arrow of translate.
       <strong>Weakness:</strong> denser to scan than a list.
     </p>
+    <p id="concept-dag-desc" class="visually-hidden">
+      Capability DAG concept: compiler core, emit targets, lenses, and planned ingestion nodes with dependency edges.
+    </p>
     <div class="concept-frame">
-      <svg class="dag-canvas" viewBox="0 0 960 480" aria-label="Capability DAG">
+      <svg class="dag-canvas" viewBox="0 0 960 480" aria-labelledby="concept-dag-title concept-dag-desc">
+        <title id="concept-dag-title">Capability DAG</title>
         <!-- edges (drawn first, behind nodes) -->
         <g>
           <!-- core → emit targets (Rust now, Go/Py stabilizing) -->

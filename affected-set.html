@@ -175,7 +175,7 @@
     .as-tree-row.r-direct      .as-tree-marker { color: var(--tier-next); }
     .as-tree-row.r-transitive  .as-tree-marker { color: var(--tier-vision); }
     .as-tree-row .as-tree-name { font-weight: 500; }
-    .as-tree-row .as-tree-line { font-size: 0.68rem; opacity: 0.6; text-align: right; }
+    .as-tree-row .as-tree-line { font-size: 0.68rem; opacity: 0.75; text-align: right; }
     /* Text-tag chip so the meaning survives color blindness / low contrast */
     .as-tree-tag {
       font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase;
@@ -191,7 +191,7 @@
     /* Graph-node sublabel under each tree row */
     .as-tree-node {
       display: block; font-family: var(--font-mono); font-size: 0.62rem;
-      opacity: 0.55; margin-top: 0.15rem; letter-spacing: 0.01em;
+      opacity: 0.72; margin-top: 0.15rem; letter-spacing: 0.01em;
     }
 
     /* Generated checks list */
@@ -387,7 +387,7 @@
   </style>
 </head>
 <body>
-<a href="#main-content" class="skip-link">Skip to main content</a>
+<a href="#main" class="skip-link">Skip to main content</a>
 
 <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
   <symbol id="stoic-idle" viewBox="0 0 120 120">
@@ -410,7 +410,7 @@
       <a href="showcase.html" class="nav-link" style="color:var(--tier-now)">Showcase</a>
       <a href="showcase-backend.html" class="nav-link" style="color:var(--tier-next)">Showcase · backend</a>
       <a href="examples.html" class="nav-link">Examples</a>
-      <a href="affected-set.html" class="nav-link active">Affected-set</a>
+      <a href="affected-set.html" class="nav-link active" aria-current="page">Affected-set</a>
       <a href="roadmap.html" class="nav-link">Roadmap</a>
       <a href="https://github.com/gunb-ai/daglang/blob/main/THESIS.md" class="nav-link">Docs</a>
       <a href="https://github.com/gunb-ai/daglang" class="nav-link">GitHub</a>
@@ -422,7 +422,7 @@
   </div>
 </nav>
 
-<main id="main-content" class="wrap" style="padding:3rem 0 5rem">
+<main id="main" class="wrap" style="padding:3rem 0 5rem">
   <p class="section-eyebrow">Graph-aware impact analysis</p>
   <h1 style="font-size:2rem;margin:0 0 0.6rem;letter-spacing:-0.02em">Change one line. See the graph move.</h1>
   <p class="muted as-intro">
@@ -456,7 +456,7 @@
     <span><i class="lg-skipped"></i> skipped with receipt</span>
   </div>
 
-  <div class="as-stage" role="region" aria-label="Affected-set impact diagram">
+  <div class="as-stage">
     <!-- ── Fan-out gutter — left margin of the code, curves bulge inward ── -->
     <svg class="as-fanout" id="as-fanout" aria-hidden="true" focusable="false"></svg>
 

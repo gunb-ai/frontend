@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="site.css" />
 </head>
 <body>
-<a href="#main-content" class="skip-link">Skip to main content</a>
+<a href="#main" class="skip-link">Skip to main content</a>
 
 <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
   <symbol id="stoic-idle" viewBox="0 0 120 120">
@@ -37,7 +37,7 @@
     <div class="nav-links">
       <a href="showcase.html" class="nav-link" style="color:var(--tier-now)">Showcase</a>
       <a href="showcase-backend.html" class="nav-link" style="color:var(--tier-next)">Showcase · backend</a>
-      <a href="examples.html" class="nav-link active">Examples</a>
+      <a href="examples.html" class="nav-link active" aria-current="page">Examples</a>
       <a href="affected-set.html" class="nav-link">Affected-set</a>
       <a href="roadmap.html" class="nav-link">Roadmap</a>
       <a href="https://github.com/gunb-ai/daglang/blob/main/THESIS.md" class="nav-link">Docs</a>
@@ -50,7 +50,7 @@
   </div>
 </nav>
 
-<main id="main-content" class="wrap" style="padding:3.5rem 0 4rem">
+<main id="main" class="wrap" style="padding:3.5rem 0 4rem">
   <p class="section-eyebrow">Examples</p>
   <h1 style="font-size:2rem;margin:0 0 0.6rem;letter-spacing:-0.02em">Try today. Explore the roadmap.</h1>
   <p class="muted" style="max-width:42em;margin:0 0 2.25rem">
@@ -239,7 +239,9 @@ fn describe_condition(cond: Condition) -> String {
         </div>
         <div class="pg-shape">
           <header><span id="pg-shape-name">Structural shape</span><span style="opacity:0.55" id="pg-shape-tag">cost-lens algebra</span></header>
-          <svg class="pg-shape-svg" id="pg-shape-svg" viewBox="0 0 320 220" role="img" aria-labelledby="pg-shape-name"></svg>
+          <svg class="pg-shape-svg" id="pg-shape-svg" viewBox="0 0 320 220" aria-labelledby="pg-shape-svg-title">
+            <title id="pg-shape-svg-title">Structural cost graph for selected function</title>
+          </svg>
         </div>
       </div>
 
@@ -703,7 +705,7 @@ fn list_in_list_index_used() {
 
     <!-- Flow strip -->
     <div class="playground" style="padding:1.5rem 1.75rem">
-      <svg viewBox="0 0 640 90" style="width:100%;height:auto;display:block" role="img" aria-label="Agent workflow: read graph, analyze with lens, apply diff, query affected set, emit artifacts">
+      <svg viewBox="0 0 640 90" style="width:100%;height:auto;display:block" aria-hidden="true" focusable="false">
         <defs>
           <marker id="arrow-next" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
             <path d="M0,0 L10,5 L0,10 z" fill="hsl(38, 72%, 56%)"/>
@@ -945,7 +947,8 @@ C1 out 0   100n
     <div class="demo-grid" style="margin-top:1.25rem">
       <div class="demo-panel">
         <header><span>Schematic (rendered from graph)</span><span class="badge badge-vision">Planned</span></header>
-        <svg class="artwork" viewBox="0 0 320 140" aria-label="Low-pass RC filter schematic">
+        <svg class="artwork" viewBox="0 0 320 140" aria-labelledby="ex-rc-schematic-title">
+          <title id="ex-rc-schematic-title">Low-pass RC filter schematic rendered from low_pass.dag</title>
           <!-- input node -->
           <circle class="node-pt" cx="30" cy="60" r="2.5"/>
           <text class="label" x="22" y="55" text-anchor="end">in</text>
@@ -981,7 +984,8 @@ C1 out 0   100n
       </div>
       <div class="demo-panel">
         <header><span>Simulated response (Bode magnitude)</span><span class="badge badge-vision">Planned</span></header>
-        <svg class="artwork" viewBox="0 0 320 140" aria-label="Simulated Bode magnitude of low-pass filter">
+        <svg class="artwork" viewBox="0 0 320 140" aria-labelledby="ex-rc-bode-title">
+          <title id="ex-rc-bode-title">Simulated Bode magnitude response of the low-pass RC filter</title>
           <!-- grid -->
           <line class="signal-bg" x1="40" y1="30"  x2="305" y2="30"/>
           <line class="signal-bg" x1="40" y1="60"  x2="305" y2="60"/>
@@ -1080,7 +1084,8 @@ endmodule</pre>
     <div class="demo-grid" style="margin-top:1.25rem">
       <div class="demo-panel">
         <header><span>Register-block schematic (synthesis target)</span><span class="badge badge-vision">Planned · derived from same module</span></header>
-        <svg class="artwork" viewBox="0 0 320 160" aria-label="Counter register-block schematic">
+        <svg class="artwork" viewBox="0 0 320 160" aria-labelledby="ex-counter-schematic-title">
+          <title id="ex-counter-schematic-title">8-bit counter register-block schematic: adder, reset mux, and clocked D flip-flops</title>
           <!-- adder block: count + 1 -->
           <rect class="comp" x="40"  y="40" width="60" height="44" rx="3"/>
           <text class="label" x="70" y="58" text-anchor="middle">+1</text>
@@ -1133,7 +1138,8 @@ endmodule</pre>
       </div>
       <div class="demo-panel">
         <header><span>Simulated waveform — counter rolling, reset released after t=2</span><span class="badge badge-vision">Planned</span></header>
-        <svg class="artwork" viewBox="0 0 320 160" aria-label="Counter waveform">
+        <svg class="artwork" viewBox="0 0 320 160" aria-labelledby="ex-counter-waveform-title">
+          <title id="ex-counter-waveform-title">Counter simulation waveform: clock, reset, and 8-bit count over time</title>
         <!-- grid -->
         <line class="signal-bg" x1="60" y1="30"  x2="305" y2="30"/>
         <line class="signal-bg" x1="60" y1="70"  x2="305" y2="70"/>

@@ -98,7 +98,7 @@
   </style>
 </head>
 <body>
-<a href="#main-content" class="skip-link">Skip to main content</a>
+<a href="#main" class="skip-link">Skip to main content</a>
 
 <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
   <symbol id="stoic-idle" viewBox="0 0 120 120">
@@ -122,7 +122,7 @@
       <a href="showcase-backend.html" class="nav-link" style="color:var(--tier-next)">Showcase · backend</a>
       <a href="examples.html" class="nav-link">Examples</a>
       <a href="affected-set.html" class="nav-link">Affected-set</a>
-      <a href="roadmap.html" class="nav-link active">Roadmap</a>
+      <a href="roadmap.html" class="nav-link active" aria-current="page">Roadmap</a>
       <a href="https://github.com/gunb-ai/daglang/blob/main/THESIS.md" class="nav-link">Docs</a>
       <a href="https://github.com/gunb-ai/daglang" class="nav-link">GitHub</a>
     </div>
@@ -133,7 +133,7 @@
   </div>
 </nav>
 
-<main id="main-content" class="wrap" style="padding:3rem 0 5rem">
+<main id="main" class="wrap" style="padding:3rem 0 5rem">
   <p class="section-eyebrow">Roadmap</p>
   <h1 style="font-size:2rem;margin:0 0 0.6rem;letter-spacing:-0.02em">The roadmap is a graph.</h1>
   <p class="muted" style="max-width:46em;margin:0 0 0.5rem;font-size:1.05rem">
@@ -153,8 +153,13 @@
   </div>
 
   <!-- ── Capability DAG ── -->
+  <p id="rd-dag-desc" class="visually-hidden">
+    Capability DAG: gunbc compiler core at the center, emit targets (Rust, Go, Python), structural lenses
+    (fold_node, apply_diff), omni-emission, and planned agent SDK nodes connected by dependency edges.
+  </p>
   <div class="rd-frame">
-    <svg class="rd-dag" viewBox="0 0 960 480" aria-label="daglang capability DAG">
+    <svg class="rd-dag" viewBox="0 0 960 480" aria-labelledby="rd-dag-title rd-dag-desc">
+      <title id="rd-dag-title">daglang capability DAG</title>
       <!-- edges first, behind nodes -->
       <g>
         <!-- core → emit targets -->

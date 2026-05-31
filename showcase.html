@@ -157,12 +157,6 @@
       from { transform: translateX(-100%); }
       to   { transform: translateX(100%); }
     }
-    @media (prefers-reduced-motion: reduce) {
-      .sc-tile { transition: none !important; }
-      .sc-tile:hover { transform: none !important; }
-      .sc-tile.is-affected::after { animation: none !important; opacity: 1; transform: none; }
-    }
-
     .sc-tile header {
       display: flex; justify-content: space-between; align-items: center;
       padding: 0.7rem 0.9rem; font-family: var(--font-mono); font-size: 0.72rem;
@@ -314,7 +308,7 @@
   </style>
 </head>
 <body>
-<a href="#main-content" class="skip-link">Skip to main content</a>
+<a href="#main" class="skip-link">Skip to main content</a>
 
 <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
   <symbol id="stoic-idle" viewBox="0 0 120 120">
@@ -334,7 +328,7 @@
   </a>
   <div class="nav-right">
     <div class="nav-links">
-      <a href="showcase.html" class="nav-link active" style="color:var(--tier-now)">Showcase</a>
+      <a href="showcase.html" class="nav-link active" aria-current="page" style="color:var(--tier-now)">Showcase</a>
       <a href="showcase-backend.html" class="nav-link" style="color:var(--tier-next)">Showcase · backend</a>
       <a href="examples.html" class="nav-link">Examples</a>
       <a href="affected-set.html" class="nav-link">Affected-set</a>
@@ -379,7 +373,7 @@
   </div>
 </div>
 
-<main id="main-content" class="wrap" style="padding:2.5rem 0 5rem">
+<main id="main" class="wrap" style="padding:2.5rem 0 5rem">
   <p class="section-eyebrow">Showcase</p>
   <h1 style="font-size:2.2rem;margin:0 0 0.6rem;letter-spacing:-0.024em">Every feature, on one circuit.</h1>
   <p class="muted" style="max-width:46em;margin:0 0 0.5rem;font-size:1.05rem">
@@ -428,7 +422,8 @@ circuit LowPassFilter {
       </div>
 
       <div class="sc-art-wrap">
-        <svg class="sc-art" viewBox="0 0 360 220" aria-label="Low-pass RC filter schematic">
+        <svg class="sc-art" viewBox="0 0 360 220" aria-labelledby="sc-art-title">
+          <title id="sc-art-title">Low-pass RC filter schematic: AC source, 1 kΩ resistor, 100 nF capacitor to ground, output at capacitor node</title>
           <!-- title bracket -->
           <path class="bracket" d="M14,18 L14,12 L60,12 M300,12 L346,12 L346,18"/>
           <text class="label-sub" x="180" y="11" text-anchor="middle">low_pass.dag · LowPassFilter</text>
@@ -547,7 +542,8 @@ C1 out 0   <span class="live" id="spice-c">100n</span>
           </span>
           <span class="badge badge-vision">Planned · simulated</span>
         </header>
-        <svg class="sc-bode" viewBox="0 0 320 150" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <svg class="sc-bode" viewBox="0 0 320 150" preserveAspectRatio="xMidYMid meet" aria-labelledby="sc-bode-title">
+          <title id="sc-bode-title">Bode magnitude plot of low-pass RC filter: flat passband, −3 dB at cutoff, −20 dB per decade rolloff</title>
           <!-- grid -->
           <line class="grid-line" x1="30" y1="30"  x2="310" y2="30"/>
           <line class="grid-line" x1="30" y1="60"  x2="310" y2="60"/>
