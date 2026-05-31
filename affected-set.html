@@ -46,12 +46,14 @@
     .as-legend .lg-transitive { background: var(--tier-vision); }
     .as-legend .lg-skipped    { background: var(--stone-faint); }
 
-    /* Three-column stage: fanout gutter | source code | affected tree.
-       Curves hang off the LEFT of the code (like a margin annotation),
-       so dot endpoints land flush against the highlighted lines' left borders. */
+    /* Two-column stage: source code | affected tree.
+       Fanout SVG is an absolute overlay sharing the same coordinate
+       system as the stage, so every measured y stays in the same frame
+       no matter how the stage resizes or which font loads. */
     .as-stage {
+      position: relative;
       display: grid;
-      grid-template-columns: 96px minmax(0, 1.25fr) minmax(17rem, 0.9fr);
+      grid-template-columns: minmax(0, 1.25fr) minmax(17rem, 0.9fr);
       gap: 0; align-items: stretch;
       border: 1px solid; border-radius: 6px; overflow: hidden;
     }
@@ -59,14 +61,17 @@
     [data-mode="light"] .as-stage { border-color: var(--border-light); background: var(--warm-white-up); }
 
     .as-code, .as-tree {
-      padding: 1.25rem 1.25rem 1.25rem 0;
+      position: relative; z-index: 2;
+      padding: 1.25rem 1.25rem 1.25rem 1rem;
       font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.7;
     }
-    .as-code { padding-right: 0.5rem; padding-left: 0; min-width: 0; overflow-x: auto; }
+    .as-code { min-width: 0; overflow-x: auto; }
     .as-tree {
       padding-left: 1rem; padding-right: 1.25rem;
       border-left: 1px solid;
     }
+    [data-mode="dark"] .as-tree { border-left-color: var(--border-dark); }
+    [data-mode="light"] .as-tree { border-left-color: var(--border-light); }
     [data-mode="dark"] .as-tree { border-left-color: var(--border-dark); }
     [data-mode="light"] .as-tree { border-left-color: var(--border-light); }
 
@@ -88,7 +93,7 @@
       font-size: 0.7rem; opacity: 0.4; text-align: right; padding-right: 0.6rem;
       user-select: none;
     }
-    .as-line .as-src { white-space: pre; overflow-x: visible; }
+    .as-line .as-src { white-space: pre; min-width: max-content; }
 
     /* States */
     .as-line.is-changed {
@@ -120,14 +125,17 @@
       margin-top: 0.45rem;
     }
 
-    /* Fan-out SVG column — sits to the left of the code; curves bulge into it.
-       Dash properties are set per-path in JS via getTotalLength() so the
-       draw-in animation doesn't break mid-curve when the path is longer
-       than a fixed CSS dasharray. */
+    /* Fan-out SVG — absolutely-positioned overlay over the full stage.
+       Bezier endpoints are computed against the SAME bounding box (the
+       stage), so the SVG coordinate system always matches the DOM
+       coordinate system — no column-height drift, no resize surprises. */
     .as-fanout {
-      width: 96px;
-      align-self: stretch;
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
       pointer-events: none;
+      overflow: visible;
+      z-index: 1;
     }
     .as-fanout path {
       fill: none; stroke-width: 1.5; opacity: 0.85;
@@ -314,7 +322,7 @@
 
     @media (max-width: 880px) {
       .as-stage { grid-template-columns: 1fr; }
-      .as-fanout { display: none; }
+      .as-fanout { display: none; } /* overlay arrows hidden on narrow screens; tree below replaces them */
       .as-tree { border-left: 0; border-top: 1px solid var(--border-dark); padding: 1.25rem; }
       [data-mode="light"] .as-tree { border-top-color: var(--border-light); }
       .as-receipt { grid-template-columns: 1fr 1fr; }
@@ -798,56 +806,61 @@ await candidate.emitAffected({ scope: affected });
     treeEl.innerHTML = html;
   }
 
+  // Helper: vertical center of `el` relative to `rootBox`.
+  function centerY(el, rootBox) {
+    var b = el.getBoundingClientRect();
+    return b.top - rootBox.top + b.height / 2;
+  }
+
   function renderFanout(s) {
-    // The fanout sits as a left-margin gutter on the code. Both origin and
-    // target dots live on the RIGHT edge of this column (flush with the code's
-    // colored line-border). Bezier control points push deep into the column on
-    // the LEFT, so each curve arcs out to the left and back to the right —
-    // visually "hanging off" the source code's left margin.
-    var codeBox = codeEl.getBoundingClientRect();
+    // Single shared coordinate system. The overlay SVG fills the stage, so
+    // EVERY measurement (changed line, target lines, edit endpoints) is taken
+    // against the same .as-stage bounding box. No column-height drift, no
+    // "SVG y differs from DOM y because the SVG column resized differently."
+    var stage = document.querySelector(".as-stage");
+    if (!stage) return;
+    var stageBox = stage.getBoundingClientRect();
+
     var siteEl = codeEl.querySelector('[data-line="' + s.site.line + '"]');
     if (!siteEl) { fanoutEl.innerHTML = ""; return; }
 
-    // viewBox is matched to actual rendered pixel dimensions so the bezier
-    // coordinates are 1:1 with pixels — no preserveAspectRatio surprises.
-    var fanW = Math.max(48, fanoutEl.clientWidth | 0);
-    var fanH = codeBox.height;
-    fanoutEl.setAttribute("viewBox", "0 0 " + fanW + " " + fanH);
-    fanoutEl.style.height = fanH + "px";
+    // viewBox = pixel-for-pixel match with the stage
+    fanoutEl.setAttribute("viewBox", "0 0 " + stageBox.width + " " + stageBox.height);
 
-    // Both endpoints hug the right edge (next to the code). Control points sit
-    // around 15-25% from the left so the curves bulge into the empty gutter.
-    var endX  = Math.max(8, fanW - 4);
-    var ctrl1 = Math.round(fanW * 0.18);
-    var ctrl2 = Math.round(fanW * 0.18);
-    var siteY = siteEl.getBoundingClientRect().top - codeBox.top + siteEl.offsetHeight / 2;
+    // X anchor: just inside the code column's left edge (so dots hug the
+    // colored line-border that marks each affected line). Control points sit
+    // 28-34px to the left, in the empty margin of the code column.
+    var codeBox = codeEl.getBoundingClientRect();
+    var endX  = codeBox.left - stageBox.left + 4;
+    var ctrl1 = endX - 28;
+    var ctrl2 = endX - 28;
+    var siteY = centerY(siteEl, stageBox);
 
-    var svgParts = [
-      // Origin dot — sits flush against the changed code line's left border
+    var parts = [
+      // Origin dot — flush against the changed code line's left border
       '<circle class="dot-changed" cx="' + endX + '" cy="' + siteY + '" r="3.6" />',
     ];
 
     function addEdge(targetLine, kind) {
       var tEl = codeEl.querySelector('[data-line="' + targetLine + '"]');
       if (!tEl) return;
-      var tY = tEl.getBoundingClientRect().top - codeBox.top + tEl.offsetHeight / 2;
-      // Curve fans LEFT into the gutter and lands flush against the affected line.
+      var tY = centerY(tEl, stageBox);
+      // Bezier bulging into the margin to the left of the code column.
       var d = "M" + endX + "," + siteY +
               " C" + ctrl1 + "," + siteY +
               " " + ctrl2 + "," + tY +
               " " + endX + "," + tY;
-      svgParts.push('<path class="e-' + kind + '" d="' + d + '" />');
-      svgParts.push('<circle class="dot-' + kind + '" cx="' + endX + '" cy="' + tY + '" r="3" />');
+      parts.push('<path class="e-' + kind + '" d="' + d + '" />');
+      parts.push('<circle class="dot-' + kind + '" cx="' + endX + '" cy="' + tY + '" r="3" />');
     }
 
     s.direct.forEach(function (d)  { addEdge(d.line, "direct"); });
     s.transitive.forEach(function (t) { addEdge(t.line, "transitive"); });
 
-    fanoutEl.innerHTML = svgParts.join("");
+    fanoutEl.innerHTML = parts.join("");
 
-    // Per-path draw-in animation: dasharray = the path's actual length, so
-    // there's never a hard-coded length that's shorter than the curve (which
-    // produced the "break/slice" mid-bezier with the old CSS-based dasharray).
+    // Per-path draw-in animation: dasharray = actual path length so the line
+    // never breaks mid-bezier. Staggered start so curves draw in sequence.
     var reduceMotion = window.matchMedia &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     fanoutEl.querySelectorAll("path").forEach(function (p, i) {
@@ -858,9 +871,7 @@ await candidate.emitAffected({ scope: affected });
         return;
       }
       p.style.strokeDashoffset = len;
-      // Force layout so the browser registers the starting state before the
-      // transition kicks in — otherwise it snaps straight to 0.
-      void p.getBoundingClientRect();
+      void p.getBoundingClientRect(); // force layout to register start state
       p.style.transition = "stroke-dashoffset 0.55s ease " + (i * 60) + "ms";
       p.style.strokeDashoffset = "0";
     });
@@ -917,18 +928,29 @@ await candidate.emitAffected({ scope: affected });
     });
   });
 
-  function reapplyCurrent() {
-    var current = document.querySelector('.as-scenario[aria-selected="true"]');
-    if (current) applyScenario(current.getAttribute("data-scenario"));
+  // rAF-debounced re-measure — re-runs the fanout geometry only, not the
+  // full scenario re-render. ResizeObserver can fire on every layout tick,
+  // so we coalesce to one frame.
+  var measureQueued = false;
+  function scheduleMeasure() {
+    if (measureQueued) return;
+    measureQueued = true;
+    requestAnimationFrame(function () {
+      measureQueued = false;
+      var current = document.querySelector('.as-scenario[aria-selected="true"]');
+      if (!current) return;
+      var s = SCENARIOS[current.getAttribute("data-scenario")];
+      if (s) renderFanout(s);
+    });
   }
-  window.addEventListener("resize", reapplyCurrent);
-  // Webfont metrics change line heights — re-measure once fonts settle so the
-  // fan-out bezier endpoints land on the right line centers.
+  window.addEventListener("resize", scheduleMeasure);
+  // Webfont metrics change line heights — re-measure once fonts settle.
   if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(reapplyCurrent);
+    document.fonts.ready.then(scheduleMeasure);
   }
   if ("ResizeObserver" in window) {
-    new ResizeObserver(reapplyCurrent).observe(codeEl);
+    new ResizeObserver(scheduleMeasure).observe(codeEl);
+    new ResizeObserver(scheduleMeasure).observe(document.querySelector(".as-stage"));
   }
 
   renderCode();
