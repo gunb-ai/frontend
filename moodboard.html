@@ -1204,7 +1204,7 @@
         <button class="dl-btn" data-dl-symbol="#stoic-robot" data-dl-mode="light" data-dl-name="gunb-mark-robot">&darr; PNG (ink)</button>
         <button class="dl-btn" data-dl-symbol="#stoic-robot" data-dl-mode="dark" data-dl-name="gunb-mark-robot">&darr; PNG (stone)</button>
       </div>
-      <p class="dl-note">Tip: click any tile above to download that mark as a 1024&times;1024 PNG with its background baked in (ink on cream <code>#F4F1EC</code>, or stone on void <code>#151514</code>). Need a transparent vector? Hold &#8997;&nbsp;Option (Alt) while clicking for an SVG.</p>
+      <p class="dl-note">Tip: click any tile above to download a PNG at that tile&rsquo;s pixel size (16&ndash;128px); the buttons give a 1024px master. Background is baked in (ink on cream <code>#F4F1EC</code>, or stone on void <code>#151514</code>). Need a transparent vector? Hold &#8997;&nbsp;Option (Alt) while clicking for an SVG.</p>
     </div>
 
     <!-- ═══════════════════ VOICE ═══════════════════ -->
@@ -1468,20 +1468,19 @@
         triggerDownload(new Blob([svg], { type: "image/svg+xml" }), name + ".svg");
       }
 
-      var PNG_SIZE = 1024;
-      function downloadPNG(symbol, markColor, bgColor, name) {
+      function downloadPNG(symbol, markColor, bgColor, size, name) {
         var svg = buildStandaloneSVG(symbol, markColor);
         var img = new Image();
         img.onload = function () {
           var canvas = document.createElement("canvas");
-          canvas.width = PNG_SIZE;
-          canvas.height = PNG_SIZE;
+          canvas.width = size;
+          canvas.height = size;
           var ctx = canvas.getContext("2d");
           if (bgColor) {
             ctx.fillStyle = bgColor;
-            ctx.fillRect(0, 0, PNG_SIZE, PNG_SIZE);
+            ctx.fillRect(0, 0, size, size);
           }
-          ctx.drawImage(img, 0, 0, PNG_SIZE, PNG_SIZE);
+          ctx.drawImage(img, 0, 0, size, size);
           canvas.toBlob(function (blob) {
             triggerDownload(blob, name + ".png");
           }, "image/png");
@@ -1514,7 +1513,7 @@
           cell.appendChild(lbl);
           cell.addEventListener("click", function (e) {
             if (e.altKey) downloadSVG(symbol, m.mark, name + "-" + mode);
-            else downloadPNG(symbol, m.mark, m.bg, name + "-" + mode);
+            else downloadPNG(symbol, m.mark, m.bg, s.px, name + "-" + mode + "-" + s.px + "px");
           });
           target.appendChild(cell);
         }
@@ -1535,7 +1534,7 @@
           var name = btn.getAttribute("data-dl-name") + "-" + mode;
           var symbol = btn.getAttribute("data-dl-symbol");
           if (e.altKey) downloadSVG(symbol, m.mark, name);
-          else downloadPNG(symbol, m.mark, m.bg, name);
+          else downloadPNG(symbol, m.mark, m.bg, 1024, name + "-1024px");
         });
       });
     })();
