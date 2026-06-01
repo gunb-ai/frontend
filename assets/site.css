@@ -303,7 +303,9 @@ a { color: inherit; }
 .specimen-code .lit  { color: var(--stone); }
 .specimen-code .add  { color: var(--moss); }
 .specimen-code .rem  { color: var(--clay); }
+.specimen-code .moss { color: var(--moss); }
 .specimen-code .clay { color: var(--clay); }
+.specimen-code .ln   { color: var(--stone-faint); user-select: none; }
 
 .specimen-graph .node { color: var(--warm-white); }
 .specimen-graph .b    { color: var(--stone-faint); }
