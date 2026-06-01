@@ -96,12 +96,11 @@ The design language should make this feel true before the reader fully understan
 
 ```text
 Umbrella / site: gunb.ai
-Language:        daglang
 Compiler binary: gunbc
-Repo:            gunb-ai/daglang
+Repo:            gunb-ai/gunbc
 ```
 
-Header reads `gunb.ai`. Body refers to `gunbc` and `daglang` explicitly.
+Header reads `gunb.ai`. Body refers to `gunbc` explicitly.
 
 ### Page sections, in order
 
@@ -129,11 +128,11 @@ Header reads `gunb.ai`. Body refers to `gunbc` and `daglang` explicitly.
 
 4. **Install / early access — Command panel.** **Must be a verified command against the real repo.**
    ```text
-   git clone https://github.com/gunb-ai/daglang
-   cd daglang
+   git clone https://github.com/gunb-ai/gunbc
+   cd gunbc
    cargo build --release
    ```
-   If the repo isn't public yet: replace with `early access: github.com/gunb-ai/daglang` or `public release pending`. No `make install` unless verified.
+   If the repo isn't public yet: replace with `early access: github.com/gunb-ai/gunbc` or `public release pending`. No `make install` unless verified.
 
 5. **One compiler-feel example — Invariant panel.** Clay used *only* here. Working draft:
    ```text
@@ -212,7 +211,7 @@ Ideas from the legacy site are reserved as good content for later. They must be 
 
 | Question | Resolution |
 |---|---|
-| Public brand? | `gunb.ai` umbrella, `daglang` language, `gunbc` compiler, `gunb-ai/daglang` repo. |
+| Public brand? | `gunb.ai` umbrella, `gunbc` compiler, `gunb-ai/gunbc` repo. |
 | One link or two? | Two: GitHub + Architecture. GitHub-only if Architecture isn't public-ready. |
 | Mode toggle in V1? | Deferred. Dark default. Palette stays light-compatible. |
 | Install command target? | Verified command against real repo state. Resolved at implementation. |

@@ -928,7 +928,7 @@
         { label: "direct",     value: "{derived:User.created_at}" },
         { label: "transitive", value: "{transitive:Profile.joined} · {transitive:Users.profile}" },
         { label: "re-derived", value: "{artifact:profile.rs}" },
-        { label: "unrelated",  value: "{context:User.email · User.id · Users.email · Users.token · email.rs · token.rs}" },
+        { label: "unrelated",  value: "{context:User.email · User.id · Users.email · Users.token · email.ts · token.sql}" },
         { label: "hand-edits", value: "{derived:zero}" }
       ]
     };
