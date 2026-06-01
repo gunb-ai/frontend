@@ -559,11 +559,12 @@
     );
     return {
       nodes: [
-        node("Timestamp", "Timestamp", 0, 1),
+        node("Timestamp", "Timestamp", 0, 1.25),
         ...shiftedNodes
       ],
       edges: [
-        edge("Timestamp", "User", "created_at"),
+        edge("Timestamp", "User",          "created_at"),
+        edge("Timestamp", "format_joined", "param"),
         ...baseEdges
       ]
     };
@@ -654,36 +655,38 @@
         blank(2),
         ln(3,  [kw("type"), tx(" "), ref("User"),
                 tx(" { id, email, name, created_at : "), ref("Timestamp"), tx(" }")]),
-        blank(4),
-        ln(5,  [kw("fn"), tx(" format_joined(t: "), ref("Timestamp"), tx(") -> String")]),
-        blank(6),
-        ln(7,  [kw("service"), tx(" Users {")]),
-        ln(8,  [tx("  "), ref("UsersProfile", "profile", "transitive"),
-                tx("(id) -> Profile   "), com("-- created_at via format_joined")]),
-        ln(9,  [tx("  "), ref("UsersEmail",   "email",   "context"),
-                tx("(id)   -> Email     "), com("-- u.email")]),
-        ln(10, [tx("  "), ref("UsersToken",   "token",   "context"),
-                tx("(id)   -> AuthToken "), com("-- hash(u.id)")]),
-        ln(11, [tx("}")]),
-        blank(12),
-        ln(13, [kw("project"), tx(" Users."), ref("UsersProfile", "profile", "transitive"),
+        ln(4,  [kw("type"), tx(" Profile { name, joined : String }       "),
+                com("-- joined comes from a Timestamp")]),
+        blank(5),
+        ln(6,  [kw("fn"), tx(" "), ref("format_joined", "format_joined", "derived"),
+                tx("(t: "), ref("Timestamp"), tx(") -> String")]),
+        blank(7),
+        ln(8,  [kw("service"), tx(" Users {")]),
+        ln(9,  [tx("  "), ref("UsersProfile", "profile", "transitive"),
+                tx("(id) -> Profile      "),
+                com("-- joined = format_joined(u.created_at)")]),
+        ln(10, [tx("  "), ref("UsersEmail",   "email",   "context"),
+                tx("(id)   -> Email        "), com("-- address = u.email")]),
+        ln(11, [tx("  "), ref("UsersToken",   "token",   "context"),
+                tx("(id)   -> AuthToken    "), com("-- hash = hash(u.id)")]),
+        ln(12, [tx("}")]),
+        blank(13),
+        ln(14, [kw("project"), tx(" Users."), ref("UsersProfile", "profile", "transitive"),
                 tx(" -> "), ref("profile_rs")]),
-        ln(14, [kw("project"), tx(" Users."), ref("UsersEmail",   "email",   "context"),
+        ln(15, [kw("project"), tx(" Users."), ref("UsersEmail",   "email",   "context"),
                 tx("   -> "), ref("email_rs")]),
-        ln(15, [kw("project"), tx(" Users."), ref("UsersToken",   "token",   "context"),
+        ln(16, [kw("project"), tx(" Users."), ref("UsersToken",   "token",   "context"),
                 tx("   -> "), ref("token_rs")])
       ],
       graph: (() => {
         const wt = withTimestamp(baseLayoutNodes(system), baseLayoutEdges());
-        // Override email/token artifact roles to context (grey).
-        // Default artifact role is artifact (warm-white); mutate so
-        // the two unrelated artifacts read as grey.
         const nodes = applyNodeRoles(wt.nodes, {
-          Timestamp:    "focus",
-          User:         "derived",     // its created_at field changed
-          UsersProfile: "transitive",  // uses User.created_at → format_joined
-          UsersEmail:   "context",     // uses User.email — unaffected
-          UsersToken:   "context"      // uses User.id — unaffected
+          Timestamp:     "focus",
+          User:          "derived",     // its created_at field changed
+          format_joined: "derived",     // directly takes Timestamp as param
+          UsersProfile:  "transitive",  // uses both — feeds Profile.joined
+          UsersEmail:    "context",     // unrelated branch
+          UsersToken:    "context"      // unrelated branch
         }).map(n => {
           if (n.id === "email_rs" || n.id === "token_rs") {
             return Object.assign({}, n, { role: "context" });
@@ -693,20 +696,22 @@
         return {
           nodes,
           edges: applyEdgeRoles(wt.edges, {
-            "Timestamp→User":            "focus",
-            "User→UsersProfile":         "transitive",
-            "User→UsersEmail":           "context",
-            "User→UsersToken":           "context",
-            "UsersProfile→profile_rs":   "transitive",
-            "UsersEmail→email_rs":       "context",
-            "UsersToken→token_rs":       "context"
+            "Timestamp→User":             "focus",
+            "Timestamp→format_joined":    "focus",
+            "User→UsersProfile":          "transitive",
+            "User→UsersEmail":            "context",
+            "User→UsersToken":            "context",
+            "format_joined→UsersProfile": "transitive",
+            "UsersProfile→profile_rs":    "transitive",
+            "UsersEmail→email_rs":        "context",
+            "UsersToken→token_rs":        "context"
           }, "derived")
         };
       })(),
       receipt: [
         { label: "changed",    value: "{focus:Timestamp representation}" },
         { label: "direct",     value: "{derived:User.created_at} · {derived:format_joined}" },
-        { label: "transitive", value: "{transitive:Users.profile} · Profile.joined" },
+        { label: "transitive", value: "{transitive:Users.profile} · {transitive:Profile.joined}" },
         { label: "re-derived", value: "{artifact:profile.rs}" },
         { label: "unrelated",  value: "{context:Users.email · Users.token · email.rs · token.rs}" },
         { label: "hand-edits", value: "{derived:zero}" }
