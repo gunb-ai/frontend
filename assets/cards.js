@@ -45,33 +45,60 @@
     ({ from, to, label: label || "", role: role || "affected", lane: lane || 0 });
 
   /* ── Layout ────────────────────────────────────────────────── */
-  const COL_GAP = 56;   // min gap between adjacent columns
-  const Y_GAP   = 46;
-  const BASE_X  = 18;
-  const BASE_Y  = 22;
-  const NODE_H  = 28;
-  const PAD     = 18;
+  const COL_GAP_MIN  = 56;    // min gap when no labels demand more
+  const Y_GAP        = 46;
+  const BASE_X       = 18;
+  const BASE_Y       = 22;
+  const NODE_H       = 28;
+  const PAD          = 18;
+  const ELBOW_OFFSET = 18;    // distance from source's right edge to elbow turn
+  const LABEL_FONT_PX = 5;    // approx per-char width at 7px mono + letter-spacing
+  const LABEL_PAD    = 8;     // clearance each side of an edge label
 
   function labelWidth(label) {
     return Math.max(60, label.length * 7.2 + 22);
   }
-  // Column starts are derived from each column's widest node, so a column
-  // packed with long labels does not crowd the next column and force the
-  // elbow router into back-steps.
-  function columnXs(nodes) {
+  function edgeLabelWidth(label) {
+    return label ? label.length * LABEL_FONT_PX + 4 : 0;
+  }
+
+  // Column starts are derived from each column's widest node AND the
+  // widest edge label crossing into that column, so a label always has
+  // enough room on its approach segment without overlapping either side.
+  function columnXs(nodes, edges) {
     const widest = {};
     for (const n of nodes) {
       const w = labelWidth(n.label);
       if (!(n.col in widest) || w > widest[n.col]) widest[n.col] = w;
     }
+    const byId = {};
+    for (const n of nodes) byId[n.id] = n;
+    // For each column boundary c → c+1, demand = elbow + label + padding.
+    const gapDemand = {};
+    for (const e of edges) {
+      if (!e.label) continue;
+      const a = byId[e.from];
+      const b = byId[e.to];
+      if (!a || !b || a.col === b.col) continue;
+      const startCol = Math.min(a.col, b.col);
+      const need = ELBOW_OFFSET + edgeLabelWidth(e.label) + LABEL_PAD * 2;
+      if (!(startCol in gapDemand) || need > gapDemand[startCol]) {
+        gapDemand[startCol] = need;
+      }
+    }
     const cols = Object.keys(widest).map(Number).sort((a, b) => a - b);
     const x = {};
     let cx = BASE_X;
-    for (const c of cols) { x[c] = cx; cx += widest[c] + COL_GAP; }
+    for (let i = 0; i < cols.length; i++) {
+      const c = cols[i];
+      x[c] = cx;
+      const gap = Math.max(COL_GAP_MIN, gapDemand[c] || 0);
+      cx += widest[c] + gap;
+    }
     return x;
   }
-  function layoutNodes(nodes) {
-    const x = columnXs(nodes);
+  function layoutNodes(nodes, edges) {
+    const x = columnXs(nodes, edges);
     return nodes.map(n => Object.assign({}, n, {
       x: x[n.col],
       y: BASE_Y + n.row * Y_GAP,
@@ -90,9 +117,10 @@
     const tx = b.x;
     const ty = b.y + b.h / 2;
     const sameRow = Math.abs(sy - ty) < 1 && (lane || 0) === 0;
-    // Elbow midpoint clamped so the final H tx segment always travels
-    // toward the target (arrowhead orientation depends on this).
-    const baseMid = sx + Math.max(18, (tx - sx) * 0.45);
+    // Elbow turn at a fixed offset from source so the final approach
+    // segment (where labels live) is as wide as possible, not eaten by
+    // the elbow run.
+    const baseMid = sx + ELBOW_OFFSET;
     const mid = Math.min(baseMid + (lane || 0) * 12, tx - 8);
     return { sx, sy, tx, ty, mid, sameRow };
   }
@@ -167,7 +195,7 @@
 
   /* ── Graph renderer ────────────────────────────────────────── */
   function renderGraph(card) {
-    const nodes = layoutNodes(card.graph.nodes);
+    const nodes = layoutNodes(card.graph.nodes, card.graph.edges);
     const byId  = {};
     for (const n of nodes) byId[n.id] = n;
     const bounds = graphBounds(nodes);
