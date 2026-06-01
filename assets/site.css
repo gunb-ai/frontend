@@ -286,7 +286,7 @@ a { color: inherit; }
 .map-stable     { color: var(--warm-white); }
 .map-focus      { color: var(--brass); }
 .map-derived    { color: var(--moss); }
-.map-transitive { color: var(--stone-dim); }
+.map-transitive { color: var(--warm-white-dim); }
 .map-artifact   { color: var(--warm-white); }
 .map-removed    { color: var(--clay); }
 .map-boundary   { color: var(--clay); }
@@ -452,8 +452,8 @@ a { color: inherit; }
 .graph-node.map-focus text      { fill: var(--brass); font-weight: 500; }
 .graph-node.map-derived rect    { stroke: var(--moss); stroke-width: 1.5; }
 .graph-node.map-derived text    { fill: var(--moss); }
-.graph-node.map-transitive rect { stroke: var(--stone-faint); stroke-width: 1; stroke-opacity: 0.7; }
-.graph-node.map-transitive text { fill: var(--stone-dim); }
+.graph-node.map-transitive rect { stroke: var(--warm-white-dim); stroke-width: 1.2; stroke-opacity: 0.75; }
+.graph-node.map-transitive text { fill: var(--warm-white-dim); }
 .graph-node.map-removed rect    { stroke: var(--clay); stroke-width: 1.5; stroke-dasharray: 4 3; }
 .graph-node.map-removed text    { fill: var(--clay); }
 .graph-node.map-boundary rect   { stroke: var(--clay); stroke-width: 2; }
@@ -465,15 +465,22 @@ a { color: inherit; }
 
 /* Artifact (cut-corner) — warm-white so artifacts read as the
    system's terminal bookends, distinct from moss derived nodes.
-   Shape and color both carry the structural distinction. */
-.graph-node.map-artifact path { stroke: var(--warm-white); stroke-width: 1.5; }
+   Shape and color both carry the structural distinction.
+   For artifacts that are present in the model but NOT in this card's
+   affected set (e.g. parallel-domain outputs in card 02), apply the
+   context role so they render as grey pentagons. */
+.graph-node.map-artifact path,
+.graph-node.map-artifact line { stroke: var(--warm-white); stroke-width: 1.5; }
 .graph-node.map-artifact text { fill: var(--warm-white); }
+.graph-node.map-context path,
+.graph-node.map-context line { stroke: var(--stone-faint); stroke-width: 1; stroke-opacity: 0.55; }
+.graph-node.map-context text { fill: var(--stone-dim); }
 
 .graph-edge { fill: none; stroke-width: 1.5; stroke-linecap: round; }
 .graph-edge.map-stable     { stroke: var(--warm-white); }
 .graph-edge.map-focus      { stroke: var(--brass); }
 .graph-edge.map-derived    { stroke: var(--moss); }
-.graph-edge.map-transitive { stroke: var(--stone-faint); stroke-opacity: 0.6; }
+.graph-edge.map-transitive { stroke: var(--warm-white-dim); stroke-opacity: 0.7; }
 .graph-edge.map-removed    { stroke: var(--clay); stroke-dasharray: 4 3; }
 .graph-edge.map-boundary   { stroke: var(--clay); }
 .graph-edge.map-context    { stroke: var(--stone-faint); stroke-opacity: 0.5; }
@@ -487,7 +494,7 @@ a { color: inherit; }
 .graph-edge-label.map-stable     { fill: var(--warm-white); }
 .graph-edge-label.map-focus      { fill: var(--brass); }
 .graph-edge-label.map-derived    { fill: var(--moss-dim); }
-.graph-edge-label.map-transitive { fill: var(--stone-faint); }
+.graph-edge-label.map-transitive { fill: var(--warm-white-dim); }
 .graph-edge-label.map-removed    { fill: var(--clay); }
 .graph-edge-label.map-boundary   { fill: var(--clay); }
 .graph-edge-label.map-context    { fill: var(--stone-faint); }
