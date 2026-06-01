@@ -136,15 +136,34 @@
   <span class="rem">- email: String</span>
   <span class="add">+ email: Email         </span><span class="com">-- format constraint</span>
 }</pre>
-<pre class="specimen-graph"><span class="node">User.email</span>
-  <span class="b">├─</span> Rust struct        <span class="ok">recheck</span>
-  <span class="b">├─</span> TypeScript type    <span class="ok">recheck</span>
-  <span class="b">├─</span> OpenAPI schema     <span class="ok">regen</span>
-  <span class="b">├─</span> validation rules   <span class="ok">recheck</span>
-  <span class="b">├─</span> generated tests    <span class="ok">regen</span>
-  <span class="b">└─</span> docs reference     <span class="ok">regen</span>
-
-<span class="dim">skip: 21 unrelated nodes with receipt</span></pre>
+<div class="specimen-graph">
+            <svg viewBox="0 0 280 160" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-label="User.email edit (clay) fanning out to 6 affected downstream surfaces in moss">
+              <!-- User.email — the edit, clay -->
+              <rect x="10" y="62" width="60" height="32" rx="4" stroke="var(--clay)" stroke-width="2"/>
+              <!-- 6 downstream affected surfaces, moss -->
+              <rect x="178" y="6"   width="60" height="18" rx="3" stroke="var(--moss)" stroke-width="1.5"/>
+              <rect x="178" y="32"  width="60" height="18" rx="3" stroke="var(--moss)" stroke-width="1.5"/>
+              <rect x="178" y="58"  width="60" height="18" rx="3" stroke="var(--moss)" stroke-width="1.5"/>
+              <rect x="178" y="84"  width="60" height="18" rx="3" stroke="var(--moss)" stroke-width="1.5"/>
+              <rect x="178" y="110" width="60" height="18" rx="3" stroke="var(--moss)" stroke-width="1.5"/>
+              <rect x="178" y="136" width="60" height="18" rx="3" stroke="var(--moss)" stroke-width="1.5"/>
+              <!-- 6 moss edges fanning from User.email -->
+              <line x1="70" y1="72" x2="176" y2="15"  stroke="var(--moss)" marker-end="url(#arrow)"/>
+              <line x1="70" y1="74" x2="176" y2="41"  stroke="var(--moss)" marker-end="url(#arrow)"/>
+              <line x1="70" y1="76" x2="176" y2="67"  stroke="var(--moss)" marker-end="url(#arrow)"/>
+              <line x1="70" y1="80" x2="176" y2="93"  stroke="var(--moss)" marker-end="url(#arrow)"/>
+              <line x1="70" y1="82" x2="176" y2="119" stroke="var(--moss)" marker-end="url(#arrow)"/>
+              <line x1="70" y1="84" x2="176" y2="145" stroke="var(--moss)" marker-end="url(#arrow)"/>
+              <!-- skip cluster — dimmed unrelated nodes -->
+              <g stroke-opacity="0.3">
+                <circle cx="22" cy="138" r="3"/>
+                <circle cx="36" cy="146" r="3"/>
+                <circle cx="50" cy="138" r="3"/>
+                <circle cx="64" cy="146" r="3"/>
+                <circle cx="78" cy="140" r="3"/>
+              </g>
+            </svg>
+          </div>
         </div>
         <p class="specimen-receipt"><span class="label">downstream</span><span class="moss">6 surfaces</span><span class="sep">·</span><span class="label">skip</span>21 nodes (with receipt)</p>
       </article>
@@ -163,13 +182,30 @@
 
 <span class="kw">lens</span> bringup_complexity &lt;= <span class="lit">O(n)</span>
 <span class="kw">upsert</span> infra <span class="kw">for</span> <span class="ty">Users</span></pre>
-<pre class="specimen-graph"><span class="node">Users</span>
-  <span class="b">└─</span> <span class="node">bringup</span>      <span class="ok">O(n) · held</span>
-       <span class="b">├─</span> postgres  <span class="ok">upsert · idempotent</span>
-       <span class="b">├─</span> redis     <span class="ok">upsert · idempotent</span>
-       <span class="b">└─</span> api_pool  <span class="ok">upsert · idempotent</span>
-
-<span class="dim">duplicate bringup: blocked</span></pre>
+<div class="specimen-graph">
+            <svg viewBox="0 0 280 160" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-label="Users service folds into bringup; complexity lens scopes 3 idempotent infra upserts">
+              <!-- Users + bringup -->
+              <rect x="10" y="65" width="46" height="30" rx="4"/>
+              <line x1="56" y1="80" x2="78" y2="80" marker-end="url(#arrow)"/>
+              <rect x="80" y="65" width="56" height="30" rx="4"/>
+              <!-- 3 edges from bringup to infra -->
+              <line x1="136" y1="72" x2="190" y2="30"  marker-end="url(#arrow)"/>
+              <line x1="136" y1="80" x2="190" y2="80"  marker-end="url(#arrow)"/>
+              <line x1="136" y1="88" x2="190" y2="130" marker-end="url(#arrow)"/>
+              <!-- 3 infra nodes: postgres / redis / api_pool -->
+              <rect x="192" y="18" width="64" height="24" rx="4"/>
+              <rect x="192" y="68" width="64" height="24" rx="4"/>
+              <rect x="192" y="118" width="64" height="24" rx="4"/>
+              <!-- idempotent moss dots at top-right of each infra node -->
+              <circle cx="252" cy="20" r="3" fill="var(--moss)" stroke="none"/>
+              <circle cx="252" cy="70" r="3" fill="var(--moss)" stroke="none"/>
+              <circle cx="252" cy="120" r="3" fill="var(--moss)" stroke="none"/>
+              <!-- moss lasso enclosing bringup + 3 infra nodes (the complexity-lens scope) -->
+              <polygon points="76,60 84,12 260,12 260,148 84,148 76,100"
+                       stroke="var(--moss)" stroke-dasharray="5 3" stroke-width="2"
+                       fill="none" stroke-linejoin="round"/>
+            </svg>
+          </div>
         </div>
         <p class="specimen-receipt"><span class="label">cost</span><span class="moss">O(n)</span><span class="sep">·</span><span class="label">effect</span><span class="moss">idempotent</span><span class="sep">·</span><span class="label">duplicates</span>blocked</p>
       </article>
