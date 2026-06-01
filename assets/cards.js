@@ -586,10 +586,13 @@
                     + '</g>';
         }
 
-        // Edge from prevCell to this cell (straight horizontal — same row)
+        // Edge from prevCell to this cell (straight horizontal — same row).
+        // Pull endpoint back from target's left edge so the arrowhead has
+        // visual separation from the box stroke. Without this gap the arrow
+        // tip merges into the target's stroke and reads as a missing arrow.
         if (prevX !== null) {
           const ex1 = prevX + prevW;
-          const ex2 = xx;
+          const ex2 = xx - 3;
           // Edge color follows the TARGET's role (the downstream node)
           edgesHtml += '<line class="graph-edge ' + cls + '" x1="' + ex1
                     + '" y1="' + cy + '" x2="' + ex2 + '" y2="' + cy
