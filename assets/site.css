@@ -473,7 +473,7 @@ a { color: inherit; }
 .graph-edge.map-stable     { stroke: var(--warm-white); }
 .graph-edge.map-focus      { stroke: var(--brass); }
 .graph-edge.map-derived    { stroke: var(--moss); }
-.graph-edge.map-transitive { stroke: var(--moss-dim); stroke-opacity: 0.8; }
+.graph-edge.map-transitive { stroke: var(--stone-faint); stroke-opacity: 0.6; }
 .graph-edge.map-removed    { stroke: var(--clay); stroke-dasharray: 4 3; }
 .graph-edge.map-boundary   { stroke: var(--clay); }
 .graph-edge.map-context    { stroke: var(--stone-faint); stroke-opacity: 0.5; }
@@ -487,24 +487,31 @@ a { color: inherit; }
 .graph-edge-label.map-stable     { fill: var(--warm-white); }
 .graph-edge-label.map-focus      { fill: var(--brass); }
 .graph-edge-label.map-derived    { fill: var(--moss-dim); }
-.graph-edge-label.map-transitive { fill: var(--moss-dim); fill-opacity: 0.7; }
+.graph-edge-label.map-transitive { fill: var(--stone-faint); }
 .graph-edge-label.map-removed    { fill: var(--clay); }
 .graph-edge-label.map-boundary   { fill: var(--clay); }
 .graph-edge-label.map-context    { fill: var(--stone-faint); }
 
-/* Cost-area cells — for the complexity visualization. Two grids side-
-   by-side: declared O(n) as a 1×n strip, observed O(n²) as an n×n
-   square. The aspect ratio of the rendered grids IS the cost argument. */
+/* Cost-area cells — per-cell coloring so a single panel can hold both
+   budget and overage. Bottom-aligned panels with the budget row at the
+   same Y in both: declared (1×n, all budget) sits as the bottom row
+   of the observed grid (n×n, with the n-1 rows above as overage).
+   The visual claim: observed extends UP past the declared ceiling. */
 .cost-area rect { fill: none; stroke-width: 1; }
-.cost-area.map-derived  rect { stroke: var(--moss); fill: var(--moss-subtle); }
-.cost-area.map-boundary rect { stroke: var(--clay); fill: var(--clay-subtle); }
+.cost-area rect.cost-cell-budget  { stroke: var(--moss); fill: var(--moss-subtle); }
+.cost-area rect.cost-cell-overage { stroke: var(--clay); fill: var(--clay-subtle); }
 .cost-area-label {
   font-family: var(--font-mono);
   font-size: 8px;
   letter-spacing: 0.05em;
+  fill: var(--warm-white-dim);
 }
-.cost-area.map-derived  .cost-area-label { fill: var(--moss); }
-.cost-area.map-boundary .cost-area-label { fill: var(--clay); }
+.cost-area-sublabel {
+  font-family: var(--font-mono);
+  font-size: 7px;
+  letter-spacing: 0.05em;
+  fill: var(--stone-faint);
+}
 
 /* Receipt — structured label/value rows.
    The receipt is the card's stamp, not a prose recap. Each row pairs

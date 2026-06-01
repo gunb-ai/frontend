@@ -316,11 +316,18 @@
          + '</svg></div>';
   }
 
+  // Cost-area: two panels bottom-aligned. Each cell is colored per-row:
+  // the bottom `budgetRows` rows (counting up from the bottom) are
+  // budget (moss/green); rows above are overage (clay/red). For the
+  // declared panel, the whole panel is budget (1 row). For observed,
+  // the bottom row is budget and the rest is overage — the visual
+  // claim "observed extends UP past the budget ceiling."
   function renderCostArea(card) {
-    const CELL = 9;
+    const CELL = 11;
     const GAP  = 2;
-    const PANEL_GAP = 40;
-    const LABEL_H   = 20;
+    const PANEL_GAP = 56;
+    const LABEL_H   = 26;   // room for label + sublabel below each panel
+    const PAD       = 14;
     function gridDims(p) {
       return {
         w: p.cols * CELL + (p.cols - 1) * GAP,
@@ -331,28 +338,41 @@
     const totalW = panels.reduce((s, p) => s + p.w, 0) + (panels.length - 1) * PANEL_GAP;
     const maxH   = Math.max.apply(null, panels.map(p => p.h));
     const W = totalW + PAD * 2;
-    const H = LABEL_H + maxH + PAD * 2;
+    const H = maxH + LABEL_H + PAD * 2;
+
+    const bottomY = PAD + maxH;   // shared bottom edge of all panel grids
 
     let cx = PAD;
     const panelsSvg = panels.map(p => {
       const px = cx;
-      const py = PAD + LABEL_H + (maxH - p.h) / 2;
+      const py = bottomY - p.h;   // bottom-align
       cx += p.w + PANEL_GAP;
+
       let cells = "";
+      const budgetRows = p.budgetRows || 0;
       for (let r = 0; r < p.rows; r++) {
+        const fromBottom = p.rows - 1 - r;
+        const cellRole = fromBottom < budgetRows ? "budget" : "overage";
         for (let c = 0; c < p.cols; c++) {
           const x = px + c * (CELL + GAP);
           const y = py + r * (CELL + GAP);
-          cells += '<rect x="' + x + '" y="' + y + '" width="' + CELL + '" height="' + CELL + '" />';
+          cells += '<rect class="cost-cell-' + cellRole + '" x="' + x
+                 + '" y="' + y + '" width="' + CELL + '" height="' + CELL + '" />';
         }
       }
+
       const labelX = px + p.w / 2;
-      const labelY = PAD + LABEL_H - 6;
-      const cls = roleClass(p.role);
-      return '<g class="cost-area ' + cls + '">'
+      const labelY    = bottomY + 12;
+      const sublabelY = bottomY + 22;
+      return '<g class="cost-area">'
            + cells
            + '<text class="cost-area-label" x="' + labelX + '" y="' + labelY
-           + '" text-anchor="middle">' + esc(p.label) + '</text></g>';
+           + '" text-anchor="middle">' + esc(p.label) + '</text>'
+           + (p.sublabel
+             ? '<text class="cost-area-sublabel" x="' + labelX + '" y="' + sublabelY
+                + '" text-anchor="middle">' + esc(p.sublabel) + '</text>'
+             : '')
+           + '</g>';
     }).join("");
 
     return '<div class="card-graph">'
@@ -480,24 +500,26 @@
   };
 
   /* ── Shared base layout for cards 01 and 02.
-        Same 10 nodes, same positions; cards differ only by roles. */
+        baseLayoutNodes/Edges describe User + containers + artifacts.
+        Card 01 uses this directly. Card 02 calls withTimestamp() to
+        prepend Timestamp + the Timestamp → User edge at a leftward
+        column, leaving the User+downstream layout structurally
+        identical between the two cards. */
   function baseLayoutNodes(system) {
     return [
-      node("Timestamp", "Timestamp",  0, 1.5),
-      node("User",      "User",       1, 1.5),
-      node("Users",     "Users",      2, 0),
-      node("UsersList", "Users.list", 2, 1),
-      node("UserCard",  "UserCard",   2, 2),
-      node("users",     "users",      2, 3),
-      artifact("rust",       system.artifacts.rust.label,       3, 0),
-      artifact("openapi",    system.artifacts.openapi.label,    3, 1),
-      artifact("typescript", system.artifacts.typescript.label, 3, 2),
-      artifact("sql",        system.artifacts.sql.label,        3, 3)
+      node("User",      "User",       0, 1.5),
+      node("Users",     "Users",      1, 0),
+      node("UsersList", "Users.list", 1, 1),
+      node("UserCard",  "UserCard",   1, 2),
+      node("users",     "users",      1, 3),
+      artifact("rust",       system.artifacts.rust.label,       2, 0),
+      artifact("openapi",    system.artifacts.openapi.label,    2, 1),
+      artifact("typescript", system.artifacts.typescript.label, 2, 2),
+      artifact("sql",        system.artifacts.sql.label,        2, 3)
     ];
   }
   function baseLayoutEdges() {
     return [
-      edge("Timestamp", "User",       "created_at"),
       edge("User",      "Users",      "service"),
       edge("User",      "UsersList",  "operation"),
       edge("User",      "UserCard",   "view"),
@@ -507,6 +529,23 @@
       edge("UserCard",  "typescript", ""),
       edge("users",     "sql",        "")
     ];
+  }
+  // Card 02 prepends Timestamp by shifting the base layout one column
+  // right and inserting Timestamp at col 0 with a single edge to User.
+  function withTimestamp(baseNodes, baseEdges) {
+    const shiftedNodes = baseNodes.map(n =>
+      Object.assign({}, n, { col: n.col + 1 })
+    );
+    return {
+      nodes: [
+        node("Timestamp", "Timestamp", 0, 1.5),
+        ...shiftedNodes
+      ],
+      edges: [
+        edge("Timestamp", "User", "created_at"),
+        ...baseEdges
+      ]
+    };
   }
   function applyNodeRoles(nodes, roleMap) {
     return nodes.map(n => {
@@ -552,14 +591,13 @@
       ],
       graph: {
         nodes: applyNodeRoles(baseLayoutNodes(system), {
-          Timestamp: "context",
           User:      "stable",
           Users:     "derived",
           UsersList: "derived",
           UserCard:  "derived",
           users:     "derived"
         }),
-        edges: applyEdgeRoles(baseLayoutEdges(), { "Timestamp→User": "context" }, "derived")
+        edges: applyEdgeRoles(baseLayoutEdges(), {}, "derived")
       },
       receipt: [
         { label: "structure", value: "{stable:one description}" },
@@ -598,27 +636,30 @@
         ln(14, [kw("project"), tx(" "), ref("UsersList", "Users.list"), tx(" -> "), ref("openapi")]),
         ln(15, [kw("project"), tx(" "), ref("UserCard"),                tx("   -> "), ref("typescript")])
       ],
-      graph: {
-        nodes: applyNodeRoles(baseLayoutNodes(system), {
-          Timestamp: "focus",
-          User:      "derived",
-          users:     "derived",    // direct: schema_for User
-          Users:     "transitive", // via public_user → UserView
-          UsersList: "transitive",
-          UserCard:  "transitive"
-        }),
-        edges: applyEdgeRoles(baseLayoutEdges(), {
-          "Timestamp→User":      "focus",
-          "User→users":          "derived",
-          "User→Users":          "transitive",
-          "User→UsersList":      "transitive",
-          "User→UserCard":       "transitive",
-          "users→sql":           "derived",
-          "Users→rust":          "transitive",
-          "UsersList→openapi":   "transitive",
-          "UserCard→typescript": "transitive"
-        }, "derived")
-      },
+      graph: (() => {
+        const wt = withTimestamp(baseLayoutNodes(system), baseLayoutEdges());
+        return {
+          nodes: applyNodeRoles(wt.nodes, {
+            Timestamp: "focus",
+            User:      "derived",
+            users:     "derived",    // direct: schema_for User
+            Users:     "transitive", // via public_user → UserView
+            UsersList: "transitive",
+            UserCard:  "transitive"
+          }),
+          edges: applyEdgeRoles(wt.edges, {
+            "Timestamp→User":      "focus",
+            "User→users":          "derived",
+            "User→Users":          "transitive",
+            "User→UsersList":      "transitive",
+            "User→UserCard":       "transitive",
+            "users→sql":           "derived",
+            "Users→rust":          "transitive",
+            "UsersList→openapi":   "transitive",
+            "UserCard→typescript": "transitive"
+          }, "derived")
+        };
+      })(),
       receipt: [
         { label: "changed",     value: "{focus:Timestamp representation}" },
         { label: "direct",      value: "{derived:User.created_at} · {derived:format_joined} · {derived:table users}" },
@@ -654,8 +695,8 @@
                tx(") "), mark("budget O(n)", "boundary")])
       ],
       panels: [
-        { id: "declared", label: "declared budget · O(n)",  cols: 6, rows: 1, role: "derived" },
-        { id: "observed", label: "observed · O(n²)",        cols: 6, rows: 6, role: "boundary" }
+        { id: "declared", label: "declared", sublabel: "O(n)",  cols: 6, rows: 1, budgetRows: 1 },
+        { id: "observed", label: "observed", sublabel: "O(n²)", cols: 6, rows: 6, budgetRows: 1 }
       ],
       graph: {
         nodes: [
