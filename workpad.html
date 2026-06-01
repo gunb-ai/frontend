@@ -989,16 +989,21 @@
       outline: none;
     }
     .deck-head {
-      display: flex; align-items: baseline; gap: 1rem;
+      display: flex; align-items: center; gap: 1rem;
       margin-bottom: 1rem;
+      flex-wrap: wrap;
     }
     .deck-name {
       font-family: var(--font-mono); font-size: 0.68rem;
       letter-spacing: 0.18em; text-transform: uppercase;
       color: var(--warm-white);
     }
-    .deck-pos {
+    .deck-head .deck-ticks {
       margin-left: auto;
+      display: flex; align-items: center; gap: 0.45rem;
+      flex: 0 0 auto;
+    }
+    .deck-pos {
       font-family: var(--font-mono); font-size: 0.62rem;
       letter-spacing: 0.13em; color: var(--stone-faint);
     }
@@ -1159,17 +1164,18 @@
     .deck-btn:disabled { opacity: 0.3; cursor: not-allowed; }
     .deck-btn:disabled:hover { color: var(--warm-white-dim); border-color: var(--border-dark); }
 
-    .deck-ticks {
-      display: flex; gap: 0.4rem; flex: 1;
-      align-items: center; justify-content: center;
+    .deck-nav .deck-ticks {
+      display: none;  /* ticks now live in deck-head, top-right next to count */
     }
     .deck-tick {
-      width: 28px; height: 2px;
+      width: 16px; height: 10px;
       background: var(--border-dark-strong);
-      border-radius: 1px;
-      transition: background 0.2s;
+      border-radius: 3px;
+      transition: background 0.2s, transform 0.2s;
     }
-    .deck-tick.active { background: var(--moss); }
+    .deck-tick.active {
+      background: var(--moss);
+    }
 
   </style>
 </head>
@@ -2127,6 +2133,12 @@ diagnostics: 0</div></div>
     <div class="deck" tabindex="0" data-deck="infra">
       <div class="deck-head">
         <span class="deck-name">Deck 01 — Infra without redundant bringups</span>
+        <div class="deck-ticks">
+          <span class="deck-tick"></span>
+          <span class="deck-tick"></span>
+          <span class="deck-tick"></span>
+          <span class="deck-tick"></span>
+        </div>
         <span class="deck-pos"><span class="deck-current">01</span> / <span class="deck-total">04</span></span>
       </div>
 
@@ -2408,12 +2420,7 @@ diagnostics: 0</div></div>
 
       <div class="deck-nav">
         <button class="deck-btn" type="button" data-dir="prev">← prev</button>
-        <div class="deck-ticks">
-          <span class="deck-tick"></span>
-          <span class="deck-tick"></span>
-          <span class="deck-tick"></span>
-          <span class="deck-tick"></span>
-        </div>
+        <span style="flex:1"></span>
         <button class="deck-btn" type="button" data-dir="next">next →</button>
       </div>
     </div>
