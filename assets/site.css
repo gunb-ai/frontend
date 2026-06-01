@@ -359,20 +359,24 @@ a { color: inherit; }
   font-size: 9px;
   fill: var(--warm-white-dim);
 }
-.graph-node.map-root rect       { fill: none; stroke: var(--warm-white); stroke-width: 2; }
+/* Nodes are filled with the card-graph background so edges
+   underneath are masked at crossings. */
+.graph-node rect,
+.graph-node.map-artifact path { fill: var(--void); }
+
+.graph-node.map-root rect       { stroke: var(--warm-white); stroke-width: 2; }
 .graph-node.map-root text       { fill: var(--warm-white); font-weight: 600; }
-.graph-node.map-affected rect   { fill: none; stroke: var(--moss); stroke-width: 1.5; }
+.graph-node.map-affected rect   { stroke: var(--moss); stroke-width: 1.5; }
 .graph-node.map-affected text   { fill: var(--moss); }
-.graph-node.map-changed rect    { fill: none; stroke: var(--clay); stroke-width: 2; }
+.graph-node.map-changed rect    { stroke: var(--clay); stroke-width: 2; }
 .graph-node.map-changed text    { fill: var(--clay); font-weight: 500; }
-.graph-node.map-context rect    { fill: none; stroke: var(--stone-faint); stroke-width: 1; stroke-opacity: 0.55; }
+.graph-node.map-context rect    { stroke: var(--stone-faint); stroke-width: 1; stroke-opacity: 0.55; }
 .graph-node.map-context text    { fill: var(--stone-dim); }
-.graph-node.map-blocked rect    { fill: none; stroke: var(--clay); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.graph-node.map-blocked rect    { stroke: var(--clay); stroke-width: 1.5; stroke-dasharray: 4 3; }
 .graph-node.map-blocked text    { fill: var(--clay); }
 
 /* Artifact (cut-corner) */
-.graph-node.map-artifact path,
-.graph-node.map-artifact line { fill: none; stroke: var(--moss); stroke-width: 1.5; }
+.graph-node.map-artifact path { stroke: var(--moss); stroke-width: 1.5; }
 .graph-node.map-artifact text { fill: var(--moss); }
 
 .graph-edge { fill: none; stroke-width: 1.5; stroke-linecap: round; }

@@ -45,7 +45,7 @@
     ({ from, to, label: label || "", role: role || "affected", lane: lane || 0 });
 
   /* ── Layout ────────────────────────────────────────────────── */
-  const X_GAP   = 118;
+  const COL_GAP = 56;   // min gap between adjacent columns
   const Y_GAP   = 46;
   const BASE_X  = 18;
   const BASE_Y  = 22;
@@ -55,27 +55,51 @@
   function labelWidth(label) {
     return Math.max(60, label.length * 7.2 + 22);
   }
-  function layoutNode(n) {
-    return Object.assign({}, n, {
-      x: BASE_X + n.col * X_GAP,
+  // Column starts are derived from each column's widest node, so a column
+  // packed with long labels does not crowd the next column and force the
+  // elbow router into back-steps.
+  function columnXs(nodes) {
+    const widest = {};
+    for (const n of nodes) {
+      const w = labelWidth(n.label);
+      if (!(n.col in widest) || w > widest[n.col]) widest[n.col] = w;
+    }
+    const cols = Object.keys(widest).map(Number).sort((a, b) => a - b);
+    const x = {};
+    let cx = BASE_X;
+    for (const c of cols) { x[c] = cx; cx += widest[c] + COL_GAP; }
+    return x;
+  }
+  function layoutNodes(nodes) {
+    const x = columnXs(nodes);
+    return nodes.map(n => Object.assign({}, n, {
+      x: x[n.col],
       y: BASE_Y + n.row * Y_GAP,
       w: labelWidth(n.label),
       h: NODE_H
-    });
+    }));
   }
   function graphBounds(nodes) {
     const maxX = Math.max.apply(null, nodes.map(n => n.x + n.w));
     const maxY = Math.max.apply(null, nodes.map(n => n.y + n.h));
     return { width: maxX + PAD, height: maxY + PAD };
   }
-  function edgePath(a, b, lane) {
+  function edgeGeom(a, b, lane) {
     const sx = a.x + a.w;
     const sy = a.y + a.h / 2;
     const tx = b.x;
     const ty = b.y + b.h / 2;
+    const sameRow = Math.abs(sy - ty) < 1 && (lane || 0) === 0;
+    // Elbow midpoint clamped so the final H tx segment always travels
+    // toward the target (arrowhead orientation depends on this).
     const baseMid = sx + Math.max(18, (tx - sx) * 0.45);
-    const mid = baseMid + (lane || 0) * 12;
-    return "M " + sx + " " + sy + " H " + mid + " V " + ty + " H " + tx;
+    const mid = Math.min(baseMid + (lane || 0) * 12, tx - 8);
+    return { sx, sy, tx, ty, mid, sameRow };
+  }
+  function edgePath(a, b, lane) {
+    const g = edgeGeom(a, b, lane);
+    if (g.sameRow) return "M " + g.sx + " " + g.sy + " L " + g.tx + " " + g.ty;
+    return "M " + g.sx + " " + g.sy + " H " + g.mid + " V " + g.ty + " H " + g.tx;
   }
 
   /* ── Escape ────────────────────────────────────────────────── */
@@ -143,7 +167,7 @@
 
   /* ── Graph renderer ────────────────────────────────────────── */
   function renderGraph(card) {
-    const nodes = card.graph.nodes.map(layoutNode);
+    const nodes = layoutNodes(card.graph.nodes);
     const byId  = {};
     for (const n of nodes) byId[n.id] = n;
     const bounds = graphBounds(nodes);
@@ -157,38 +181,33 @@
            + '" marker-end="url(#card-arrow)" />';
     }).join("");
 
-    // 2. Edge labels (centered on the horizontal bridge)
+    // 2. Edge labels — sit on the horizontal segment that approaches the
+    // target, so the label visually attaches to its destination row
+    // rather than floating beside the vertical bus.
     const edgeLabels = card.graph.edges.filter(e => e.label).map(e => {
       const a = byId[e.from];
       const b = byId[e.to];
-      const sx = a.x + a.w;
-      const tx = b.x;
-      const sy = a.y + a.h / 2;
-      const ty = b.y + b.h / 2;
-      const baseMid = sx + Math.max(18, (tx - sx) * 0.45) + (e.lane || 0) * 12;
+      const g = edgeGeom(a, b, e.lane);
+      const lx = g.sameRow ? (g.sx + g.tx) / 2 : (g.mid + g.tx) / 2;
+      const ly = (g.sameRow ? g.sy : g.ty) - 4;
       const cls = roleClass(e.role);
-      return '<text class="graph-edge-label ' + cls + '" x="' + (baseMid + 4)
-           + '" y="' + ((sy + ty) / 2 - 4) + '">' + esc(e.label) + '</text>';
+      return '<text class="graph-edge-label ' + cls + '" x="' + lx
+           + '" y="' + ly + '" text-anchor="middle">' + esc(e.label) + '</text>';
     }).join("");
 
     // 3. Nodes (cover edges with their fills/text)
     const nodesSvg = nodes.map(n => {
       const cls = roleClass(n.role);
       if (n.kind === "artifact") {
-        // Cut-corner artifact path: bevel at top-right
+        // Cut-corner artifact path: pentagon with the top-right corner sliced.
         const cut = 8;
         const d = "M " + n.x + " " + n.y
                 + " H " + (n.x + n.w - cut)
                 + " L " + (n.x + n.w) + " " + (n.y + cut)
                 + " V " + (n.y + n.h)
                 + " H " + n.x + " Z";
-        const cornerLines = '<line x1="' + (n.x + n.w - cut) + '" y1="' + n.y
-                          + '" x2="' + (n.x + n.w - cut) + '" y2="' + (n.y + cut) + '" />'
-                          + '<line x1="' + (n.x + n.w - cut) + '" y1="' + (n.y + cut)
-                          + '" x2="' + (n.x + n.w) + '" y2="' + (n.y + cut) + '" />';
         return '<g class="graph-node ' + cls + '">'
              + '<path d="' + d + '" />'
-             + cornerLines
              + '<text x="' + (n.x + n.w / 2) + '" y="' + (n.y + n.h / 2 + 4)
              + '" text-anchor="middle">' + esc(n.label) + '</text>'
              + '</g>';
@@ -266,40 +285,32 @@
       line(7,  [text("  created_at : "), ty("Timestamp")]),
       line(8,  [text("}")]),
       blank(9),
-      line(10, [kw("service"), text(" "), ref("Users", "Users"), text("    { list : () -> List<"), ref("User"), text("> }")]),
-      line(11, [kw("table"),   text("   "), ref("users", "users"), text("    { schema_for "), ref("User"), text(" }")]),
-      line(12, [kw("view"),    text("    "), ref("UserCard"), text(" { renders "), ref("User"), text(" }")]),
+      line(10, [kw("service"), text(" Users    { list : () -> List<"), ref("User"), text("> }")]),
+      line(11, [kw("table"),   text("   users    { schema_for "), ref("User"), text(" }")]),
+      line(12, [kw("view"),    text("    UserCard { renders "), ref("User"), text(" }")]),
       blank(13),
-      line(14, [kw("project"), text(" "), ref("Users"),                  text("      -> "), ref("rust"),       text("       "), com("-- backend")]),
-      line(15, [kw("project"), text(" "), ref("users"),                  text("      -> "), ref("sql"),        text("        "), com("-- db schema")]),
-      line(16, [kw("project"), text(" "), ref("UsersList", "Users.list"),text(" -> "), ref("openapi"),    text("    "), com("-- public API")]),
-      line(17, [kw("project"), text(" "), ref("UserCard"),               text("   -> "), ref("typescript"), text(" "), com("-- frontend")])
+      line(14, [kw("project"), text(" Users      -> "), ref("rust"),       text("       "), com("-- backend")]),
+      line(15, [kw("project"), text(" users      -> "), ref("sql"),        text("        "), com("-- db schema")]),
+      line(16, [kw("project"), text(" Users.list -> "), ref("openapi"),    text("    "), com("-- public API")]),
+      line(17, [kw("project"), text(" UserCard   -> "), ref("typescript"), text(" "), com("-- frontend")])
     ],
     graph: {
       nodes: [
-        node("User",      "User",          0, 1.5, "root"),
-        node("Users",     "service Users", 1, 0,   "affected"),
-        node("users",     "table users",   1, 1,   "affected"),
-        node("UsersList", "Users.list",    1, 2,   "affected"),
-        node("UserCard",  "view UserCard", 1, 3,   "affected"),
-        artifact("rust",       ".rs",           2, 0),
-        artifact("sql",        ".sql",          2, 1),
-        artifact("openapi",    ".openapi.yaml", 2, 2),
-        artifact("typescript", ".ts",           2, 3)
+        node("User",            "User",          0, 1.5, "root"),
+        artifact("rust",       ".rs",            1, 0),
+        artifact("sql",        ".sql",           1, 1),
+        artifact("openapi",    ".openapi.yaml",  1, 2),
+        artifact("typescript", ".ts",            1, 3)
       ],
       edges: [
-        edge("User",      "Users",     "returns",   "affected", -1),
-        edge("User",      "users",     "schema_for","affected",  0),
-        edge("User",      "UsersList", "operation", "affected",  1),
-        edge("User",      "UserCard",  "renders",   "affected",  2),
-        edge("Users",     "rust",       "",          "affected"),
-        edge("users",     "sql",        "",          "affected"),
-        edge("UsersList", "openapi",    "",          "affected"),
-        edge("UserCard",  "typescript", "",          "affected")
+        edge("User", "rust",       "service",     "affected"),
+        edge("User", "sql",        "table",       "affected"),
+        edge("User", "openapi",    "operation",   "affected"),
+        edge("User", "typescript", "view",        "affected")
       ]
     },
     receipt: [
-      "one structural {root:description} · {affected:four target artifacts} · hand-written translations: {moss:zero}".replace("{moss:", "{affected:")
+      "one structural {root:description} · {affected:four target artifacts} · hand-written translations: {affected:zero}"
     ]
   };
 
@@ -319,38 +330,30 @@
       line(6,  [text("  created_at : "), ref("Timestamp")]),
       line(7,  [text("}")]),
       blank(8),
-      line(9,  [kw("service"), text(" "), ref("Users"), text("    { list : () -> List<"), ref("User"), text("> }")]),
-      line(10, [kw("table"),   text("   "), ref("users"), text("    { schema_for "), ref("User"), text(" }")]),
-      line(11, [kw("view"),    text("    "), ref("UserCard"), text(" { renders "), ref("User"), text(" }")]),
+      line(9,  [kw("service"), text(" Users    { list : () -> List<"), ref("User"), text("> }")]),
+      line(10, [kw("table"),   text("   users    { schema_for "), ref("User"), text(" }")]),
+      line(11, [kw("view"),    text("    UserCard { renders "), ref("User"), text(" }")]),
       blank(12),
-      line(13, [kw("project"), text(" "), ref("Users"),                  text("      -> "), ref("rust")]),
-      line(14, [kw("project"), text(" "), ref("users"),                  text("      -> "), ref("sql")]),
-      line(15, [kw("project"), text(" "), ref("UsersList", "Users.list"),text(" -> "), ref("openapi")]),
-      line(16, [kw("project"), text(" "), ref("UserCard"),               text("   -> "), ref("typescript")])
+      line(13, [kw("project"), text(" Users      -> "), ref("rust")]),
+      line(14, [kw("project"), text(" users      -> "), ref("sql")]),
+      line(15, [kw("project"), text(" Users.list -> "), ref("openapi")]),
+      line(16, [kw("project"), text(" UserCard   -> "), ref("typescript")])
     ],
     graph: {
       nodes: [
-        node("Timestamp", "Timestamp",  0, 1.5, "changed"),
-        node("User",      "User",       1, 1.5, "affected"),
-        node("Users",     "service Users", 2, 0, "affected"),
-        node("users",     "table users",   2, 1, "affected"),
-        node("UsersList", "Users.list",    2, 2, "affected"),
-        node("UserCard",  "view UserCard", 2, 3, "affected"),
-        artifact("rust",       ".rs",           3, 0),
-        artifact("sql",        ".sql",          3, 1),
-        artifact("openapi",    ".openapi.yaml", 3, 2),
-        artifact("typescript", ".ts",           3, 3)
+        node("Timestamp",       "Timestamp",     0, 1.5, "changed"),
+        node("User",            "User",          1, 1.5, "affected"),
+        artifact("rust",       ".rs",            2, 0),
+        artifact("sql",        ".sql",           2, 1),
+        artifact("openapi",    ".openapi.yaml",  2, 2),
+        artifact("typescript", ".ts",            2, 3)
       ],
       edges: [
-        edge("Timestamp", "User",       "L01→L06",  "affected"),
-        edge("User",      "Users",      "L09",     "affected", -1),
-        edge("User",      "users",      "L10",     "affected",  0),
-        edge("User",      "UsersList",  "L11",     "affected",  1),
-        edge("User",      "UserCard",   "L11",     "affected",  2),
-        edge("Users",     "rust",       "L13", "affected"),
-        edge("users",     "sql",        "L14", "affected"),
-        edge("UsersList", "openapi",    "L15", "affected"),
-        edge("UserCard",  "typescript", "L16", "affected")
+        edge("Timestamp", "User",       "L01 → L06", "changed"),
+        edge("User",      "rust",       "L13",       "affected"),
+        edge("User",      "sql",        "L14",       "affected"),
+        edge("User",      "openapi",    "L15",       "affected"),
+        edge("User",      "typescript", "L16",       "affected")
       ]
     },
     receipt: [
@@ -393,11 +396,6 @@
       "result: no artifact emitted"
     ]
   };
-
-  // Fix receipt template artifact for card01 (had a placeholder replace)
-  card01.receipt = [
-    "one structural {root:description} · {affected:four target artifacts} · hand-written translations: {affected:zero}"
-  ];
 
   const CARDS = [card01, card02, card03];
 
