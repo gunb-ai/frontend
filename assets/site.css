@@ -126,6 +126,26 @@ a { color: inherit; }
 }
 .eyebrow.right { margin-left: auto; }
 
+/* Top-right nav in the masthead — same mono treatment as the footer */
+.masthead-nav {
+  margin-left: auto;
+  font-family: var(--font-mono); font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--stone-faint);
+}
+.masthead-nav a {
+  color: var(--warm-white-dim);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s, color 0.15s;
+}
+.masthead-nav a:hover { color: var(--moss); border-bottom-color: currentColor; }
+.masthead-nav .sep {
+  margin: 0 0.55rem;
+  color: var(--stone-faint);
+  opacity: 0.55;
+}
+
 .section-label {
   display: block;
   font-family: var(--font-mono); font-size: 0.6rem;
