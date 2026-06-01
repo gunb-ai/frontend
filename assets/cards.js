@@ -263,18 +263,57 @@
     for (const n of nodes) byId[n.id] = n;
     const bounds = graphBounds(nodes);
 
-    const edgesSvg = card.graph.edges.map(e => {
+    // Stagger incoming edges so when N arrows converge on one target
+    // they enter the left edge at different y points. Without this,
+    // the final horizontal segments superimpose and read as a single
+    // double-thickness arrow. (Outgoing fan-out, by contrast, IS the
+    // intended "bus" pattern — shared vertical reads as a tree branch.)
+    const incomingCount = {};
+    for (const e of card.graph.edges) {
+      incomingCount[e.to] = (incomingCount[e.to] || 0) + 1;
+    }
+    const incomingIdx = new Map();
+    {
+      const seen = {};
+      for (const e of card.graph.edges) {
+        seen[e.to] = seen[e.to] || 0;
+        incomingIdx.set(e, seen[e.to]++);
+      }
+    }
+    function tyFor(e) {
+      const b = byId[e.to];
+      const total = incomingCount[e.to];
+      if (total <= 1) return b.y + b.h / 2;
+      const spread = Math.min(b.h * 0.55, 12);
+      const step = spread / (total - 1);
+      return b.y + b.h / 2 - spread / 2 + incomingIdx.get(e) * step;
+    }
+    function geomFor(e) {
       const a = byId[e.from];
       const b = byId[e.to];
+      const sx = a.x + a.w;
+      const sy = a.y + a.h / 2;
+      const tx = b.x;
+      const ty = tyFor(e);
+      const sameRow = Math.abs(sy - ty) < 1;
+      const baseMid = sx + ELBOW_OFFSET;
+      const mid = Math.min(baseMid, tx - 8);
+      return { sx, sy, tx, ty, mid, sameRow };
+    }
+    function pathFor(e) {
+      const g = geomFor(e);
+      if (g.sameRow) return "M " + g.sx + " " + g.sy + " L " + g.tx + " " + g.ty;
+      return "M " + g.sx + " " + g.sy + " H " + g.mid + " V " + g.ty + " H " + g.tx;
+    }
+
+    const edgesSvg = card.graph.edges.map(e => {
       const cls = roleClass(e.role);
-      return '<path class="graph-edge ' + cls + '" d="' + edgePath(a, b)
+      return '<path class="graph-edge ' + cls + '" d="' + pathFor(e)
            + '" marker-end="url(#card-arrow)" />';
     }).join("");
 
     const edgeLabels = card.graph.edges.filter(e => e.label).map(e => {
-      const a = byId[e.from];
-      const b = byId[e.to];
-      const g = edgeGeom(a, b);
+      const g = geomFor(e);
       const lx = g.sameRow ? (g.sx + g.tx) / 2 : (g.mid + g.tx) / 2;
       const ly = (g.sameRow ? g.sy : g.ty) - 4;
       const cls = roleClass(e.role);
