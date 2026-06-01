@@ -741,10 +741,14 @@
     // field of User. This is the "single tree" structure the
     // operator asked for: the three coloring categories (direct,
     // transitive, unrelated) are siblings under the same root.
+    // The three operations project into three DIFFERENT backends —
+    // a Rust library, a TypeScript library, and a SQL schema — to
+    // show that one description emits a polyglot artifact set with
+    // zero hand-written translation between them.
     artifacts: {
-      profile_rs: { label: "profile.rs", from: "UsersProfile" },
-      email_rs:   { label: "email.rs",   from: "UsersEmail"   },
-      token_rs:   { label: "token.rs",   from: "UsersToken"   }
+      profile_rs: { label: "profile.rs",  from: "UsersProfile" },
+      email_rs:   { label: "email.ts",    from: "UsersEmail"   },
+      token_rs:   { label: "token.sql",   from: "UsersToken"   }
     }
   };
 
@@ -753,9 +757,9 @@
   // teach the SHAPE of the system. format_joined and field-level
   // dependencies belong to card 02's lane-tree view, not here.
   //
-  //   User → Users.profile → profile.rs
-  //        → Users.email   → email.rs
-  //        → Users.token   → token.rs
+  //   User → Users.profile → profile.rs  (Rust library)
+  //        → Users.email   → email.ts    (TypeScript library)
+  //        → Users.token   → token.sql   (SQL schema)
   function projectionLayoutNodes(system) {
     return [
       node("User",         "User",          0, 1),
@@ -813,11 +817,11 @@
         ln(8,  [tx("}")]),
         blank(9),
         ln(10, [kw("project"), tx(" Users."), ref("UsersProfile", "profile", "derived"),
-                tx(" -> "), ref("profile_rs")]),
+                tx(" -> "), ref("profile_rs", "rust::Library")]),
         ln(11, [kw("project"), tx(" Users."), ref("UsersEmail",   "email",   "derived"),
-                tx("   -> "), ref("email_rs")]),
+                tx("   -> "), ref("email_rs", "ts::Library")]),
         ln(12, [kw("project"), tx(" Users."), ref("UsersToken",   "token",   "derived"),
-                tx("   -> "), ref("token_rs")])
+                tx("   -> "), ref("token_rs", "sql::Schema")])
       ],
       graph: {
         nodes: applyNodeRoles(projectionLayoutNodes(system), {
@@ -830,7 +834,8 @@
       },
       receipt: [
         { label: "structure",    value: "{stable:one description} · {derived:three operations}" },
-        { label: "emissions",    value: "{artifact:profile.rs} · {artifact:email.rs} · {artifact:token.rs}" },
+        { label: "emissions",    value: "{artifact:profile.rs} · {artifact:email.ts} · {artifact:token.sql}" },
+        { label: "backends",     value: "{derived:Rust · TypeScript · SQL}" },
         { label: "translations", value: "{derived:zero hand-written}" }
       ]
     };
@@ -873,11 +878,11 @@
         ln(15, [tx("}")]),
         blank(16),
         ln(17, [kw("project"), tx(" Users."), ref("UsersProfile", "profile", "transitive"),
-                tx(" -> "), ref("profile_rs")]),
+                tx(" -> "), ref("profile_rs", "rust::Library")]),
         ln(18, [kw("project"), tx(" Users."), ref("UsersEmail",   "email",   "context"),
-                tx("   -> "), ref("email_rs")]),
+                tx("   -> "), ref("email_rs", "ts::Library")]),
         ln(19, [kw("project"), tx(" Users."), ref("UsersToken",   "token",   "context"),
-                tx("   -> "), ref("token_rs")])
+                tx("   -> "), ref("token_rs", "sql::Schema")])
       ],
       // Lane tree: 4 columns × 3 rows. Each row is a branch; edges
       // only connect adjacent cells in the same row. Overlap is
@@ -902,7 +907,7 @@
               null,
               { id: "user_email",      label: "User.email",       role: "context" },
               { id: "UsersEmail",      label: "Users.email",      role: "context" },
-              { id: "email_rs",        label: "email.rs",         role: "context",
+              { id: "email_rs",        label: "email.ts",         role: "context",
                 kind: "artifact" }
             ]
           },
@@ -912,7 +917,7 @@
               null,
               { id: "user_id",         label: "User.id",          role: "context" },
               { id: "UsersToken",      label: "Users.token",      role: "context" },
-              { id: "token_rs",        label: "token.rs",         role: "context",
+              { id: "token_rs",        label: "token.sql",        role: "context",
                 kind: "artifact" }
             ]
           }
@@ -923,7 +928,7 @@
         { label: "direct",     value: "{derived:User.created_at}" },
         { label: "transitive", value: "{transitive:Profile.joined} · {transitive:Users.profile}" },
         { label: "re-derived", value: "{artifact:profile.rs}" },
-        { label: "unrelated",  value: "{context:User.email · User.id · Users.email · Users.token · email.rs · token.rs}" },
+        { label: "unrelated",  value: "{context:User.email · User.id · Users.email · Users.token · email.ts · token.sql}" },
         { label: "hand-edits", value: "{derived:zero}" }
       ]
     };
