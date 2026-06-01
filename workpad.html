@@ -2201,7 +2201,7 @@ diagnostics: 0</div></div>
               <span class="deck-card-name">Complexity lens</span>
             </div>
             <p class="deck-card-concept">
-              The same affected subset can be <strong>measured structurally</strong>. The fold's complexity class becomes a checked bound. Recheck cost stays bounded by what was affected — not by the whole graph.
+              A <code>lens</code> reads a named subgraph through one structural property — here, complexity. The <span style="color:var(--moss)">moss expression</span> in the source is what the <span style="color:var(--moss)">moss circle</span> covers in the diagram. Same subgraph, two registers.
             </p>
 
             <div class="deck-card-body">
@@ -2211,11 +2211,12 @@ diagnostics: 0</div></div>
   svcs |&gt; <span class="kw">each</span>(start_service)
 }
 
-<span class="com">-- compiler:</span>
-<span class="com">fold:        each</span>
-<span class="com">cost class:  O(n)</span>
-<span class="com">bound:       O(n)</span>
-<span class="com">result:      held</span></pre>
+<span class="com">-- read the affected subset through a structural lens</span>
+<span class="kw">let</span> cost = <span class="add">lens(complexity) over Api.route.todos.affected</span>
+
+<span class="com">cost.class:  O(n)</span>
+<span class="com">cost.bound:  O(n)</span>
+<span class="com">cost.held:   true</span></pre>
               </div>
 
               <div class="deck-card-vis">
@@ -2244,7 +2245,7 @@ diagnostics: 0</div></div>
             </div>
 
             <div class="deck-card-receipt">
-              <span class="receipt-key">fold</span>each<span class="receipt-sep">·</span><span class="receipt-key">class</span>O(n)<span class="receipt-sep">·</span><span class="receipt-key">bound</span>O(n)<span class="receipt-sep">·</span><span class="receipt-key">result</span>held
+              <span class="receipt-key">lens</span>complexity<span class="receipt-sep">·</span><span class="receipt-key">scope</span>Api.route.todos.affected<span class="receipt-sep">·</span><span class="receipt-key">class</span>O(n)<span class="receipt-sep">·</span><span class="receipt-key">held</span>yes
             </div>
 
             <div class="deck-card-stack">
