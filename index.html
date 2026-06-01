@@ -69,166 +69,186 @@
     <!-- Carved rule — fills page width, aligns with specimen cards below -->
     <div class="carved-rule" aria-hidden="true"><span class="notch"></span></div>
 
-    <!-- Three specimens — things normal compilers don't do, against a
-         REST service every developer recognizes -->
+    <!-- Three specimens — one Users domain, causal sequence.
+         Every colored token in code maps to a same-colored element in the SVG. -->
     <section class="story-ledger" aria-label="three specimens">
 
-      <!-- 01 — Projection closure -->
+      <!-- 01 — Projection closure (HELD) — sets up the domain -->
       <article class="specimen">
         <header class="specimen-head">
           <span class="specimen-num">01</span>
           <span class="specimen-name">projection closure</span>
         </header>
         <div class="specimen-body">
-<pre class="specimen-code"><span class="kw">record</span> <span class="ty">User</span> =
+<pre class="specimen-code"><span class="kw">type</span> <span class="ty">Timestamp</span> = <span class="ty">UnixMillis</span>
+
+<span class="kw">type</span> <span class="ty">User</span> {
   id         : <span class="ty">UserId</span>
-  email      : <span class="ty">Email</span>
+  name       : <span class="ty">String</span>
   created_at : <span class="ty">Timestamp</span>
+}
 
-<span class="kw">service</span> <span class="ty">Users</span> =
-  get    : (<span class="ty">UserId</span>) -> <span class="ty">User</span>
-  list   : () -> <span class="ty">List</span>&lt;<span class="ty">User</span>&gt;
-  create : (<span class="ty">User</span>) -> <span class="ty">User</span>
+<span class="kw">service</span> <span class="ty">Users</span> {
+  list : () -> <span class="ty">List</span>&lt;<span class="ty">User</span>&gt;
+}
 
-<span class="kw">project</span> <span class="ty">Users</span> -> <span class="lit">rust</span>, <span class="lit">typescript</span>, <span class="lit">openapi</span></pre>
-<div class="specimen-graph">
-            <svg viewBox="0 0 280 160" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-label="Users service with 3 reachable types, lassoed and projected to 3 artifact slots">
-              <!-- source structure: Users + 3 reachable types -->
-              <rect x="14" y="64" width="48" height="30" rx="4"/>
-              <rect x="76" y="32" width="36" height="20" rx="3"/>
-              <rect x="76" y="68" width="36" height="20" rx="3"/>
-              <rect x="76" y="104" width="36" height="20" rx="3"/>
-              <line x1="62" y1="74" x2="74" y2="42" marker-end="url(#arrow)"/>
-              <line x1="62" y1="80" x2="74" y2="78" marker-end="url(#arrow)"/>
-              <line x1="62" y1="86" x2="74" y2="114" marker-end="url(#arrow)"/>
+<span class="kw">project</span> <span class="ty">Users</span> -> <span class="moss">rust</span>
+<span class="kw">project</span> <span class="ty">Users</span> -> <span class="moss">openapi</span></pre>
+          <div class="specimen-graph">
+            <svg viewBox="0 0 280 200" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                 font-family="JetBrains Mono, ui-monospace, monospace" font-size="10">
               <!-- moss lasso enclosing the reachable scope -->
-              <polygon points="8,80 12,26 118,26 118,130 12,130"
-                       stroke="var(--moss)" stroke-dasharray="5 3" stroke-width="1.8"
-                       fill="none" stroke-linejoin="round"/>
-              <!-- 3 moss projection edges to 3 artifacts -->
-              <line x1="118" y1="46" x2="190" y2="34"  stroke="var(--moss)" marker-end="url(#arrow)"/>
-              <line x1="118" y1="78" x2="190" y2="78"  stroke="var(--moss)" marker-end="url(#arrow)"/>
-              <line x1="118" y1="110" x2="190" y2="122" stroke="var(--moss)" marker-end="url(#arrow)"/>
-              <!-- 3 artifact slots (cut-corner — Artifact primitive) -->
-              <path d="M192,22 L228,22 L236,30 L236,46 L192,46 Z"/>
-              <line x1="228" y1="22" x2="228" y2="30"/>
-              <line x1="228" y1="30" x2="236" y2="30"/>
-              <path d="M192,66 L228,66 L236,74 L236,90 L192,90 Z"/>
-              <line x1="228" y1="66" x2="228" y2="74"/>
-              <line x1="228" y1="74" x2="236" y2="74"/>
-              <path d="M192,110 L228,110 L236,118 L236,134 L192,134 Z"/>
-              <line x1="228" y1="110" x2="228" y2="118"/>
-              <line x1="228" y1="118" x2="236" y2="118"/>
+              <rect x="8" y="6" width="120" height="180" rx="10"
+                    stroke="var(--moss)" stroke-dasharray="5 3" stroke-width="1.8" fill="none"/>
+              <!-- vertical chain: Users → list → List<User> → User → Timestamp -->
+              <rect x="16" y="14" width="104" height="24" rx="4" stroke="var(--moss)" stroke-width="2"/>
+              <text x="68" y="30" text-anchor="middle" fill="var(--warm-white)" stroke="none" font-weight="500">Users</text>
+              <line x1="68" y1="38" x2="68" y2="48" stroke="var(--moss)" marker-end="url(#arrow)"/>
+              <rect x="16" y="50" width="104" height="22" rx="3" stroke="var(--moss)"/>
+              <text x="68" y="65" text-anchor="middle" fill="var(--moss)" stroke="none">list()</text>
+              <line x1="68" y1="72" x2="68" y2="82" stroke="var(--moss)" marker-end="url(#arrow)"/>
+              <rect x="16" y="84" width="104" height="22" rx="3" stroke="var(--moss)"/>
+              <text x="68" y="99" text-anchor="middle" fill="var(--moss)" stroke="none">List&lt;User&gt;</text>
+              <line x1="68" y1="106" x2="68" y2="116" stroke="var(--moss)" marker-end="url(#arrow)"/>
+              <rect x="16" y="118" width="104" height="22" rx="3" stroke="var(--moss)"/>
+              <text x="68" y="133" text-anchor="middle" fill="var(--moss)" stroke="none">User</text>
+              <line x1="68" y1="140" x2="68" y2="150" stroke="var(--moss)" marker-end="url(#arrow)"/>
+              <rect x="16" y="152" width="104" height="22" rx="3" stroke="var(--moss)"/>
+              <text x="68" y="167" text-anchor="middle" fill="var(--moss)" stroke="none">Timestamp</text>
+              <!-- 2 projection edges from scope to artifacts -->
+              <line x1="128" y1="56" x2="200" y2="60" stroke="var(--moss)" marker-end="url(#arrow)"/>
+              <line x1="128" y1="130" x2="200" y2="134" stroke="var(--moss)" marker-end="url(#arrow)"/>
+              <!-- 2 artifact slots — moss, ACTIVE (not gray) -->
+              <path d="M202,50 L246,50 L254,58 L254,80 L202,80 Z" stroke="var(--moss)" stroke-width="2"/>
+              <line x1="246" y1="50" x2="246" y2="58" stroke="var(--moss)" stroke-width="2"/>
+              <line x1="246" y1="58" x2="254" y2="58" stroke="var(--moss)" stroke-width="2"/>
+              <text x="228" y="69" text-anchor="middle" fill="var(--moss)" stroke="none">rust</text>
+              <path d="M202,124 L246,124 L254,132 L254,154 L202,154 Z" stroke="var(--moss)" stroke-width="2"/>
+              <line x1="246" y1="124" x2="246" y2="132" stroke="var(--moss)" stroke-width="2"/>
+              <line x1="246" y1="132" x2="254" y2="132" stroke="var(--moss)" stroke-width="2"/>
+              <text x="228" y="143" text-anchor="middle" fill="var(--moss)" stroke="none">openapi</text>
             </svg>
           </div>
         </div>
-        <p class="specimen-receipt"><span class="label">closure</span><span class="moss">held for 3 targets</span><span class="sep">·</span><span class="label">otherwise</span>no artifact emitted</p>
+        <p class="specimen-receipt"><span class="label">closure</span><span class="moss">held</span><span class="sep">·</span><span class="label">5 reachable types project to</span><span class="moss">rust + openapi</span></p>
       </article>
 
-      <!-- 02 — Affected set across artifacts -->
+      <!-- 02 — Affected set: change one line, see the exact downstream chain -->
       <article class="specimen">
         <header class="specimen-head">
           <span class="specimen-num">02</span>
-          <span class="specimen-name">affected set across artifacts</span>
+          <span class="specimen-name">affected set</span>
         </header>
         <div class="specimen-body">
-<pre class="specimen-code"><span class="kw">record</span> <span class="ty">User</span> {
-  <span class="rem">- email: String</span>
-  <span class="add">+ email: Email         </span><span class="com">-- format constraint</span>
-}</pre>
-<div class="specimen-graph">
-            <svg viewBox="0 0 280 160" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-label="User.email edit (clay) fanning out to 6 affected downstream surfaces in moss">
-              <!-- User.email — the edit, clay -->
-              <rect x="10" y="62" width="60" height="32" rx="4" stroke="var(--clay)" stroke-width="2"/>
-              <!-- 6 downstream affected surfaces, moss -->
-              <rect x="178" y="6"   width="60" height="18" rx="3" stroke="var(--moss)" stroke-width="1.5"/>
-              <rect x="178" y="32"  width="60" height="18" rx="3" stroke="var(--moss)" stroke-width="1.5"/>
-              <rect x="178" y="58"  width="60" height="18" rx="3" stroke="var(--moss)" stroke-width="1.5"/>
-              <rect x="178" y="84"  width="60" height="18" rx="3" stroke="var(--moss)" stroke-width="1.5"/>
-              <rect x="178" y="110" width="60" height="18" rx="3" stroke="var(--moss)" stroke-width="1.5"/>
-              <rect x="178" y="136" width="60" height="18" rx="3" stroke="var(--moss)" stroke-width="1.5"/>
-              <!-- 6 moss edges fanning from User.email -->
-              <line x1="70" y1="72" x2="176" y2="15"  stroke="var(--moss)" marker-end="url(#arrow)"/>
-              <line x1="70" y1="74" x2="176" y2="41"  stroke="var(--moss)" marker-end="url(#arrow)"/>
-              <line x1="70" y1="76" x2="176" y2="67"  stroke="var(--moss)" marker-end="url(#arrow)"/>
-              <line x1="70" y1="80" x2="176" y2="93"  stroke="var(--moss)" marker-end="url(#arrow)"/>
-              <line x1="70" y1="82" x2="176" y2="119" stroke="var(--moss)" marker-end="url(#arrow)"/>
-              <line x1="70" y1="84" x2="176" y2="145" stroke="var(--moss)" marker-end="url(#arrow)"/>
-              <!-- skip cluster — dimmed unrelated nodes -->
-              <g stroke-opacity="0.3">
-                <circle cx="22" cy="138" r="3"/>
-                <circle cx="36" cy="146" r="3"/>
-                <circle cx="50" cy="138" r="3"/>
-                <circle cx="64" cy="146" r="3"/>
-                <circle cx="78" cy="140" r="3"/>
-              </g>
+<pre class="specimen-code"><span class="ln">01 </span><span class="rem">- type Timestamp = UnixMillis</span>
+<span class="ln">01 </span><span class="add">+ type Timestamp = IsoDateTime</span>
+<span class="ln">02</span>
+<span class="ln">03 </span><span class="kw">type</span> <span class="ty">User</span> {
+<span class="ln">04 </span>  id   : <span class="ty">UserId</span>
+<span class="ln">05 </span>  name : <span class="ty">String</span>
+<span class="ln">06 </span>  <span class="moss">created_at : Timestamp</span>
+<span class="ln">07 </span>}
+<span class="ln">08</span>
+<span class="ln">09 </span><span class="kw">service</span> <span class="ty">Users</span> {
+<span class="ln">10 </span>  <span class="moss">list : () -> List&lt;User&gt;</span>
+<span class="ln">11 </span>}
+<span class="ln">12</span>
+<span class="ln">13 </span><span class="moss">project Users -> rust</span>
+<span class="ln">14 </span><span class="moss">project Users -> openapi</span></pre>
+          <div class="specimen-graph">
+            <svg viewBox="0 0 280 200" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                 font-family="JetBrains Mono, ui-monospace, monospace" font-size="10">
+              <!-- L01 Timestamp — the changed line, clay -->
+              <rect x="14" y="10" width="100" height="26" rx="4" stroke="var(--clay)" stroke-width="2"/>
+              <text x="64" y="22" text-anchor="middle" fill="var(--clay)" stroke="none" font-size="8" letter-spacing="1">L01</text>
+              <text x="64" y="32" text-anchor="middle" fill="var(--clay)" stroke="none" font-weight="500">Timestamp</text>
+              <!-- propagation arrow ↓ moss -->
+              <line x1="64" y1="36" x2="64" y2="50" stroke="var(--moss)" marker-end="url(#arrow)"/>
+              <!-- L06 User.created_at — direct dependent, moss -->
+              <rect x="14" y="52" width="100" height="26" rx="4" stroke="var(--moss)"/>
+              <text x="64" y="64" text-anchor="middle" fill="var(--moss)" stroke="none" font-size="8" letter-spacing="1">L06</text>
+              <text x="64" y="74" text-anchor="middle" fill="var(--moss)" stroke="none">created_at</text>
+              <line x1="64" y1="78" x2="64" y2="92" stroke="var(--moss)" marker-end="url(#arrow)"/>
+              <!-- L10 Users.list — transitive, moss -->
+              <rect x="14" y="94" width="100" height="26" rx="4" stroke="var(--moss)"/>
+              <text x="64" y="106" text-anchor="middle" fill="var(--moss)" stroke="none" font-size="8" letter-spacing="1">L10</text>
+              <text x="64" y="116" text-anchor="middle" fill="var(--moss)" stroke="none">Users.list</text>
+              <!-- branch out to 2 artifact slots, moss -->
+              <line x1="114" y1="104" x2="180" y2="58"  stroke="var(--moss)" marker-end="url(#arrow)"/>
+              <line x1="114" y1="112" x2="180" y2="158" stroke="var(--moss)" marker-end="url(#arrow)"/>
+              <!-- L13 rust artifact, moss -->
+              <path d="M182,46 L226,46 L234,54 L234,76 L182,76 Z" stroke="var(--moss)" stroke-width="2"/>
+              <line x1="226" y1="46" x2="226" y2="54" stroke="var(--moss)" stroke-width="2"/>
+              <line x1="226" y1="54" x2="234" y2="54" stroke="var(--moss)" stroke-width="2"/>
+              <text x="208" y="58" text-anchor="middle" fill="var(--moss)" stroke="none" font-size="8" letter-spacing="1">L13</text>
+              <text x="208" y="69" text-anchor="middle" fill="var(--moss)" stroke="none">rust</text>
+              <!-- L14 openapi artifact, moss -->
+              <path d="M182,146 L226,146 L234,154 L234,176 L182,176 Z" stroke="var(--moss)" stroke-width="2"/>
+              <line x1="226" y1="146" x2="226" y2="154" stroke="var(--moss)" stroke-width="2"/>
+              <line x1="226" y1="154" x2="234" y2="154" stroke="var(--moss)" stroke-width="2"/>
+              <text x="208" y="158" text-anchor="middle" fill="var(--moss)" stroke="none" font-size="8" letter-spacing="1">L14</text>
+              <text x="208" y="169" text-anchor="middle" fill="var(--moss)" stroke="none">openapi</text>
             </svg>
           </div>
         </div>
-        <p class="specimen-receipt"><span class="label">downstream</span><span class="moss">6 surfaces</span><span class="sep">·</span><span class="label">skip</span>21 nodes (with receipt)</p>
+        <p class="specimen-receipt"><span class="label">changed</span><span class="clay">L01 Timestamp</span><span class="sep">·</span><span class="label">direct</span><span class="moss">L06 created_at</span><span class="sep">·</span><span class="label">transitive</span><span class="moss">L10 list</span><span class="sep">·</span><span class="label">rechecks</span><span class="moss">L13 rust, L14 openapi</span></p>
       </article>
 
-      <!-- 03 — Structural complexity + infra bringup -->
+      <!-- 03 — Complexity bound violation. The compiler rejects O(n²) under an O(n) lens. -->
       <article class="specimen">
         <header class="specimen-head">
           <span class="specimen-num">03</span>
-          <span class="specimen-name">complexity + infra bringup</span>
+          <span class="specimen-name">complexity bound violation</span>
         </header>
         <div class="specimen-body">
-<pre class="specimen-code"><span class="kw">fn</span> bringup(env: <span class="ty">Environment</span>) {
-  env.databases |&gt; <span class="kw">each</span>(connect)
-  env.caches    |&gt; <span class="kw">each</span>(connect)
+<pre class="specimen-code"><span class="kw">fn</span> unique_users(users: <span class="ty">List</span>&lt;<span class="ty">User</span>&gt;) -> <span class="ty">List</span>&lt;<span class="ty">User</span>&gt; {
+  users |&gt; <span class="kw">filter</span>(<span class="kw">fn</span>(u) {
+    <span class="clay">count(users, fn(v) { v.id == u.id }) == 1</span>
+  })
 }
 
-<span class="kw">lens</span> bringup_complexity &lt;= <span class="lit">O(n)</span>
-<span class="kw">upsert</span> infra <span class="kw">for</span> <span class="ty">Users</span></pre>
-<div class="specimen-graph">
-            <svg viewBox="0 0 280 160" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-label="Users service folds into bringup; complexity lens scopes 3 idempotent infra upserts">
-              <!-- Users + bringup -->
-              <rect x="10" y="65" width="46" height="30" rx="4"/>
-              <line x1="56" y1="80" x2="78" y2="80" marker-end="url(#arrow)"/>
-              <rect x="80" y="65" width="56" height="30" rx="4"/>
-              <!-- 3 edges from bringup to infra -->
-              <line x1="136" y1="72" x2="190" y2="30"  marker-end="url(#arrow)"/>
-              <line x1="136" y1="80" x2="190" y2="80"  marker-end="url(#arrow)"/>
-              <line x1="136" y1="88" x2="190" y2="130" marker-end="url(#arrow)"/>
-              <!-- 3 infra nodes: postgres / redis / api_pool -->
-              <rect x="192" y="18" width="64" height="24" rx="4"/>
-              <rect x="192" y="68" width="64" height="24" rx="4"/>
-              <rect x="192" y="118" width="64" height="24" rx="4"/>
-              <!-- idempotent moss dots at top-right of each infra node -->
-              <circle cx="252" cy="20" r="3" fill="var(--moss)" stroke="none"/>
-              <circle cx="252" cy="70" r="3" fill="var(--moss)" stroke="none"/>
-              <circle cx="252" cy="120" r="3" fill="var(--moss)" stroke="none"/>
-              <!-- moss lasso enclosing bringup + 3 infra nodes (the complexity-lens scope) -->
-              <polygon points="76,60 84,12 260,12 260,148 84,148 76,100"
-                       stroke="var(--moss)" stroke-dasharray="5 3" stroke-width="2"
-                       fill="none" stroke-linejoin="round"/>
+<span class="kw">lens</span> <span class="moss">complexity(unique_users) &lt;= O(n)</span></pre>
+          <div class="specimen-graph">
+            <svg viewBox="0 0 280 180" fill="none" stroke-linecap="round" stroke-width="1.5"
+                 font-family="JetBrains Mono, ui-monospace, monospace" font-size="10">
+              <!-- y-axis label -->
+              <text x="14" y="22" fill="var(--stone-faint)" stroke="none" font-size="8" letter-spacing="2">cost</text>
+              <!-- required bound: O(n) — moss bar -->
+              <text x="14" y="58" fill="var(--moss)" stroke="none" font-size="9" letter-spacing="1">required</text>
+              <rect x="80" y="46" width="80" height="20" rx="3"
+                    fill="var(--moss-subtle)" stroke="var(--moss)" stroke-width="1.5"/>
+              <text x="120" y="60" text-anchor="middle" fill="var(--moss)" stroke="none">O(n)</text>
+              <!-- derived bound: O(n²) — clay bar, overshoots -->
+              <text x="14" y="118" fill="var(--clay)" stroke="none" font-size="9" letter-spacing="1">derived</text>
+              <rect x="80" y="106" width="180" height="20" rx="3"
+                    fill="var(--clay-subtle)" stroke="var(--clay)" stroke-width="1.5"/>
+              <text x="170" y="120" text-anchor="middle" fill="var(--clay)" stroke="none">O(n²)</text>
+              <!-- violation marker — clay vertical at the bound boundary -->
+              <line x1="161" y1="40" x2="161" y2="140" stroke="var(--clay)" stroke-dasharray="3 3" stroke-width="1"/>
+              <text x="166" y="156" fill="var(--clay)" stroke="none" font-size="8" letter-spacing="1">violation past O(n)</text>
             </svg>
           </div>
         </div>
-        <p class="specimen-receipt"><span class="label">cost</span><span class="moss">O(n)</span><span class="sep">·</span><span class="label">effect</span><span class="moss">idempotent</span><span class="sep">·</span><span class="label">duplicates</span>blocked</p>
+        <p class="specimen-receipt"><span class="label">required</span><span class="moss">O(n)</span><span class="sep">·</span><span class="label">derived</span><span class="clay">O(n²)</span><span class="sep">·</span><span class="label">result</span>no artifact emitted</p>
       </article>
 
     </section>
 
-    <!-- Invariant — projection closure failure on Timestamp.
-         Page-width wrapper so it aligns with the specimens above. -->
+    <!-- Invariant — IS the receipt for Card 03. Same failure, full form. -->
     <section class="diagnostic">
       <span class="section-label">a diagnostic</span>
 <pre class="invariant"><span class="title">Invariant —</span>
-  projection is not closed
+  complexity bound violated
 
-  requested:
-    Users -> openapi
+  required:
+    unique_users &lt;= O(n)
 
-  missing:
-    openapi projection for Timestamp
+  derived:
+    O(n²)
 
   reached through:
-    Users.list
-    List&lt;User&gt;
-    User.created_at
+    users |&gt; filter(...)
+    count(users, ...)
 
   result:
     no artifact emitted</pre>
