@@ -270,21 +270,27 @@ a { color: inherit; }
    same-colored graph object, and vice versa.
 
    Taxonomy (one color per structural meaning):
-     stable    ordinary structure                    warm-white
-     focus     the source fact this card pivots on   brass
-     derived   re-derived / held / downstream        moss
-     artifact  terminal generated slot               moss
-     removed   diff removal                          clay
-     boundary  violation / no artifact emitted       clay
-     context   ambient text without a role           stone */
+     stable      ordinary structure                    warm-white
+     focus       the source fact this card pivots on   brass
+     derived     directly downstream / 1-2 hops        moss
+     transitive  multi-hop downstream (distant kin)    moss-dim
+     artifact    terminal generated slot               warm-white
+     removed     diff removal                          clay
+     boundary    violation / no artifact emitted       clay
+     context     ambient text without a role           stone
 
-.map-stable    { color: var(--warm-white); }
-.map-focus     { color: var(--brass); }
-.map-derived   { color: var(--moss); }
-.map-artifact  { color: var(--moss); }
-.map-removed   { color: var(--clay); }
-.map-boundary  { color: var(--clay); }
-.map-context   { color: var(--stone-dim); }
+   stable and artifact share warm-white intentionally: they are the
+   bookends of the system (source root and target slot). The cut-
+   corner pentagon shape carries the artifact distinction. */
+
+.map-stable     { color: var(--warm-white); }
+.map-focus      { color: var(--brass); }
+.map-derived    { color: var(--moss); }
+.map-transitive { color: var(--moss-dim); }
+.map-artifact   { color: var(--warm-white); }
+.map-removed    { color: var(--clay); }
+.map-boundary   { color: var(--clay); }
+.map-context    { color: var(--stone-dim); }
 
 
 /* ╔══ STORY LEDGER — sequence of generated cards ═══════════════════
@@ -382,42 +388,48 @@ a { color: inherit; }
 .graph-node rect,
 .graph-node.map-artifact path { fill: var(--void); }
 
-.graph-node.map-stable rect    { stroke: var(--warm-white); stroke-width: 2; }
-.graph-node.map-stable text    { fill: var(--warm-white); font-weight: 600; }
-.graph-node.map-focus rect     { stroke: var(--brass); stroke-width: 2; }
-.graph-node.map-focus text     { fill: var(--brass); font-weight: 500; }
-.graph-node.map-derived rect   { stroke: var(--moss); stroke-width: 1.5; }
-.graph-node.map-derived text   { fill: var(--moss); }
-.graph-node.map-removed rect   { stroke: var(--clay); stroke-width: 1.5; stroke-dasharray: 4 3; }
-.graph-node.map-removed text   { fill: var(--clay); }
-.graph-node.map-boundary rect  { stroke: var(--clay); stroke-width: 2; }
-.graph-node.map-boundary text  { fill: var(--clay); font-weight: 500; }
-.graph-node.map-context rect   { stroke: var(--stone-faint); stroke-width: 1; stroke-opacity: 0.55; }
-.graph-node.map-context text   { fill: var(--stone-dim); }
+.graph-node.map-stable rect     { stroke: var(--warm-white); stroke-width: 2; }
+.graph-node.map-stable text     { fill: var(--warm-white); font-weight: 600; }
+.graph-node.map-focus rect      { stroke: var(--brass); stroke-width: 2; }
+.graph-node.map-focus text      { fill: var(--brass); font-weight: 500; }
+.graph-node.map-derived rect    { stroke: var(--moss); stroke-width: 1.5; }
+.graph-node.map-derived text    { fill: var(--moss); }
+.graph-node.map-transitive rect { stroke: var(--moss-dim); stroke-width: 1; stroke-opacity: 0.8; }
+.graph-node.map-transitive text { fill: var(--moss-dim); }
+.graph-node.map-removed rect    { stroke: var(--clay); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.graph-node.map-removed text    { fill: var(--clay); }
+.graph-node.map-boundary rect   { stroke: var(--clay); stroke-width: 2; }
+.graph-node.map-boundary text   { fill: var(--clay); font-weight: 500; }
+.graph-node.map-context rect    { stroke: var(--stone-faint); stroke-width: 1; stroke-opacity: 0.55; }
+.graph-node.map-context text    { fill: var(--stone-dim); }
 
-/* Artifact (cut-corner) */
-.graph-node.map-artifact path { stroke: var(--moss); stroke-width: 1.5; }
-.graph-node.map-artifact text { fill: var(--moss); }
+/* Artifact (cut-corner) — warm-white so artifacts read as the
+   system's terminal bookends, distinct from moss derived nodes.
+   Shape and color both carry the structural distinction. */
+.graph-node.map-artifact path { stroke: var(--warm-white); stroke-width: 1.5; }
+.graph-node.map-artifact text { fill: var(--warm-white); }
 
 .graph-edge { fill: none; stroke-width: 1.5; stroke-linecap: round; }
-.graph-edge.map-stable   { stroke: var(--warm-white); }
-.graph-edge.map-focus    { stroke: var(--brass); }
-.graph-edge.map-derived  { stroke: var(--moss); }
-.graph-edge.map-removed  { stroke: var(--clay); stroke-dasharray: 4 3; }
-.graph-edge.map-boundary { stroke: var(--clay); }
-.graph-edge.map-context  { stroke: var(--stone-faint); stroke-opacity: 0.5; }
+.graph-edge.map-stable     { stroke: var(--warm-white); }
+.graph-edge.map-focus      { stroke: var(--brass); }
+.graph-edge.map-derived    { stroke: var(--moss); }
+.graph-edge.map-transitive { stroke: var(--moss-dim); stroke-opacity: 0.8; }
+.graph-edge.map-removed    { stroke: var(--clay); stroke-dasharray: 4 3; }
+.graph-edge.map-boundary   { stroke: var(--clay); }
+.graph-edge.map-context    { stroke: var(--stone-faint); stroke-opacity: 0.5; }
 
 .graph-edge-label {
   font-family: var(--font-mono);
   font-size: 7px;
   letter-spacing: 0.05em;
 }
-.graph-edge-label.map-stable   { fill: var(--warm-white); }
-.graph-edge-label.map-focus    { fill: var(--brass); }
-.graph-edge-label.map-derived  { fill: var(--moss-dim); }
-.graph-edge-label.map-removed  { fill: var(--clay); }
-.graph-edge-label.map-boundary { fill: var(--clay); }
-.graph-edge-label.map-context  { fill: var(--stone-faint); }
+.graph-edge-label.map-stable     { fill: var(--warm-white); }
+.graph-edge-label.map-focus      { fill: var(--brass); }
+.graph-edge-label.map-derived    { fill: var(--moss-dim); }
+.graph-edge-label.map-transitive { fill: var(--moss-dim); fill-opacity: 0.7; }
+.graph-edge-label.map-removed    { fill: var(--clay); }
+.graph-edge-label.map-boundary   { fill: var(--clay); }
+.graph-edge-label.map-context    { fill: var(--stone-faint); }
 
 /* Cost-area cells — for the complexity visualization. Two grids side-
    by-side: declared O(n) as a 1×n strip, observed O(n²) as an n×n

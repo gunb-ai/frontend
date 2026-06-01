@@ -25,13 +25,14 @@
   /* ── Role → CSS class ───────────────────────────────────────
      One color per structural meaning. See DESIGN.md materials. */
   const Roles = {
-    stable:   "map-stable",     // ordinary structure (warm-white)
-    focus:    "map-focus",      // human edit site / subject (brass)
-    derived:  "map-derived",    // re-derived / held / downstream (moss)
-    artifact: "map-artifact",   // terminal generated slot (moss)
-    removed:  "map-removed",    // diff removal (clay)
-    boundary: "map-boundary",   // violation / no artifact (clay)
-    context:  "map-context"     // ambient (stone)
+    stable:     "map-stable",      // ordinary structure (warm-white)
+    focus:      "map-focus",       // human edit site / subject (brass)
+    derived:    "map-derived",     // 1-2 hops downstream (moss)
+    transitive: "map-transitive",  // multi-hop downstream (moss-dim)
+    artifact:   "map-artifact",    // terminal generated slot (warm-white)
+    removed:    "map-removed",     // diff removal (clay)
+    boundary:   "map-boundary",    // violation / no artifact (clay)
+    context:    "map-context"      // ambient (stone)
   };
   const roleClass = r => Roles[r] || Roles.context;
 
@@ -41,6 +42,10 @@
   const ty  = v => ({ kind: "ty",   value: v });
   const com = v => ({ kind: "com",  value: v });
   const ref = (id, text, role) => ({ kind: "ref", id, text: text || id, role: role || null });
+  // Inline colored span without a graph anchor — for marking a piece
+  // of code semantically (e.g. a violated bound) where the text is not
+  // itself a named entity in the system.
+  const mark = (text, role) => ({ kind: "mark", text, role });
   const ln       = (n, parts) => ({ n, parts });
   const blank    = (n)        => ({ n, parts: [] });
   const diffRm   = (n, parts) => ({ n, parts, diff: "rm" });
@@ -235,6 +240,7 @@
     if (p.kind === "kw")   return '<span class="ck-kw">'  + esc(p.value) + '</span>';
     if (p.kind === "ty")   return '<span class="ck-ty">'  + esc(p.value) + '</span>';
     if (p.kind === "com")  return '<span class="ck-com">' + esc(p.value) + '</span>';
+    if (p.kind === "mark") return '<span class="' + roleClass(p.role) + '">' + esc(p.text) + '</span>';
     if (p.kind === "ref") {
       const role = p.role || refRole(p.id);
       const cls  = role ? roleClass(role) : "";
