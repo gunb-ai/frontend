@@ -258,82 +258,149 @@ a { color: inherit; }
 }
 
 
-/* ╔══ STORY LEDGER — specimen card sequence ════════════════════════
-   No max-width: inherits page width from the parent .page. */
+/* ╔══ ROLE TOKENS — shared between code spans and graph elements ═
+   The visual-correspondence rule: every colored code token has a
+   same-colored graph object, and vice versa. */
+
+.map-root      { color: var(--warm-white); }
+.map-affected  { color: var(--moss); }
+.map-changed   { color: var(--clay); }
+.map-artifact  { color: var(--moss); }
+.map-blocked   { color: var(--clay); }
+.map-context   { color: var(--stone-dim); }
+
+
+/* ╔══ STORY LEDGER — sequence of generated cards ═══════════════════
+   Cards are rendered by assets/cards.js from a single spec. */
 
 .story-ledger {
   margin: var(--gap-lg) 0;
   display: grid; gap: var(--gap-sm);
 }
-.specimen {
+
+.card {
   background: var(--void-up);
   border: 1px solid var(--border-dark);
   border-radius: 4px;
   padding: 1rem 1.15rem 1.05rem;
   display: grid; gap: 0.75rem;
 }
-.specimen-head {
+.card-head {
   display: flex; align-items: baseline; gap: 0.65rem;
   font-family: var(--font-mono); font-size: 0.62rem;
   letter-spacing: 0.16em; text-transform: uppercase;
 }
-.specimen-num  { color: var(--stone-faint); }
-.specimen-name { color: var(--warm-white); font-weight: 500; }
+.card-num  { color: var(--stone-faint); }
+.card-name { color: var(--warm-white); font-weight: 500; }
 
-.specimen-body {
+.card-body {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
   gap: 0.85rem; align-items: start;
 }
-.specimen-code, .specimen-graph {
-  font-family: var(--font-mono); font-size: 0.76rem;
-  line-height: 1.7;
+@media (max-width: 760px) {
+  .card-body { grid-template-columns: 1fr; }
+}
+
+/* Code pane */
+.card-code {
   background: var(--void);
   border: 1px solid var(--border-dark);
   border-radius: 3px;
   padding: 0.75rem 0.95rem;
+  font-family: var(--font-mono); font-size: 0.74rem;
   color: var(--warm-white-dim);
-  margin: 0;
-  white-space: pre;
+  line-height: 1.65;
   overflow-x: auto;
 }
-.specimen-code .kw   { color: var(--moss); }
-.specimen-code .ty   { color: var(--warm-white); font-weight: 500; }
-.specimen-code .com  { color: var(--stone-faint); }
-.specimen-code .lit  { color: var(--stone); }
-.specimen-code .add  { color: var(--moss); }
-.specimen-code .rem  { color: var(--clay); }
-.specimen-code .moss { color: var(--moss); }
-.specimen-code .clay { color: var(--clay); }
-.specimen-code .ln   { color: var(--stone-faint); user-select: none; }
+.card-code-head {
+  font-size: 0.58rem;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--stone-faint);
+  padding-bottom: 0.55rem;
+  border-bottom: 1px dashed var(--border-dark);
+  margin-bottom: 0.55rem;
+  display: flex; align-items: center; gap: 0.45rem;
+}
+.card-code-head .ck-dot  { color: var(--moss); font-size: 0.55rem; }
+.card-code-head .ck-file { color: var(--warm-white-dim); letter-spacing: 0.04em; text-transform: none; font-size: 0.66rem; }
 
-.specimen-graph .node { color: var(--warm-white); }
-.specimen-graph .b    { color: var(--stone-faint); }
-.specimen-graph .ok   { color: var(--moss); }
-.specimen-graph .fail { color: var(--clay); }
-.specimen-graph .dim  { color: var(--stone-faint); }
+.ck-line {
+  white-space: pre;
+  display: block;
+}
+.ck-line.ck-diff-rm  { background: var(--clay-subtle);  margin: 0 -0.25rem; padding-left: 0.25rem; }
+.ck-line.ck-diff-add { background: var(--moss-subtle); margin: 0 -0.25rem; padding-left: 0.25rem; }
+.ck-ln    { color: var(--stone-faint); user-select: none; }
+.ck-kw    { color: var(--moss); }
+.ck-ty    { color: var(--warm-white); font-weight: 500; }
+.ck-com   { color: var(--stone-faint); }
+.ck-diff-sign { font-weight: 600; }
+.ck-diff-rm  .ck-diff-sign { color: var(--clay); }
+.ck-diff-add .ck-diff-sign { color: var(--moss); }
+.ck-ref { font-weight: 500; }
 
-/* SVG inside .specimen-graph — workpad-canonical primitives at card scale */
-.specimen-graph svg {
+/* Graph pane — generated SVG */
+.card-graph {
+  background: var(--void);
+  border: 1px solid var(--border-dark);
+  border-radius: 3px;
+  padding: 0.75rem 0.95rem;
+  overflow: hidden;
+}
+.card-graph svg {
   display: block;
   width: 100%; height: auto;
-  max-height: 11rem;
-  color: var(--stone);
-  overflow: visible;
+  max-height: 12rem;
 }
 
-.specimen-receipt {
+.graph-node text {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  fill: var(--warm-white-dim);
+}
+.graph-node.map-root rect       { fill: none; stroke: var(--warm-white); stroke-width: 2; }
+.graph-node.map-root text       { fill: var(--warm-white); font-weight: 600; }
+.graph-node.map-affected rect   { fill: none; stroke: var(--moss); stroke-width: 1.5; }
+.graph-node.map-affected text   { fill: var(--moss); }
+.graph-node.map-changed rect    { fill: none; stroke: var(--clay); stroke-width: 2; }
+.graph-node.map-changed text    { fill: var(--clay); font-weight: 500; }
+.graph-node.map-context rect    { fill: none; stroke: var(--stone-faint); stroke-width: 1; stroke-opacity: 0.55; }
+.graph-node.map-context text    { fill: var(--stone-dim); }
+.graph-node.map-blocked rect    { fill: none; stroke: var(--clay); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.graph-node.map-blocked text    { fill: var(--clay); }
+
+/* Artifact (cut-corner) */
+.graph-node.map-artifact path,
+.graph-node.map-artifact line { fill: none; stroke: var(--moss); stroke-width: 1.5; }
+.graph-node.map-artifact text { fill: var(--moss); }
+
+.graph-edge { fill: none; stroke-width: 1.5; stroke-linecap: round; }
+.graph-edge.map-affected { stroke: var(--moss); }
+.graph-edge.map-changed  { stroke: var(--clay); }
+.graph-edge.map-context  { stroke: var(--stone-faint); stroke-opacity: 0.5; }
+.graph-edge.map-blocked  { stroke: var(--clay); stroke-dasharray: 4 3; }
+
+.graph-edge-label {
+  font-family: var(--font-mono);
+  font-size: 7px;
+  letter-spacing: 0.05em;
+}
+.graph-edge-label.map-affected { fill: var(--moss-dim); }
+.graph-edge-label.map-changed  { fill: var(--clay); }
+.graph-edge-label.map-context  { fill: var(--stone-faint); }
+
+/* Receipt */
+.card-receipt {
   margin: 0;
   padding-top: 0.65rem;
   border-top: 1px dashed var(--border-dark);
   font-family: var(--font-mono); font-size: 0.7rem;
-  line-height: 1.6;
+  line-height: 1.65;
   color: var(--warm-white-dim);
+  display: grid; gap: 0.2rem;
 }
-.specimen-receipt .clay  { color: var(--clay); }
-.specimen-receipt .moss  { color: var(--moss); }
-.specimen-receipt .label { color: var(--stone-faint); margin-right: 0.4rem; }
-.specimen-receipt .sep   { color: var(--stone-faint); margin: 0 0.4rem; opacity: 0.55; }
+.card-receipt-line { white-space: normal; }
 
 
 /* ╔══ FOOTER ════════════════════════════════════════════════════════ */
