@@ -346,7 +346,7 @@ a { color: inherit; }
 }
 .deck-card {
   flex: 0 0 100%;
-  padding: 1.5rem 1.75rem 1.5rem;
+  padding: 1.2rem 1.5rem 1.25rem;
   box-sizing: border-box;
 }
 .deck-card-head {
@@ -381,16 +381,17 @@ a { color: inherit; }
   .deck-card-body { grid-template-columns: 1fr; }
 }
 
-/* Code pane */
+/* Code pane — no horizontal scroll. If a line would overflow it
+   gets clipped at the panel edge; specs must keep lines short. */
 .card-code {
   background: var(--void-up);
   border: 1px solid var(--border-dark);
   border-radius: 4px;
-  padding: 0.85rem 1rem 0.95rem;
-  font-family: var(--font-mono); font-size: 0.74rem;
+  padding: 0.75rem 0.9rem 0.85rem;
+  font-family: var(--font-mono); font-size: 0.68rem;
   color: var(--warm-white-dim);
-  line-height: 1.7;
-  overflow-x: auto;
+  line-height: 1.6;
+  overflow: hidden;
 }
 .card-code-head {
   font-size: 0.58rem;
@@ -419,21 +420,18 @@ a { color: inherit; }
 .ck-diff-add .ck-diff-sign { color: var(--moss); }
 .ck-ref { font-weight: 500; }
 
-/* Graph pane — generated SVG */
+/* Graph pane — SVG fills the pane (no excess whitespace). */
 .card-graph {
   background: var(--void-up);
   border: 1px solid var(--border-dark);
   border-radius: 4px;
-  padding: 0.85rem 1rem;
-  display: flex; align-items: center; justify-content: center;
-  min-height: 14rem;
+  padding: 0.7rem 0.85rem;
+  display: flex; align-items: stretch; justify-content: stretch;
   overflow: hidden;
 }
 .card-graph svg {
   display: block;
   width: 100%; height: auto;
-  max-width: 24rem;
-  max-height: 14rem;
   color: var(--stone);
   overflow: visible;
 }
@@ -508,32 +506,49 @@ a { color: inherit; }
 .cost-area.map-derived  .cost-area-label { fill: var(--moss); }
 .cost-area.map-boundary .cost-area-label { fill: var(--clay); }
 
-/* Receipt + stack chips */
+/* Receipt — structured label/value rows.
+   The receipt is the card's stamp, not a prose recap. Each row pairs
+   a small mono key (stone-faint) with a colored value carried by the
+   {role:text} token system. Card 03's receipt also embeds a code
+   block (the suggested replacement shape) — the "diagnostic" is just
+   another row of the receipt, not a separate panel. */
 .card-receipt {
-  margin-top: 1.1rem;
-  padding: 0.65rem 0.85rem;
+  margin-top: 1rem;
+  padding: 0.7rem 0.95rem;
   background: var(--void-up);
   border: 1px solid var(--border-dark);
   border-left: 2px solid var(--moss-dim);
   border-radius: 0 3px 3px 0;
   font-family: var(--font-mono); font-size: 0.7rem;
-  line-height: 1.7;
+  line-height: 1.65;
   color: var(--warm-white-dim);
+  display: grid; gap: 0.25rem;
 }
-.card-receipt-line { white-space: normal; }
-.card-receipt-line + .card-receipt-line { margin-top: 0.15rem; }
-.deck-card-stack {
-  margin-top: 0.85rem;
-  font-family: var(--font-mono); font-size: 0.6rem;
-  letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--stone-faint);
+.card-receipt-row {
+  display: grid;
+  grid-template-columns: 9rem 1fr;
+  gap: 0.5rem;
+  align-items: baseline;
 }
-.deck-card-stack .stack-label { margin-right: 0.6rem; color: var(--stone-faint); }
-.deck-card-stack .stack-piece { color: var(--moss); margin-right: 0.65rem; }
-.deck-card-stack .stack-piece + .stack-piece::before {
-  content: "+ ";
+@media (max-width: 540px) {
+  .card-receipt-row { grid-template-columns: 1fr; gap: 0.05rem; }
+}
+.rk {
   color: var(--stone-faint);
-  margin-right: 0.15rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+}
+.rv { color: var(--warm-white-dim); }
+.card-receipt-code {
+  margin-top: 0.1rem;
+  padding: 0.55rem 0.7rem;
+  background: var(--void);
+  border-radius: 3px;
+  font-size: 0.66rem;
+  color: var(--moss);
+  white-space: pre;
+  overflow-x: hidden;
 }
 
 /* Nav (prev/next buttons) */
