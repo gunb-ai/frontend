@@ -454,7 +454,57 @@
   };
 
   /* ════════════════════════════════════════════════════════════════
+     SHARED BASE GRAPH — cards 01 and 02 are progressive views of the
+     same layout. Same nodes, same positions, same edges; the cards
+     differ only in which roles they assign per node/edge. This is the
+     "progression pattern": one underlying structure, multiple readings.
+     ══════════════════════════════════════════════════════════════ */
+
+  function baseLayoutNodes(system) {
+    return [
+      node("Timestamp", "Timestamp",  0, 1.5),
+      node("User",      "User",       1, 1.5),
+      node("Users",     "Users",      2, 0),
+      node("UsersList", "Users.list", 2, 1),
+      node("UserCard",  "UserCard",   2, 2),
+      node("users",     "users",      2, 3),
+      artifact("rust",       system.artifacts.rust.label,       3, 0),
+      artifact("openapi",    system.artifacts.openapi.label,    3, 1),
+      artifact("typescript", system.artifacts.typescript.label, 3, 2),
+      artifact("sql",        system.artifacts.sql.label,        3, 3)
+    ];
+  }
+  function baseLayoutEdges() {
+    return [
+      edge("Timestamp", "User",       "created_at"),
+      edge("User",      "Users",      "service"),
+      edge("User",      "UsersList",  "operation"),
+      edge("User",      "UserCard",   "view"),
+      edge("User",      "users",      "table"),
+      edge("Users",     "rust",       ""),
+      edge("UsersList", "openapi",    ""),
+      edge("UserCard",  "typescript", ""),
+      edge("users",     "sql",        "")
+    ];
+  }
+  function applyNodeRoles(nodes, roleMap) {
+    return nodes.map(n => {
+      // Artifacts always keep the artifact role.
+      if (n.kind === "artifact") return n;
+      return Object.assign({}, n, { role: roleMap[n.id] || n.role || "context" });
+    });
+  }
+  function applyEdgeRoles(edges, roleMap, defaultRole) {
+    return edges.map(e => {
+      const key = e.from + "→" + e.to;
+      return Object.assign({}, e, { role: roleMap[key] || defaultRole || "derived" });
+    });
+  }
+
+  /* ════════════════════════════════════════════════════════════════
      CARD 01 · projection closure — one system, four target artifacts
+                Highlights: User as the structural root; everything
+                downstream is derived; artifacts are the bookends.
      ══════════════════════════════════════════════════════════════ */
 
   function projectionClosureCard(system) {
@@ -468,15 +518,15 @@
         ln(1,  [kw("type"), tx(" "), ref("User", "User", "stable"), tx(" {")]),
         ln(2,  [tx("  id         : UserId")]),
         ln(3,  [tx("  name       : String")]),
-        ln(4,  [tx("  created_at : Timestamp")]),
+        ln(4,  [tx("  created_at : "), ref("Timestamp", "Timestamp", "context")]),
         ln(5,  [tx("}")]),
         blank(6),
-        ln(7,  [kw("type"), tx(" "), ref("UserView", "UserView", "derived"), tx(" { … }")]),
-        ln(8,  [kw("fn"),   tx(" "), ref("public_user"), tx("(u: "), ref("User"), tx(") -> "), ref("UserView"), tx(" { … }")]),
+        ln(7,  [kw("type"), tx(" UserView { … }")]),
+        ln(8,  [kw("fn"),   tx(" public_user(u: "), ref("User"), tx(") -> UserView { … }")]),
         blank(9),
-        ln(10, [kw("service"), tx(" "), ref("Users", "Users", "derived"), tx(" { list : () -> List<"), ref("UserView"), tx("> }")]),
+        ln(10, [kw("service"), tx(" "), ref("Users", "Users", "derived"), tx(" { list : () -> List<UserView> }")]),
         ln(11, [kw("table"),   tx("   "), ref("users", "users", "derived"), tx(" { schema_for "), ref("User"), tx(" }")]),
-        ln(12, [kw("view"),    tx("    "), ref("UserCard", "UserCard", "derived"), tx(" { renders "), ref("UserView"), tx(" }")]),
+        ln(12, [kw("view"),    tx("    "), ref("UserCard", "UserCard", "derived"), tx(" { renders UserView }")]),
         blank(13),
         ln(14, [kw("project"), tx(" "), ref("Users"),                   tx("      -> "), ref("rust"),       tx("      "), com("-- backend")]),
         ln(15, [kw("project"), tx(" "), ref("users"),                   tx("      -> "), ref("sql"),        tx("       "), com("-- database")]),
@@ -484,47 +534,37 @@
         ln(17, [kw("project"), tx(" "), ref("UserCard"),                tx("   -> "), ref("typescript"), tx(" "), com("-- frontend")])
       ],
       graph: {
-        nodes: [
-          node("User",        "User",          0, 1.5, "stable"),
-          node("public_user", "public_user",   1, 0.5, "derived"),
-          node("users",       "table users",   1, 2.5, "derived"),
-          node("UserView",    "UserView",      2, 0.5, "derived"),
-          node("Users",       "service Users", 3, 0,   "derived"),
-          node("UsersList",   "Users.list",    3, 1,   "derived"),
-          node("UserCard",    "view UserCard", 3, 2,   "derived"),
-          artifact("rust",       ".rs",           4, 0),
-          artifact("openapi",    ".openapi.yaml", 4, 1),
-          artifact("typescript", ".ts",           4, 2),
-          artifact("sql",        ".sql",          2, 2.5)
-        ],
-        edges: [
-          edge("User",        "public_user",  "param"),
-          edge("User",        "users",        "schema_for"),
-          edge("public_user", "UserView",     "returns"),
-          edge("UserView",    "Users",        "list →"),
-          edge("UserView",    "UsersList",    "returns"),
-          edge("UserView",    "UserCard",     "renders"),
-          edge("Users",       "rust",         ""),
-          edge("UsersList",   "openapi",      ""),
-          edge("UserCard",    "typescript",   ""),
-          edge("users",       "sql",          "")
-        ]
+        nodes: applyNodeRoles(baseLayoutNodes(system), {
+          Timestamp: "context",   // present but recessive — not the focus of this card
+          User:      "stable",    // the structural root
+          Users:     "derived",
+          UsersList: "derived",
+          UserCard:  "derived",
+          users:     "derived"
+        }),
+        edges: applyEdgeRoles(baseLayoutEdges(), {
+          "Timestamp→User": "context"
+        }, "derived")
       },
       receipt: [
-        "one structural {stable:description} · {derived:four target artifacts} · hand-written translations: {derived:zero}"
+        "{stable:one structural description} · {artifact:four target artifacts} · hand-written translations: {derived:zero}"
       ]
     };
   }
 
   /* ════════════════════════════════════════════════════════════════
-     CARD 02 · affected set — edit Timestamp; named transitive chain
+     CARD 02 · affected set — same layout as Card 01, different roles.
+                Timestamp becomes focus (brass), User and `users` light
+                up as direct downstream (moss), and the rest of the
+                chain fades to transitive (moss-dim). Color encodes
+                propagation depth instead of a text receipt.
      ══════════════════════════════════════════════════════════════ */
 
   function affectedSetCard(system) {
     return {
       id: "card-02",
       num: "02",
-      name: "edit once · transitive chain to four artifacts",
+      name: "edit Timestamp · ripple to four artifacts",
       systemId: system.id,
       codeFile: "examples/users.dag",
       code: [
@@ -534,7 +574,7 @@
         ln(3,  [kw("type"), tx(" "), ref("User"), tx(" { created_at : "), ref("Timestamp"), tx(" }")]),
         blank(4),
         ln(5,  [kw("fn"), tx(" format_joined(t: "), ref("Timestamp"), tx(") -> String")]),
-        ln(6,  [kw("fn"), tx(" "), ref("public_user"),   tx("(u: "), ref("User"), tx(") -> UserView {")]),
+        ln(6,  [kw("fn"), tx(" public_user(u: "), ref("User"), tx(") -> UserView {")]),
         ln(7,  [tx("  joined: format_joined(u.created_at)")]),
         ln(8,  [tx("}")]),
         blank(9),
@@ -548,44 +588,39 @@
         ln(17, [kw("project"), tx(" "), ref("UserCard"),                tx("   -> "), ref("typescript")])
       ],
       graph: {
-        nodes: [
-          node("Timestamp",   "Timestamp",     0, 1.5, "focus"),
-          node("User",        "User",          1, 1.5, "derived"),
-          node("public_user", "public_user",   2, 1,   "derived"),
-          node("users",       "table users",   2, 2.5, "derived"),
-          node("Users",       "service Users", 3, 0,   "derived"),
-          node("UsersList",   "Users.list",    3, 1,   "derived"),
-          node("UserCard",    "view UserCard", 3, 2,   "derived"),
-          artifact("sql",        ".sql",          3, 3),
-          artifact("rust",       ".rs",           4, 0),
-          artifact("openapi",    ".openapi.yaml", 4, 1),
-          artifact("typescript", ".ts",           4, 2)
-        ],
-        edges: [
-          edge("Timestamp",   "User",        "created_at",      "focus"),
-          edge("User",        "public_user", "param"),
-          edge("User",        "users",       "schema_for"),
-          edge("public_user", "Users",       "via UserView"),
-          edge("public_user", "UsersList",   "via UserView"),
-          edge("public_user", "UserCard",    "via UserView"),
-          edge("users",       "sql",         ""),
-          edge("Users",       "rust",        ""),
-          edge("UsersList",   "openapi",     ""),
-          edge("UserCard",    "typescript",  "")
-        ]
+        nodes: applyNodeRoles(baseLayoutNodes(system), {
+          Timestamp: "focus",       // the edit site
+          User:      "derived",     // direct (created_at field)
+          users:     "derived",     // direct (schema_for User)
+          Users:     "transitive",  // via public_user → UserView
+          UsersList: "transitive",  // via public_user → UserView
+          UserCard:  "transitive"   // via public_user → UserView
+        }),
+        edges: applyEdgeRoles(baseLayoutEdges(), {
+          "Timestamp→User":      "focus",       // the changed link
+          "User→users":          "derived",     // direct schema_for
+          "User→Users":          "transitive",  // multi-hop
+          "User→UsersList":      "transitive",
+          "User→UserCard":       "transitive",
+          "users→sql":           "derived",
+          "Users→rust":          "transitive",
+          "UsersList→openapi":   "transitive",
+          "UserCard→typescript": "transitive"
+        }, "derived")
       },
       receipt: [
-        "changed: {focus:Timestamp representation}",
-        "direct: {derived:User.created_at}",
-        "transitive: {derived:public_user} · {derived:Users.list} · {derived:table users} · {derived:UserCard}",
-        "re-derived: {derived:Rust response} · {derived:SQL column} · {derived:OpenAPI schema} · {derived:TypeScript props}",
+        "{focus:Timestamp} → {derived:User · users} → {transitive:public_user · UserView · Users · UsersList · UserCard} → {artifact:rust · sql · openapi · typescript}",
         "hand-edits: {derived:zero}"
       ]
     };
   }
 
   /* ════════════════════════════════════════════════════════════════
-     CARD 03 · complexity violation — cost area, declared vs observed
+     CARD 03 · complexity violation — cost area, declared vs observed.
+                The count() call is shown as diffAdd: a just-introduced
+                nested scan that breaks the declared bound. The lens
+                declares "<= O(n)" — the bound itself is marked clay
+                because it is now violated.
      ══════════════════════════════════════════════════════════════ */
 
   function complexityViolationCard(system) {
@@ -601,13 +636,15 @@
                tx("(users: List<"), ref("User", "User", "context"), tx(">) -> List<"),
                ref("User", "User", "context"), tx("> {")]),
         ln(2, [tx("  users |> "), ref("filter_call", "filter", "derived"), tx("(fn(u) {")]),
-        ln(3, [tx("    "), ref("count_call", "count", "boundary"),
-               tx("(users, fn(v) { v.id == u.id }) == 1")]),
+        diffAdd(3, [tx("  "), ref("count_call", "count", "boundary"),
+                    tx("(users, fn(v) { v.id == u.id }) == 1   "),
+                    com("-- nested scan")]),
         ln(4, [tx("  })")]),
         ln(5, [tx("}")]),
         blank(6),
         ln(7, [kw("lens"), tx(" complexity("), ref("unique_users", "unique_users", "focus"),
-               tx(") <= O(n)")])
+               tx(") "), mark("<= O(n)", "boundary"), tx("   "),
+               com("-- declared upper bound · now violated")])
       ],
       panels: [
         { id: "declared", label: "declared: O(n)",  cols: 6, rows: 1, role: "derived" },
