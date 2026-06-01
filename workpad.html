@@ -1,0 +1,2739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>gunb.ai · workpad · primitives + concepts</title>
+  <link rel="icon" type="image/svg+xml" href="assets/mark.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Palette tokens (lifted from legacy/moodboard.html) ── */
+    :root {
+      --hue-warm: 37;
+      --hue-moss: 134;
+      --hue-clay: 3;
+      --accent-sat: 36%;
+      --accent-l: 48%;
+      --accent-l-dim: 36%;
+
+      --moss: hsl(var(--hue-moss), var(--accent-sat), var(--accent-l));
+      --moss-dim: hsl(var(--hue-moss), var(--accent-sat), var(--accent-l-dim));
+      --moss-subtle: hsla(var(--hue-moss), var(--accent-sat), var(--accent-l), 0.14);
+
+      --clay: hsl(var(--hue-clay), var(--accent-sat), var(--accent-l));
+      --clay-dim: hsl(var(--hue-clay), var(--accent-sat), var(--accent-l-dim));
+      --clay-subtle: hsla(var(--hue-clay), var(--accent-sat), var(--accent-l), 0.14);
+
+      --void: hsl(var(--hue-warm), 0%, 5%);
+      --void-up: hsl(var(--hue-warm), 3%, 8%);
+      --void-up2: hsl(var(--hue-warm), 4%, 11%);
+
+      --stone: hsl(var(--hue-warm), 20%, 76%);
+      --stone-dim: hsl(var(--hue-warm), 12%, 55%);
+      --stone-faint: hsl(var(--hue-warm), 10%, 38%);
+
+      --warm-white: hsl(var(--hue-warm), 27%, 94%);
+      --warm-white-dim: hsl(var(--hue-warm), 18%, 87%);
+
+      --border-dark: hsla(var(--hue-warm), 20%, 76%, 0.08);
+      --border-dark-strong: hsla(var(--hue-warm), 20%, 76%, 0.16);
+
+      --font-mono: "JetBrains Mono", ui-monospace, monospace;
+      --font-sans: "Noto Sans", system-ui, sans-serif;
+
+      --stroke: 1.5px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html {
+      background: hsl(var(--hue-warm), 0%, 3%);
+      color: var(--warm-white);
+      font-family: var(--font-sans);
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    body { margin: 0; min-height: 100vh; }
+
+    /* ── Workpad chrome ── */
+
+    .workpad-header {
+      position: sticky; top: 0; z-index: 10;
+      backdrop-filter: blur(8px);
+      background: hsla(var(--hue-warm), 0%, 3%, 0.85);
+      border-bottom: 1px solid var(--border-dark);
+      padding: 1rem 1.5rem;
+      display: flex; align-items: baseline; gap: 1.5rem; flex-wrap: wrap;
+    }
+    .workpad-title {
+      font-family: var(--font-mono); font-size: 0.7rem;
+      letter-spacing: 0.13em; text-transform: uppercase;
+      color: var(--stone-faint);
+    }
+    .workpad-title strong { color: var(--warm-white); font-weight: 500; }
+    .workpad-meta {
+      font-family: var(--font-mono); font-size: 0.65rem;
+      color: var(--stone-faint);
+    }
+    .workpad-meta a { color: var(--moss); text-decoration: none; border-bottom: 1px solid transparent; }
+    .workpad-meta a:hover { border-bottom-color: currentColor; }
+    .workpad-nav {
+      margin-left: auto;
+      font-family: var(--font-mono); font-size: 0.65rem;
+      display: flex; gap: 1rem;
+    }
+    .workpad-nav a { color: var(--stone-dim); text-decoration: none; }
+    .workpad-nav a:hover { color: var(--warm-white); }
+
+    .workpad-canvas {
+      padding: 2rem 1.5rem 5rem;
+      max-width: 96rem;
+      margin: 0 auto;
+    }
+
+    .pad-section {
+      margin-top: 4.5rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-dark);
+    }
+    .pad-section:first-child { margin-top: 0; border-top: none; padding-top: 0; }
+    .pad-section-label {
+      display: block;
+      font-family: var(--font-mono); font-size: 0.62rem;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--stone-faint);
+      margin-bottom: 0.5rem;
+    }
+    .pad-section-title {
+      font-family: var(--font-sans); font-weight: 500;
+      font-size: 1.4rem;
+      letter-spacing: -0.01em;
+      margin: 0 0 0.5rem;
+      color: var(--warm-white);
+    }
+    .pad-section-note {
+      font-family: var(--font-mono); font-size: 0.72rem;
+      color: var(--warm-white-dim); max-width: 44em;
+      line-height: 1.65; margin: 0 0 2rem;
+    }
+
+    /* ── Primitive grid: each primitive in a labelled cell ── */
+
+    .prim-grid {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+      margin-bottom: 2.5rem;
+    }
+    .prim-cell {
+      background: var(--void);
+      border: 1px solid var(--border-dark);
+      border-radius: 4px;
+      padding: 1rem 1.1rem 0.85rem;
+      display: flex; flex-direction: column;
+      gap: 0.55rem;
+    }
+    .prim-cell-head {
+      display: flex; align-items: baseline; justify-content: space-between;
+      font-family: var(--font-mono); font-size: 0.6rem;
+      letter-spacing: 0.13em; text-transform: uppercase;
+    }
+    .prim-cell-name { color: var(--warm-white); font-weight: 500; }
+    .prim-cell-kind { color: var(--stone-faint); font-size: 0.55rem; }
+    .prim-cell-body {
+      flex: 1;
+      min-height: 4.5rem;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0.5rem 0;
+    }
+    .prim-cell-note {
+      font-family: var(--font-mono); font-size: 0.65rem;
+      color: var(--warm-white-dim);
+      line-height: 1.55;
+    }
+
+    /* ── Materials swatches ── */
+
+    .material-swatch {
+      width: 100%; height: 3.25rem;
+      border-radius: 3px;
+      border: 1px solid var(--border-dark);
+    }
+    .swatch-void        { background: var(--void); border-color: var(--border-dark-strong); }
+    .swatch-stone       { background: var(--stone); }
+    .swatch-warm-white  { background: var(--warm-white); }
+    .swatch-moss        { background: var(--moss); border-color: transparent; }
+    .swatch-clay        { background: var(--clay); border-color: transparent; }
+
+    /* ── Type roles ── */
+
+    .type-sample {
+      padding: 0.5rem 0;
+      width: 100%;
+    }
+    .type-statement { font-family: var(--font-sans); font-weight: 600; font-size: 1rem; line-height: 1.3; letter-spacing: -0.01em; color: var(--warm-white); }
+    .type-specifier { font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--stone-faint); }
+    .type-code      { font-family: var(--font-mono); font-size: 0.78rem; color: var(--warm-white-dim); }
+    .type-receipt   { font-family: var(--font-mono); font-size: 0.72rem; color: var(--warm-white-dim); white-space: pre; line-height: 1.55; }
+    .type-diagnostic{ font-family: var(--font-mono); font-size: 0.72rem; color: var(--clay); font-weight: 500; }
+
+    /* ── Panel proofs ── */
+
+    .panel-row {
+      display: grid; gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+      margin-bottom: 2.5rem;
+    }
+    .panel-proof {
+      display: flex; flex-direction: column; gap: 0.55rem;
+    }
+    .panel-proof-tag {
+      font-family: var(--font-mono); font-size: 0.58rem;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--stone-faint);
+    }
+    .panel-proof-tag .dot {
+      display: inline-block; width: 4px; height: 4px;
+      background: var(--stone-faint); border-radius: 50%;
+      vertical-align: 2px; margin-right: 0.45rem;
+    }
+
+    .panel-fact {
+      border: 1px solid var(--border-dark);
+      border-radius: 3px;
+      padding: 1rem 1.15rem;
+      background: var(--void-up);
+    }
+    .panel-fact .head {
+      font-family: var(--font-sans); font-weight: 600;
+      font-size: 0.95rem; line-height: 1.3;
+      color: var(--warm-white); margin: 0 0 0.4rem;
+    }
+    .panel-fact .body {
+      font-family: var(--font-sans); font-size: 0.78rem;
+      line-height: 1.6; color: var(--warm-white-dim); margin: 0;
+    }
+
+    .panel-command {
+      font-family: var(--font-mono); font-size: 0.76rem;
+      line-height: 1.7;
+      background: var(--void);
+      border: 1px solid var(--border-dark);
+      border-radius: 3px;
+      padding: 0.9rem 1.05rem;
+      color: var(--warm-white-dim);
+      white-space: pre;
+      overflow-x: auto;
+    }
+    .panel-command .kbd { color: var(--moss); }
+
+    .panel-invariant {
+      font-family: var(--font-mono); font-size: 0.74rem;
+      line-height: 1.7;
+      background: var(--void-up);
+      border: 1px solid var(--border-dark);
+      border-left: 2px solid var(--clay);
+      border-radius: 0 3px 3px 0;
+      padding: 0.9rem 1.1rem;
+      color: var(--warm-white-dim);
+      white-space: pre;
+      overflow-x: auto;
+    }
+    .panel-invariant .title {
+      color: var(--clay); font-weight: 600; letter-spacing: 0.04em;
+    }
+
+    .panel-receipt {
+      font-family: var(--font-mono); font-size: 0.74rem;
+      line-height: 1.7;
+      background: var(--void-up);
+      border: 1px solid var(--border-dark);
+      border-left: 2px solid var(--moss-dim);
+      border-radius: 0 3px 3px 0;
+      padding: 0.9rem 1.1rem;
+      color: var(--warm-white-dim);
+    }
+    .panel-receipt dl { margin: 0; display: grid; grid-template-columns: 7rem 1fr; gap: 0.25rem 1rem; }
+    .panel-receipt dt { color: var(--stone-faint); font-size: 0.6rem; letter-spacing: 0.13em; text-transform: uppercase; padding-top: 0.18rem; }
+    .panel-receipt dd { margin: 0; color: var(--warm-white-dim); }
+    .panel-receipt dd strong { color: var(--warm-white); font-weight: 500; }
+
+    /* ── Inline marks ── */
+
+    .inline-demo {
+      font-family: var(--font-sans); font-size: 0.85rem;
+      line-height: 1.7; color: var(--warm-white-dim);
+    }
+    code, .code-inline {
+      font-family: var(--font-mono); font-size: 0.85em;
+      background: var(--void-up2);
+      border: 1px solid var(--border-dark);
+      border-radius: 2px;
+      padding: 0.05em 0.35em;
+      color: var(--warm-white);
+    }
+    kbd, .kbd-inline {
+      font-family: var(--font-mono); font-size: 0.85em;
+      color: var(--moss);
+      padding: 0;
+    }
+    strong, .mark-strong { color: var(--warm-white); font-weight: 600; }
+    em, .mark-em { color: var(--stone); font-style: italic; }
+    .link-inline {
+      color: inherit;
+      text-decoration: none;
+      border-bottom: 1px solid var(--stone-faint);
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .link-inline:hover { color: var(--moss); border-bottom-color: var(--moss); }
+    .link-external::after {
+      content: " ↗"; font-family: var(--font-mono);
+      opacity: 0.65; font-size: 0.85em;
+    }
+
+    /* ── Lists ── */
+
+    .list-bullet, .list-numbered {
+      font-family: var(--font-mono); font-size: 0.78rem;
+      line-height: 1.7; color: var(--warm-white-dim);
+      margin: 0; padding: 0 0 0 1.25rem;
+    }
+    .list-bullet li::marker { color: var(--stone-faint); content: "· "; }
+    .list-numbered li::marker { color: var(--stone-faint); font-feature-settings: "tnum"; }
+    .list-tree {
+      font-family: var(--font-mono); font-size: 0.78rem;
+      line-height: 1.75; color: var(--warm-white-dim);
+      margin: 0; white-space: pre;
+    }
+    .list-tree .branch { color: var(--stone-faint); }
+    .list-tree .leaf   { color: var(--warm-white); }
+    .list-defs {
+      font-family: var(--font-mono); font-size: 0.74rem;
+      display: grid; grid-template-columns: 6rem 1fr;
+      gap: 0.3rem 1rem; margin: 0;
+    }
+    .list-defs dt {
+      color: var(--stone-faint); font-size: 0.6rem;
+      letter-spacing: 0.13em; text-transform: uppercase;
+      padding-top: 0.18rem;
+    }
+    .list-defs dd { margin: 0; color: var(--warm-white-dim); }
+    .list-defs dd strong { color: var(--warm-white); font-weight: 500; }
+
+    /* ── Dividers ── */
+
+    .div-hairline {
+      width: 100%; height: 0; border-top: 1px solid var(--border-dark);
+    }
+    .div-dashed {
+      width: 100%; height: 0; border-top: 1px dashed var(--border-dark);
+    }
+    .div-eyebrow-rule {
+      display: flex; align-items: center; gap: 0.85rem;
+      width: 100%;
+      font-family: var(--font-mono); font-size: 0.6rem;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--stone-faint);
+    }
+    .div-eyebrow-rule::after {
+      content: ""; flex: 1; border-top: 1px solid var(--border-dark);
+    }
+
+    /* ── Quote / callout ── */
+
+    .quote-pull {
+      font-family: var(--font-mono); font-size: 0.78rem;
+      line-height: 1.7;
+      border-left: 2px solid var(--stone-faint);
+      padding: 0.25rem 0 0.25rem 1rem;
+      color: var(--warm-white);
+      margin: 0;
+    }
+    .quote-pull cite {
+      display: block;
+      font-style: normal;
+      font-size: 0.62rem; letter-spacing: 0.13em; text-transform: uppercase;
+      color: var(--stone-faint); margin-top: 0.5rem;
+    }
+    .callout-note {
+      font-family: var(--font-mono); font-size: 0.74rem;
+      line-height: 1.65;
+      background: var(--void-up);
+      border: 1px solid var(--border-dark);
+      border-left: 2px solid var(--stone-dim);
+      border-radius: 0 3px 3px 0;
+      padding: 0.75rem 1rem;
+      color: var(--warm-white-dim);
+    }
+    .callout-note .head {
+      color: var(--warm-white); font-weight: 500;
+      font-size: 0.62rem; letter-spacing: 0.13em; text-transform: uppercase;
+      margin-bottom: 0.3rem;
+    }
+
+    /* ── Buttons & affordances ── */
+
+    .btn-text {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      font-family: var(--font-mono); font-size: 0.78rem;
+      color: var(--moss);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.15s, opacity 0.15s;
+      padding: 0;
+      background: none; border-top: none; border-left: none; border-right: none;
+      cursor: pointer;
+    }
+    .btn-text:hover { border-bottom-color: var(--moss); }
+    .btn-text:focus-visible { outline: 1px solid var(--moss); outline-offset: 3px; }
+    .btn-text .arrow { font-family: var(--font-mono); }
+
+    .btn-link-quiet {
+      font-family: var(--font-mono); font-size: 0.72rem;
+      color: var(--warm-white-dim);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.15s, color 0.15s;
+      letter-spacing: 0.02em;
+    }
+    .btn-link-quiet:hover { color: var(--moss); border-bottom-color: currentColor; }
+
+    .btn-mode {
+      display: inline-flex; align-items: center; gap: 0.45rem;
+      padding: 0.4rem 0.7rem;
+      background: var(--void-up2);
+      border: 1px solid var(--border-dark);
+      border-radius: 3px;
+      color: var(--warm-white-dim);
+      font-family: var(--font-mono); font-size: 0.65rem;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-mode:hover { color: var(--warm-white); border-color: var(--stone-faint); }
+    .btn-mode .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--stone-faint);
+    }
+
+    .prompt {
+      font-family: var(--font-mono); font-size: 0.78rem;
+      color: var(--warm-white-dim);
+    }
+    .prompt::before {
+      content: "$ "; color: var(--stone-faint);
+    }
+
+    /* ── Comparison table ── */
+
+    .cmp-table {
+      width: 100%; border-collapse: collapse;
+      font-family: var(--font-mono); font-size: 0.74rem;
+    }
+    .cmp-table th, .cmp-table td {
+      text-align: left; padding: 0.5rem 0.85rem;
+      border-bottom: 1px solid var(--border-dark);
+      color: var(--warm-white-dim);
+      vertical-align: top;
+    }
+    .cmp-table th {
+      color: var(--stone-faint); font-weight: 400;
+      font-size: 0.6rem; letter-spacing: 0.13em; text-transform: uppercase;
+    }
+    .cmp-table td strong { color: var(--warm-white); font-weight: 500; }
+    .cmp-table tr:last-child td { border-bottom: none; }
+
+    /* ── Nav · header · footer ── */
+
+    .demo-nav {
+      display: flex; align-items: center; gap: 1.5rem;
+      padding: 0.95rem 1.25rem;
+      background: var(--void-up);
+      border: 1px solid var(--border-dark);
+      border-radius: 4px;
+    }
+    .demo-nav-left {
+      display: flex; align-items: center; gap: 0.6rem;
+      color: var(--warm-white);
+    }
+    .demo-nav-left svg { width: 22px; height: 22px; color: var(--stone); }
+    .demo-nav-left .wm { font-family: var(--font-mono); font-size: 0.85rem; }
+    .demo-nav-right {
+      margin-left: auto;
+      display: flex; gap: 1.25rem;
+    }
+    .demo-nav-right a {
+      font-family: var(--font-mono); font-size: 0.7rem;
+      color: var(--stone-dim); text-decoration: none;
+      letter-spacing: 0.04em;
+      transition: color 0.15s;
+    }
+    .demo-nav-right a:hover { color: var(--warm-white); }
+
+    .demo-footer {
+      display: flex; gap: 1rem; align-items: baseline;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border-dark);
+      font-family: var(--font-mono); font-size: 0.7rem;
+      color: var(--stone-faint);
+    }
+    .demo-footer a { color: var(--warm-white-dim); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 0.15s, color 0.15s; }
+    .demo-footer a:hover { color: var(--moss); border-bottom-color: currentColor; }
+    .demo-footer .sep { opacity: 0.45; }
+
+    /* ── States ── */
+
+    .state-row {
+      display: grid; gap: 0.55rem;
+      grid-template-columns: 5.5rem 1fr;
+      align-items: center;
+      font-family: var(--font-mono); font-size: 0.7rem;
+      padding: 0.45rem 0;
+      border-bottom: 1px solid var(--border-dark);
+    }
+    .state-row:last-child { border-bottom: none; }
+    .state-row .name {
+      color: var(--stone-faint); font-size: 0.58rem;
+      letter-spacing: 0.16em; text-transform: uppercase;
+    }
+    .state-row .demo {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .state-static-hover { color: var(--moss); border-bottom: 1px solid var(--moss); }
+    .state-static-focus { color: var(--moss); outline: 1px solid var(--moss); outline-offset: 3px; }
+
+    /* ── Out of scope ── */
+
+    .negative-grid {
+      display: grid; gap: 0.7rem;
+      grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    }
+    .negative-cell {
+      font-family: var(--font-mono); font-size: 0.7rem;
+      color: var(--stone-dim);
+      line-height: 1.55;
+      padding: 0.65rem 0.85rem;
+      border: 1px dashed var(--border-dark);
+      border-radius: 3px;
+      background: hsla(0,0%,0%,0.18);
+    }
+    .negative-cell .x {
+      display: inline-block; margin-right: 0.4rem;
+      color: var(--clay-dim); font-weight: 500;
+    }
+    .negative-cell strong {
+      display: block; color: var(--stone); font-weight: 500;
+      margin-bottom: 0.1rem;
+    }
+
+    /* ── SVG primitive cells ── */
+
+    .svg-cell .prim-cell-body { min-height: 5.75rem; padding: 0.65rem 0; }
+    .svg-cell svg {
+      display: block;
+      width: 8rem; height: 5rem;
+      color: var(--stone);
+      overflow: visible;
+    }
+
+    /* ── Aged / durable primitives ──
+       Civic stone, ironwork, patina. Each one identifies structure: a
+       fact, a relation, a boundary, or a receipt. Never decorative for
+       its own sake. Reuse before adding. */
+
+    .aged-grid {
+      display: grid; gap: 1rem;
+      grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    }
+    .aged-cell {
+      display: flex; flex-direction: column;
+      background: var(--void);
+      border: 1px solid var(--border-dark);
+      border-radius: 4px;
+      padding: 1rem 1.1rem 1rem;
+      gap: 0.65rem;
+    }
+    .aged-cell-head {
+      display: flex; align-items: baseline; justify-content: space-between;
+      font-family: var(--font-mono); font-size: 0.58rem;
+      letter-spacing: 0.16em; text-transform: uppercase;
+    }
+    .aged-cell-name { color: var(--warm-white); font-weight: 500; }
+    .aged-cell-kind { color: var(--stone-faint); font-size: 0.55rem; }
+    .aged-cell-body {
+      flex: 1; min-height: 6rem;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0.6rem 0;
+    }
+    .aged-cell-note {
+      font-family: var(--font-mono); font-size: 0.65rem;
+      line-height: 1.55; color: var(--warm-white-dim);
+      margin: 0;
+    }
+
+    /* 1. Carved rule — divider with center diamond notch */
+    .carved-rule {
+      display: flex; align-items: center; gap: 0.7rem;
+      width: 100%;
+      color: var(--stone-faint);
+    }
+    .carved-rule::before, .carved-rule::after {
+      content: ""; flex: 1; height: 0;
+      border-top: 1px solid var(--border-dark-strong);
+    }
+    .carved-rule .notch {
+      width: 6px; height: 6px;
+      background: var(--moss-dim);
+      transform: rotate(45deg);
+    }
+
+    /* 2. Stone seam — masonry-course horizontal lines, felt more than seen */
+    .stone-seam {
+      width: 100%; height: 5rem;
+      background-image: linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 23px,
+        hsla(var(--hue-warm), 20%, 76%, 0.06) 24px,
+        transparent 25px
+      );
+      background-size: 100% 24px;
+      background-color: var(--void-up);
+      border: 1px solid var(--border-dark);
+      border-radius: 3px;
+    }
+
+    /* 3. Lintel — heavy top border, light bottom: section banner */
+    .lintel {
+      width: 100%;
+      border-top: 2px solid var(--border-dark-strong);
+      border-bottom: 1px solid var(--border-dark);
+      padding: 0.65rem 0.5rem;
+      font-family: var(--font-mono); font-size: 0.6rem;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--stone); text-align: center;
+      background: var(--void-up);
+    }
+
+    /* 4. Plaque — engraved panel.  Solid material; depth comes from
+       inset joints (top highlight + bottom shadow), not from a gradient. */
+    .plaque {
+      width: 100%;
+      background: var(--void-up2);
+      border: 1px solid var(--border-dark-strong);
+      border-radius: 3px;
+      box-shadow:
+        inset 0 1px 0 hsla(var(--hue-warm), 20%, 76%, 0.05),
+        inset 0 -1px 0 hsla(0, 0%, 0%, 0.5);
+      padding: 0.85rem 1rem 0.95rem;
+    }
+    .plaque-label {
+      font-family: var(--font-mono); font-size: 0.52rem;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--stone-faint); margin-bottom: 0.4rem;
+    }
+    .plaque-body {
+      font-family: var(--font-sans); font-weight: 500;
+      font-size: 0.92rem; color: var(--warm-white);
+      letter-spacing: -0.005em;
+    }
+
+    /* 5. Cut corners — clipped 9px corners on opposite ends */
+    .cut-corners {
+      width: 100%;
+      background: var(--void-up);
+      border: 1px solid var(--border-dark-strong);
+      padding: 0.85rem 1rem;
+      clip-path: polygon(
+        9px 0, 100% 0,
+        100% calc(100% - 9px),
+        calc(100% - 9px) 100%,
+        0 100%, 0 9px
+      );
+      font-family: var(--font-mono); font-size: 0.74rem;
+      color: var(--warm-white-dim);
+      line-height: 1.55;
+    }
+
+    /* 6. Trellis graph — small ASCII DAG with moss joint dots */
+    .trellis {
+      font-family: var(--font-mono); font-size: 0.78rem;
+      line-height: 1.75;
+      color: var(--warm-white-dim);
+      white-space: pre; margin: 0;
+    }
+    .trellis .node   { color: var(--warm-white); }
+    .trellis .branch { color: var(--stone-faint); }
+    .trellis .joint  { color: var(--moss); }
+
+    /* 7. Keystone marker — diamond bullet for section anchors */
+    .keystone {
+      display: inline-block;
+      width: 8px; height: 8px;
+      background: var(--stone);
+      transform: rotate(45deg);
+      vertical-align: 1px;
+    }
+    .keystone-row {
+      display: flex; align-items: center; gap: 0.55rem;
+      font-family: var(--font-mono); font-size: 0.7rem;
+      letter-spacing: 0.13em; text-transform: uppercase;
+      color: var(--stone);
+    }
+    .keystone-row .keystone { background: var(--moss); }
+
+    /* ── Lessons — large cards: SVG (intuition) + collapsible source (truth) ── */
+
+    .tut-story {
+      font-family: var(--font-sans); font-size: 0.95rem;
+      line-height: 1.65; color: var(--warm-white-dim);
+      max-width: 44em; margin: 0 0 1.75rem;
+    }
+    .tut-story strong { color: var(--warm-white); font-weight: 500; }
+
+    .lesson {
+      background: var(--void-up);
+      border: 1px solid var(--border-dark);
+      border-radius: 5px;
+      padding: 1.5rem 1.75rem 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .lesson-head {
+      display: flex; align-items: baseline; gap: 1rem;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .lesson-num {
+      font-family: var(--font-mono); font-size: 0.62rem;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--stone-faint);
+    }
+    .lesson-name {
+      font-family: var(--font-sans); font-weight: 600;
+      font-size: 1.25rem; line-height: 1.2;
+      letter-spacing: -0.01em;
+      color: var(--warm-white);
+    }
+    .lesson-formal {
+      margin-left: auto;
+      font-family: var(--font-mono); font-size: 0.6rem;
+      letter-spacing: 0.13em; text-transform: uppercase;
+      color: var(--stone-faint);
+    }
+
+    .lesson-body {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    @media (max-width: 820px) {
+      .lesson-body { grid-template-columns: 1fr; }
+    }
+
+    .lesson-vis {
+      background: var(--void);
+      border: 1px solid var(--border-dark);
+      border-radius: 4px;
+      min-height: 11rem;
+      padding: 1.25rem 1.5rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .lesson-vis svg {
+      display: block;
+      width: 100%; height: 100%;
+      max-width: 22rem; max-height: 11rem;
+      color: var(--stone);
+      overflow: visible;
+    }
+
+    .lesson-code {
+      background: var(--void);
+      border: 1px solid var(--border-dark);
+      border-radius: 4px;
+      padding: 0.85rem 1rem 0.95rem;
+    }
+    .lesson-code-head {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-family: var(--font-mono); font-size: 0.58rem;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--stone-faint);
+      padding-bottom: 0.6rem;
+      border-bottom: 1px dashed var(--border-dark);
+      margin-bottom: 0.65rem;
+    }
+    .lesson-code-head::before {
+      content: "●";
+      color: var(--moss);
+      font-size: 0.55rem;
+      vertical-align: 1px;
+    }
+    .lesson-code-head .src-name {
+      color: var(--warm-white-dim);
+      letter-spacing: 0.04em; text-transform: none;
+      font-size: 0.66rem;
+    }
+    .lesson-code pre {
+      font-family: var(--font-mono); font-size: 0.74rem;
+      line-height: 1.7;
+      color: var(--warm-white-dim);
+      margin: 0;
+      padding: 0;
+      white-space: pre;
+      overflow-x: auto;
+    }
+    .lesson-code .kw  { color: var(--moss); }
+    .lesson-code .ty  { color: var(--warm-white); font-weight: 500; }
+    .lesson-code .lit { color: var(--stone); }
+    .lesson-code .com { color: var(--stone-faint); }
+    .lesson-code .err { color: var(--clay); }
+
+    .lesson-desc {
+      margin-top: 1.5rem;
+      font-family: var(--font-sans); font-size: 0.88rem;
+      line-height: 1.65; color: var(--warm-white-dim);
+      max-width: 46em;
+    }
+    .lesson-desc strong { color: var(--warm-white); font-weight: 500; }
+
+    .lesson-closer {
+      font-family: var(--font-mono); font-size: 0.72rem;
+      line-height: 1.65; color: var(--stone);
+      max-width: 46em; margin: 0.75rem 0 2rem;
+      padding-left: 1rem;
+      border-left: 2px solid var(--stone-faint);
+    }
+
+    /* Movements (Section subheads inside the lessons pad-section) */
+    .tut-movement { margin-top: 3rem; }
+    .tut-movement:first-child { margin-top: 0; }
+    .tut-movement-eyebrow {
+      display: block;
+      font-family: var(--font-mono); font-size: 0.6rem;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--stone-faint);
+      margin-bottom: 0.45rem;
+    }
+    .tut-movement-title {
+      font-family: var(--font-sans); font-weight: 500;
+      font-size: 1.15rem; letter-spacing: -0.005em;
+      color: var(--warm-white); margin: 0 0 1rem;
+    }
+
+    /* ── Concept frames ── */
+
+    .frame {
+      display: flex; flex-direction: column;
+      gap: 0.75rem; margin-bottom: 3rem;
+    }
+    .frame-label {
+      display: flex; align-items: baseline; gap: 0.75rem;
+      font-family: var(--font-mono); font-size: 0.62rem;
+      letter-spacing: 0.13em; text-transform: uppercase;
+      color: var(--stone-faint);
+    }
+    .frame-label .tag {
+      color: var(--moss);
+      border: 1px solid var(--moss-subtle);
+      background: var(--moss-subtle);
+      border-radius: 2px;
+      padding: 0.1rem 0.4rem;
+      font-size: 0.55rem;
+    }
+    .frame-label .name { color: var(--warm-white); font-weight: 500; }
+    .frame-note {
+      font-family: var(--font-mono); font-size: 0.68rem;
+      color: var(--warm-white-dim); max-width: 44em;
+      line-height: 1.6;
+    }
+    .frame-stage {
+      background: var(--void);
+      border: 1px solid var(--border-dark-strong);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+    .frame-stage::before {
+      content: "viewport · ~960×640"; position: absolute;
+      top: 0.4rem; left: 0.65rem;
+      font-family: var(--font-mono); font-size: 0.52rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--stone-faint); opacity: 0.45;
+      pointer-events: none;
+    }
+    .frame-stage .inner {
+      min-height: 38rem;
+      padding: 3rem 2rem 3rem;
+    }
+
+    .concept-grid {
+      display: grid; gap: 3rem;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 1400px) {
+      .concept-grid { grid-template-columns: 1fr 1fr; gap: 2.5rem 3rem; }
+    }
+
+    /* ── Concept-shared primitives ── */
+
+    .label-eyebrow {
+      display: block;
+      font-family: var(--font-mono); font-size: 0.62rem;
+      letter-spacing: 0.13em; text-transform: uppercase;
+      color: var(--stone-faint);
+      margin-bottom: 0.65rem;
+    }
+
+    .identity {
+      font-family: var(--font-sans); font-weight: 600;
+      font-size: clamp(1.4rem, 2.8vw, 1.85rem);
+      line-height: 1.2;
+      letter-spacing: -0.015em;
+      color: var(--warm-white);
+      margin: 0 0 0.4rem;
+    }
+    .identity-second {
+      font-family: var(--font-sans); font-weight: 400;
+      font-size: 0.95rem; line-height: 1.4;
+      color: var(--stone); margin: 0 0 1.25rem;
+    }
+
+    .prose {
+      font-size: 0.85rem;
+      line-height: 1.7;
+      color: var(--warm-white-dim);
+      max-width: 36em;
+      margin: 0 0 1.25rem;
+    }
+    .prose strong { color: var(--warm-white); font-weight: 500; }
+    .prose-tight { margin: 0 0 0.85rem; }
+
+    .footer-links {
+      margin-top: 1.5rem;
+      font-family: var(--font-mono); font-size: 0.72rem;
+      color: var(--stone-faint);
+    }
+    .footer-links a {
+      color: var(--warm-white-dim);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .footer-links a:hover { color: var(--moss); border-bottom-color: currentColor; }
+    .footer-links .sep { margin: 0 0.55rem; opacity: 0.45; }
+
+    .mark-row { display: flex; align-items: center; gap: 0.85rem; margin-bottom: 2rem; }
+    .mark {
+      width: 32px; height: 32px;
+      color: var(--stone);
+    }
+    .wordmark {
+      font-family: var(--font-mono); font-size: 0.85rem;
+      letter-spacing: 0.04em;
+      color: var(--warm-white);
+    }
+
+    /* Concept-specific layout */
+    .c-manual { max-width: 44rem; margin: 0 auto; }
+    .c-receipt { max-width: 50rem; margin: 0 auto; font-family: var(--font-mono); }
+    .c-receipt .ledger { display: grid; grid-template-columns: 9rem 1fr; gap: 0.4rem 1.5rem; font-size: 0.78rem; }
+    .c-receipt .ledger dt {
+      color: var(--stone-faint); font-size: 0.62rem;
+      letter-spacing: 0.13em; text-transform: uppercase;
+      padding-top: 0.15rem;
+    }
+    .c-receipt .ledger dd { margin: 0; color: var(--warm-white-dim); line-height: 1.65; }
+    .c-receipt .ledger dd strong { color: var(--warm-white); font-weight: 500; }
+    .c-receipt .ledger .row { display: contents; }
+    .c-receipt .ledger .rule { grid-column: 1 / -1; border-top: 1px dashed var(--border-dark); margin: 0.4rem 0; height: 0; }
+    .c-receipt .identity { font-family: var(--font-mono); font-weight: 500; font-size: 1.05rem; letter-spacing: -0.005em; }
+
+    .c-triptych { max-width: 44rem; margin: 0 auto; }
+    .c-triptych .section { margin-bottom: 1.5rem; }
+    .c-triptych .section-tag {
+      font-family: var(--font-mono); font-size: 0.55rem;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--stone-faint); margin-bottom: 0.45rem;
+    }
+    .c-triptych .section-tag .dot {
+      display: inline-block; width: 4px; height: 4px;
+      background: var(--stone-faint); border-radius: 50%;
+      vertical-align: 2px; margin-right: 0.45rem;
+    }
+
+    .c-field { max-width: 50rem; margin: 0 auto; }
+    .c-field .spine {
+      display: grid; gap: 1.75rem;
+      grid-template-columns: 13rem 1fr;
+      align-items: start;
+    }
+    .c-field .spine .lhs .label-eyebrow { margin-bottom: 1rem; }
+    .c-field .spine .lhs .identity { font-size: 1.35rem; line-height: 1.25; }
+    .c-field .spine .lhs .micro { font-family: var(--font-mono); font-size: 0.62rem; color: var(--stone-faint); margin-top: 0.55rem; line-height: 1.5; }
+    .c-field .spine .rhs .prose { max-width: 32em; margin-bottom: 1rem; }
+    .c-field .install-row { margin-top: 0.8rem; }
+    @media (max-width: 760px) {
+      .c-field .spine { grid-template-columns: 1fr; }
+    }
+
+    /* ── Story decks — linear, accreting diagrams ── */
+
+    .deck {
+      background: var(--void-up);
+      border: 1px solid var(--border-dark);
+      border-radius: 5px;
+      padding: 1.25rem 1.5rem 1.5rem;
+      outline: none;
+    }
+    .deck-head {
+      display: flex; align-items: center; gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    .deck-name {
+      font-family: var(--font-mono); font-size: 0.68rem;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--warm-white);
+    }
+    .deck-head .deck-ticks {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 0.45rem;
+      flex: 0 0 auto;
+    }
+    .deck-pos {
+      font-family: var(--font-mono); font-size: 0.62rem;
+      letter-spacing: 0.13em; color: var(--stone-faint);
+    }
+    .deck-pos .deck-current { color: var(--warm-white); }
+
+    .deck-stage {
+      overflow: hidden;
+      border: 1px solid var(--border-dark);
+      border-radius: 4px;
+      background: var(--void);
+    }
+    .card-track {
+      display: flex;
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .deck-card {
+      flex: 0 0 100%;
+      padding: 1.5rem 1.75rem 1.5rem;
+      box-sizing: border-box;
+    }
+    .deck-card-head {
+      display: flex; align-items: baseline; gap: 0.85rem;
+      margin-bottom: 0.65rem;
+      flex-wrap: wrap;
+    }
+    .deck-card-num {
+      font-family: var(--font-mono); font-size: 0.6rem;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--stone-faint);
+    }
+    .deck-card-name {
+      font-family: var(--font-sans); font-weight: 600;
+      font-size: 1.15rem; color: var(--warm-white);
+      letter-spacing: -0.005em;
+    }
+    .deck-card-concept {
+      font-family: var(--font-sans); font-size: 0.92rem;
+      line-height: 1.6; color: var(--warm-white-dim);
+      margin: 0 0 1.25rem; max-width: 46em;
+    }
+    .deck-card-concept strong { color: var(--warm-white); font-weight: 500; }
+
+    .deck-card-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      align-items: stretch;
+    }
+    @media (max-width: 820px) {
+      .deck-card-body { grid-template-columns: 1fr; }
+    }
+
+    .deck-card-code, .deck-card-vis {
+      background: var(--void-up);
+      border: 1px solid var(--border-dark);
+      border-radius: 4px;
+    }
+    .deck-card-code {
+      padding: 0.85rem 1rem 0.95rem;
+    }
+    .deck-card-code-head {
+      font-family: var(--font-mono); font-size: 0.58rem;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--stone-faint);
+      padding-bottom: 0.55rem;
+      border-bottom: 1px dashed var(--border-dark);
+      margin-bottom: 0.6rem;
+    }
+    .deck-card-code-head::before {
+      content: "● "; color: var(--moss);
+      font-size: 0.55rem;
+    }
+    .deck-card-code-head .src-name {
+      color: var(--warm-white-dim);
+      letter-spacing: 0.04em; text-transform: none;
+      font-size: 0.66rem;
+    }
+    .deck-card-code pre {
+      font-family: var(--font-mono); font-size: 0.74rem;
+      line-height: 1.7; color: var(--warm-white-dim);
+      margin: 0; padding: 0;
+      white-space: pre; overflow-x: auto;
+    }
+    .deck-card-code .kw   { color: var(--moss); }
+    .deck-card-code .ty   { color: var(--warm-white); font-weight: 500; }
+    .deck-card-code .lit  { color: var(--stone); }
+    .deck-card-code .com  { color: var(--stone-faint); }
+    .deck-card-code .add  { color: var(--moss); }
+    .deck-card-code .rem  { color: var(--clay); }
+    .deck-card-code .clay { color: var(--clay); }
+
+    .deck-card-vis {
+      padding: 0.85rem 1rem;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 14rem;
+    }
+    .deck-card-vis svg {
+      display: block;
+      width: 100%; height: auto;
+      max-width: 24rem;
+      color: var(--stone);
+      overflow: visible;
+    }
+
+    .deck-card-receipt {
+      margin-top: 1.1rem;
+      padding: 0.65rem 0.85rem;
+      background: var(--void-up);
+      border: 1px solid var(--border-dark);
+      border-left: 2px solid var(--moss-dim);
+      border-radius: 0 3px 3px 0;
+      font-family: var(--font-mono); font-size: 0.7rem;
+      color: var(--warm-white-dim);
+      line-height: 1.7;
+    }
+    .deck-card-receipt .receipt-key {
+      color: var(--stone-faint); margin-right: 0.4rem;
+    }
+    .deck-card-receipt .receipt-sep {
+      color: var(--stone-faint); margin: 0 0.45rem; opacity: 0.55;
+    }
+
+    .deck-card-stack {
+      margin-top: 0.85rem;
+      font-family: var(--font-mono); font-size: 0.6rem;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--stone-faint);
+    }
+    .deck-card-stack .stack-label {
+      margin-right: 0.6rem; color: var(--stone-faint);
+    }
+    .deck-card-stack .stack-piece {
+      color: var(--moss); margin-right: 0.65rem;
+    }
+    .deck-card-stack .stack-piece + .stack-piece::before {
+      content: "+ ";
+      color: var(--stone-faint);
+      margin-right: 0.15rem;
+    }
+
+    .deck-nav {
+      display: flex; align-items: center; gap: 1rem;
+      margin-top: 1rem;
+    }
+    .deck-btn {
+      background: var(--void);
+      border: 1px solid var(--border-dark);
+      border-radius: 3px;
+      padding: 0.5rem 0.95rem;
+      font-family: var(--font-mono); font-size: 0.68rem;
+      color: var(--warm-white-dim);
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .deck-btn:hover { color: var(--moss); border-color: var(--moss-dim); }
+    .deck-btn:focus-visible { outline: 1px solid var(--moss); outline-offset: 2px; }
+    .deck-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .deck-btn:disabled:hover { color: var(--warm-white-dim); border-color: var(--border-dark); }
+
+    .deck-nav .deck-ticks {
+      display: none;  /* ticks now live in deck-head, top-right next to count */
+    }
+    .deck-tick {
+      width: 16px; height: 10px;
+      background: var(--border-dark-strong);
+      border-radius: 3px;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .deck-tick.active {
+      background: var(--moss);
+    }
+
+  </style>
+</head>
+<body>
+
+<!-- Shared Stoic Giant SVG symbol + auto-orienting arrow marker -->
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
+  <symbol id="stoic-idle" viewBox="0 0 120 120">
+    <g transform="translate(-12 -12) scale(1.2)">
+      <path fill-rule="evenodd" fill="currentColor" d="
+        M40,20 H80 A30,30 0 0,1 110,50 V70 A30,30 0 0,1 80,100 H40 A30,30 0 0,1 10,70 V50 A30,30 0 0,1 40,20 Z
+        M35,40 A8,8 0 0,1 35,56 A8,8 0 0,1 35,40 Z
+        M85,40 A8,8 0 0,1 85,56 A8,8 0 0,1 85,40 Z
+        M54,54 H66 A2,2 0 0,1 68,56 V58 A2,2 0 0,1 66,60 H54 A2,2 0 0,1 52,58 V56 A2,2 0 0,1 54,54 Z
+      "/>
+    </g>
+  </symbol>
+  <!-- Auto-orienting arrowhead. Referenced via marker-end="url(#arrow)".
+       context-stroke makes the marker fill match the line's stroke
+       color, so moss/clay-stroked edges get matching arrowheads. -->
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+          markerWidth="6" markerHeight="6"
+          markerUnits="strokeWidth" orient="auto">
+    <path d="M0,0 L10,5 L0,10 Z" fill="context-stroke"/>
+  </marker>
+</svg>
+
+<header class="workpad-header">
+  <div class="workpad-title"><strong>gunb.ai workpad</strong> · v0.2 · primitives + concepts</div>
+  <div class="workpad-meta">moodboard palette · thesis: hand translation → structural description → derived artifacts</div>
+  <nav class="workpad-nav">
+    <a href="#primitives">primitives (14)</a>
+    <a href="#aged">aged</a>
+    <a href="#example">lessons</a>
+    <a href="#decks">decks</a>
+    <a href="#concepts">concepts</a>
+    <a href="legacy/moodboard.html">moodboard ↗</a>
+  </nav>
+</header>
+
+<main class="workpad-canvas">
+
+  <!-- ═══════════════════════ PRIMITIVES ═══════════════════════ -->
+
+  <section class="pad-section" id="primitives">
+    <span class="pad-section-label">primitives · 01</span>
+    <h2 class="pad-section-title">Materials</h2>
+    <p class="pad-section-note">
+      Five materials. Each has a reason. Moss is structural continuity, not "success." Clay is a boundary, not "danger." Neither is a UI status color — no traffic-light usage anywhere in the system.
+    </p>
+
+    <div class="prim-grid">
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Void</span><span class="prim-cell-kind">material</span></div>
+        <div class="prim-cell-body"><div class="material-swatch swatch-void"></div></div>
+        <p class="prim-cell-note">The ground. Near-black, slightly warm. Product surface.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Stone</span><span class="prim-cell-kind">material</span></div>
+        <div class="prim-cell-body"><div class="material-swatch swatch-stone"></div></div>
+        <p class="prim-cell-note">Warm grey. Primary text on dark. Patient, recessive.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Warm White</span><span class="prim-cell-kind">material</span></div>
+        <div class="prim-cell-body"><div class="material-swatch swatch-warm-white"></div></div>
+        <p class="prim-cell-note">Off-white, warm cast. Light-mode surface.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Moss</span><span class="prim-cell-kind">accent</span></div>
+        <div class="prim-cell-body"><div class="material-swatch swatch-moss"></div></div>
+        <p class="prim-cell-note">Structural continuity. Link, held relation. <em>Not "success."</em></p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Clay</span><span class="prim-cell-kind">accent</span></div>
+        <div class="prim-cell-body"><div class="material-swatch swatch-clay"></div></div>
+        <p class="prim-cell-note">Boundary. Diagnostic, invariant break. <em>Not "danger."</em></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad-section">
+    <span class="pad-section-label">primitives · 02</span>
+    <h2 class="pad-section-title">Type roles</h2>
+    <p class="pad-section-note">
+      Five roles cover everything. Noto Sans for prose (statement). JetBrains Mono for everything compiler-flavored. No display font, no hero typography gimmick.
+    </p>
+
+    <div class="prim-grid">
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Statement</span><span class="prim-cell-kind">noto sans 600</span></div>
+        <div class="prim-cell-body"><div class="type-sample type-statement">A structural compiler for composable systems.</div></div>
+        <p class="prim-cell-note">Short prose claim. Identity lines, section headings.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Specifier</span><span class="prim-cell-kind">jetbrains mono</span></div>
+        <div class="prim-cell-body"><div class="type-sample type-specifier">gunbc · structural compiler</div></div>
+        <p class="prim-cell-note">Small-caps / letter-spaced label. Eyebrows.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Code</span><span class="prim-cell-kind">jetbrains mono</span></div>
+        <div class="prim-cell-body"><div class="type-sample type-code">cargo build --release</div></div>
+        <p class="prim-cell-note">Source / command line. Inline or block.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Receipt</span><span class="prim-cell-kind">jetbrains mono</span></div>
+        <div class="prim-cell-body"><div class="type-sample type-receipt">compiled:    12 files
+artifacts:   ./out/*.rs
+diagnostics: 0</div></div>
+        <p class="prim-cell-note">Aligned ledger row. Output / proof.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Diagnostic</span><span class="prim-cell-kind">jetbrains mono · clay</span></div>
+        <div class="prim-cell-body"><div class="type-sample type-diagnostic">Invariant — match not exhaustive</div></div>
+        <p class="prim-cell-note">Compiler voice. Clay used only inside Invariant.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad-section">
+    <span class="pad-section-label">primitives · 03</span>
+    <h2 class="pad-section-title">Panel types</h2>
+    <p class="pad-section-note">
+      Four panels carry almost every content type. Fact for stable claims. Command for what to run. Invariant for compiler voice (clay). Receipt for output / proof (moss left rule).
+    </p>
+
+    <div class="panel-row">
+      <div class="panel-proof">
+        <div class="panel-proof-tag"><span class="dot"></span>fact</div>
+        <div class="panel-fact">
+          <p class="head">A structural compiler for composable systems.</p>
+          <p class="body">daglang describes the system once. gunbc checks the description and derives the mechanical pieces.</p>
+        </div>
+      </div>
+
+      <div class="panel-proof">
+        <div class="panel-proof-tag"><span class="dot"></span>command</div>
+        <pre class="panel-command"><span class="kbd">git clone</span> https://github.com/gunb-ai/daglang
+<span class="kbd">cd</span> daglang
+<span class="kbd">cargo build --release</span></pre>
+      </div>
+
+      <div class="panel-proof">
+        <div class="panel-proof-tag"><span class="dot"></span>invariant</div>
+        <pre class="panel-invariant"><span class="title">Invariant —</span>
+  match on Condition is not exhaustive
+  missing:  Rainy, Snowy
+  at:       examples/weather.dag:14
+  result:   no artifact emitted</pre>
+      </div>
+
+      <div class="panel-proof">
+        <div class="panel-proof-tag"><span class="dot"></span>receipt</div>
+        <div class="panel-receipt">
+          <dl>
+            <dt>compiled</dt><dd><strong>12</strong> nodes</dd>
+            <dt>artifacts</dt><dd>rust · ts · openapi</dd>
+            <dt>diagnostics</dt><dd>0</dd>
+            <dt>elapsed</dt><dd>340 ms</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad-section">
+    <span class="pad-section-label">primitives · 04</span>
+    <h2 class="pad-section-title">Inline marks</h2>
+    <p class="pad-section-note">
+      Six marks for body text. <code>code</code> for compiler nouns. <kbd>kbd</kbd> for command verbs. <strong>strong</strong> for the load-bearing word in a sentence. <em>em</em> for soft emphasis. Inline links pick up underline immediately. External links get a trailing arrow so they don't surprise the reader.
+    </p>
+    <div class="prim-grid">
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">code</span><span class="prim-cell-kind">inline</span></div>
+        <div class="prim-cell-body"><div class="inline-demo">The compiler binary is <code>gunbc</code>.</div></div>
+        <p class="prim-cell-note">Compiler nouns, file paths, identifiers.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">kbd</span><span class="prim-cell-kind">inline</span></div>
+        <div class="prim-cell-body"><div class="inline-demo">Run <kbd>cargo build --release</kbd> to compile.</div></div>
+        <p class="prim-cell-note">Command verbs inline in prose.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">strong</span><span class="prim-cell-kind">inline</span></div>
+        <div class="prim-cell-body"><div class="inline-demo"><strong>daglang</strong> describes the system once.</div></div>
+        <p class="prim-cell-note">The load-bearing noun in a sentence.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">em</span><span class="prim-cell-kind">inline</span></div>
+        <div class="prim-cell-body"><div class="inline-demo">moss is <em>not</em> success green.</div></div>
+        <p class="prim-cell-note">Soft emphasis. Sparingly.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">link</span><span class="prim-cell-kind">inline · always underlined</span></div>
+        <div class="prim-cell-body"><div class="inline-demo">See the <a href="#" class="link-inline">architecture notes</a>.</div></div>
+        <p class="prim-cell-note">Always underlined; hover lifts to moss.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">external link</span><span class="prim-cell-kind">inline · arrow suffix</span></div>
+        <div class="prim-cell-body"><div class="inline-demo"><a href="#" class="link-inline link-external">github.com/gunb-ai/daglang</a></div></div>
+        <p class="prim-cell-note">Arrow signals "leaves the site." No "_blank" without it.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad-section">
+    <span class="pad-section-label">primitives · 05</span>
+    <h2 class="pad-section-title">Lists</h2>
+    <p class="pad-section-note">
+      Four list shapes. Bullet for unordered. Numbered for ordered steps. Tree for structural relations (load-bearing — used wherever we visualize structure without SVG). Definition for short ledger rows.
+    </p>
+    <div class="prim-grid">
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">bullet</span><span class="prim-cell-kind">unordered</span></div>
+        <div class="prim-cell-body" style="justify-content:flex-start; align-items:flex-start">
+          <ul class="list-bullet">
+            <li>structural source</li>
+            <li>checked graph</li>
+            <li>derived artifacts</li>
+          </ul>
+        </div>
+        <p class="prim-cell-note">Mono dash markers. No nested lists in V1.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">numbered</span><span class="prim-cell-kind">ordered</span></div>
+        <div class="prim-cell-body" style="justify-content:flex-start; align-items:flex-start">
+          <ol class="list-numbered">
+            <li>describe</li>
+            <li>check</li>
+            <li>derive</li>
+          </ol>
+        </div>
+        <p class="prim-cell-note">For sequenced steps only.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">tree</span><span class="prim-cell-kind">structural</span></div>
+        <div class="prim-cell-body" style="justify-content:flex-start; align-items:flex-start">
+<pre class="list-tree"><span class="leaf">system.dag</span>
+<span class="branch">├─</span> <span class="leaf">rust</span>
+<span class="branch">├─</span> <span class="leaf">typescript</span>
+<span class="branch">├─</span> <span class="leaf">openapi</span>
+<span class="branch">└─</span> <span class="leaf">tests</span></pre>
+        </div>
+        <p class="prim-cell-note">ASCII branches. The mono substitute for an SVG DAG.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">definition</span><span class="prim-cell-kind">ledger</span></div>
+        <div class="prim-cell-body" style="justify-content:flex-start; align-items:flex-start">
+          <dl class="list-defs">
+            <dt>identity</dt><dd><strong>gunbc</strong></dd>
+            <dt>install</dt><dd>cargo build --release</dd>
+            <dt>status</dt><dd>early access</dd>
+          </dl>
+        </div>
+        <p class="prim-cell-note">Short key/value rows. Inline form of Receipt panel.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad-section">
+    <span class="pad-section-label">primitives · 06</span>
+    <h2 class="pad-section-title">Dividers &amp; section breaks</h2>
+    <p class="pad-section-note">
+      Three rules. Hairline for tight separation. Dashed for in-panel ledger rows. Eyebrow-rule for section boundaries that carry a label.
+    </p>
+    <div class="prim-grid">
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">hairline</span><span class="prim-cell-kind">solid · subtle</span></div>
+        <div class="prim-cell-body"><div class="div-hairline" style="width:100%"></div></div>
+        <p class="prim-cell-note">Default separator. Border-dark.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">dashed</span><span class="prim-cell-kind">in-panel</span></div>
+        <div class="prim-cell-body"><div class="div-dashed" style="width:100%"></div></div>
+        <p class="prim-cell-note">Inside receipts/ledgers. Never on landing pages.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">eyebrow rule</span><span class="prim-cell-kind">section</span></div>
+        <div class="prim-cell-body"><div class="div-eyebrow-rule">primitives · 06</div></div>
+        <p class="prim-cell-note">Label + hairline. Marks a top-level section.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad-section">
+    <span class="pad-section-label">primitives · 07</span>
+    <h2 class="pad-section-title">Quote &amp; callout</h2>
+    <p class="pad-section-note">
+      Pull quote for source material. Note callout for asides — stone left rule, never clay (clay is reserved for the Invariant panel). No "info / warning / success" callout variants — the system does not have those concepts.
+    </p>
+    <div class="panel-row">
+      <div class="panel-proof">
+        <div class="panel-proof-tag"><span class="dot"></span>pull quote</div>
+        <blockquote class="quote-pull">
+          Software drifts when intent is inconsistent. Every layer of this system enforces a single invariant.
+          <cite>— gunbc readme</cite>
+        </blockquote>
+      </div>
+      <div class="panel-proof">
+        <div class="panel-proof-tag"><span class="dot"></span>note</div>
+        <div class="callout-note">
+          <div class="head">note</div>
+          The structural map between source and target is what makes derived artifacts faithful — not the emitter.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad-section">
+    <span class="pad-section-label">primitives · 08</span>
+    <h2 class="pad-section-title">Buttons &amp; affordances</h2>
+    <p class="pad-section-note">
+      No filled CTA buttons. Affordances are textual — link with arrow, quiet mono link for navigation, mode toggle (if/when light mode lands), shell prompt for command intent. If a future surface needs more, it justifies the new primitive in writing first.
+    </p>
+    <div class="prim-grid">
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">text action</span><span class="prim-cell-kind">link · arrow</span></div>
+        <div class="prim-cell-body">
+          <a href="#" class="btn-text">View architecture <span class="arrow">→</span></a>
+        </div>
+        <p class="prim-cell-note">Primary call to action. Moss. Never a filled button.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">quiet link</span><span class="prim-cell-kind">nav · footer</span></div>
+        <div class="prim-cell-body">
+          <a href="#" class="btn-link-quiet">GitHub</a>
+        </div>
+        <p class="prim-cell-note">Secondary destinations. Footer / nav.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">mode toggle</span><span class="prim-cell-kind">dark · light</span></div>
+        <div class="prim-cell-body">
+          <button class="btn-mode" type="button"><span class="dot"></span>Dark</button>
+        </div>
+        <p class="prim-cell-note">Only surface that changes the document mode. Deferred for V1.</p>
+      </div>
+      <div class="prim-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">shell prompt</span><span class="prim-cell-kind">decoration</span></div>
+        <div class="prim-cell-body">
+          <div class="prompt">cargo build --release</div>
+        </div>
+        <p class="prim-cell-note">Inline shell marker. Standalone — not used inside command blocks.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad-section">
+    <span class="pad-section-label">primitives · 09</span>
+    <h2 class="pad-section-title">Comparison table</h2>
+    <p class="pad-section-note">
+      Two-column mono table. Used wherever we map "technical vocabulary" to "public language" (architecture page) or contrast pairs. Hairline rules only — no row striping, no header fills.
+    </p>
+    <table class="cmp-table" style="max-width:48rem">
+      <thead><tr><th>technical idea</th><th>public language</th></tr></thead>
+      <tbody>
+        <tr><td><strong>homomorphism</strong></td><td>faithful projection / structure-preserving translation</td></tr>
+        <tr><td><strong>catamorphism</strong></td><td>fold over the graph</td></tr>
+        <tr><td><strong>substrate</strong></td><td>structural model</td></tr>
+        <tr><td><strong>fail-closed</strong></td><td>refuses to guess</td></tr>
+        <tr><td><strong>affected set</strong></td><td>shows what changed downstream</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="pad-section">
+    <span class="pad-section-label">primitives · 10</span>
+    <h2 class="pad-section-title">Nav · header · footer</h2>
+    <p class="pad-section-note">
+      Site-level chrome. V1 may use none of this — the index page can stand alone with no nav. Documenting once so future pages don't reinvent.
+    </p>
+    <nav class="demo-nav" style="margin-bottom:1.25rem">
+      <div class="demo-nav-left">
+        <svg viewBox="0 0 120 120" aria-hidden="true"><use href="#stoic-idle"/></svg>
+        <span class="wm">gunb.ai</span>
+      </div>
+      <div class="demo-nav-right">
+        <a href="#">Architecture</a>
+        <a href="#">Support</a>
+        <a href="#">GitHub ↗</a>
+      </div>
+    </nav>
+    <footer class="demo-footer">
+      <a href="#">GitHub</a><span class="sep">·</span><a href="#">Architecture</a><span class="sep">·</span><span style="margin-left:auto">gunb.ai · early access</span>
+    </footer>
+  </section>
+
+  <section class="pad-section">
+    <span class="pad-section-label">primitives · 11</span>
+    <h2 class="pad-section-title">SVG primitives</h2>
+    <p class="pad-section-note">
+      Eight shapes. One stroke weight. No gradients. No animated draw. Labels in HTML, never SVG <code>&lt;text&gt;</code>. Each primitive shown at canonical size; diagrams compose them.
+    </p>
+
+    <div class="prim-grid">
+      <!-- node -->
+      <div class="prim-cell svg-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Node</span><span class="prim-cell-kind">structure</span></div>
+        <div class="prim-cell-body">
+          <svg viewBox="0 0 128 80" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="40" y="25" width="48" height="30" rx="4" />
+          </svg>
+        </div>
+        <p class="prim-cell-note">A graph node. Rounded rect; small radius. Canonical footprint 48 × 30.</p>
+      </div>
+
+      <!-- edge -->
+      <div class="prim-cell svg-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Edge</span><span class="prim-cell-kind">relation</span></div>
+        <div class="prim-cell-body">
+          <svg viewBox="0 0 128 80" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="14" y="24" width="32" height="32" rx="4" />
+            <rect x="82" y="24" width="32" height="32" rx="4" />
+            <line x1="46" y1="40" x2="78" y2="40" stroke-linecap="round" marker-end="url(#arrow)"/>
+          </svg>
+        </div>
+        <p class="prim-cell-note">Directed relation between two nodes.</p>
+      </div>
+
+      <!-- port -->
+      <div class="prim-cell svg-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Port</span><span class="prim-cell-kind">surface</span></div>
+        <div class="prim-cell-body">
+          <svg viewBox="0 0 128 80" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="40" y="22" width="48" height="36" rx="4" />
+            <circle cx="40" cy="34" r="2" fill="currentColor" stroke="none"/>
+            <circle cx="40" cy="46" r="2" fill="currentColor" stroke="none"/>
+            <circle cx="88" cy="40" r="2" fill="currentColor" stroke="none"/>
+          </svg>
+        </div>
+        <p class="prim-cell-note">Typed boundary point on a node.</p>
+      </div>
+
+      <!-- fold (single zigzag) -->
+      <div class="prim-cell svg-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Fold</span><span class="prim-cell-kind">single seam</span></div>
+        <div class="prim-cell-body">
+          <svg viewBox="0 0 128 80" fill="none" stroke-linecap="round">
+            <!-- single zigzag: the fold's seam through every variant -->
+            <polyline points="8,50 18,30 28,50 38,30 48,50 58,30 68,50" stroke="var(--moss-dim)" stroke-width="2"/>
+            <!-- output exits to the result -->
+            <line x1="68" y1="50" x2="80" y2="50" stroke="var(--moss-dim)" stroke-width="2" marker-end="url(#arrow)"/>
+            <rect x="82" y="36" width="36" height="28" rx="4" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <p class="prim-cell-note">The seam passes through every variant once. Missing a tooth means it can't close — non-exhaustive fold, no artifact emitted.</p>
+      </div>
+
+      <!-- lens (lasso boundary) -->
+      <div class="prim-cell svg-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Lens</span><span class="prim-cell-kind">lasso · subgraph</span></div>
+        <div class="prim-cell-body">
+          <svg viewBox="0 0 128 80" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <!-- ambient graph (dim) extending across the frame -->
+            <g stroke-opacity="0.35">
+              <circle cx="14" cy="22" r="2.5"/>
+              <circle cx="14" cy="58" r="2.5"/>
+              <circle cx="34" cy="40" r="2.5"/>
+              <circle cx="100" cy="22" r="2.5"/>
+              <circle cx="104" cy="58" r="2.5"/>
+              <line x1="16" y1="23" x2="32" y2="39"/>
+              <line x1="16" y1="57" x2="32" y2="41"/>
+              <line x1="36" y1="39" x2="58" y2="32"/>
+              <line x1="36" y1="41" x2="62" y2="48"/>
+              <line x1="69" y1="33" x2="98" y2="23"/>
+              <line x1="69" y1="48" x2="102" y2="56"/>
+            </g>
+            <!-- selected subset (solid) -->
+            <circle cx="60" cy="32" r="2.8" fill="currentColor" stroke="none"/>
+            <circle cx="66" cy="48" r="2.8" fill="currentColor" stroke="none"/>
+            <line x1="60" y1="34" x2="65" y2="47"/>
+            <!-- lasso: tight hull around the two selected nodes -->
+            <polygon points="54,29 60,25 66,28 72,45 70,52 64,55 58,53 53,38"
+                     stroke="var(--moss)" stroke-dasharray="3 2" stroke-width="1.5"
+                     fill="none" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <p class="prim-cell-note">A lasso traces a named subgraph. The dashed moss boundary is the scope — what's inside is in view, what's outside is unchanged. Used for <code>affected_set</code>, complexity scope, projection slice.</p>
+      </div>
+
+      <!-- artifact -->
+      <div class="prim-cell svg-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Artifact</span><span class="prim-cell-kind">receipt</span></div>
+        <div class="prim-cell-body">
+          <svg viewBox="0 0 128 80" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M40,25 L80,25 L88,33 L88,55 L40,55 Z" />
+            <line x1="80" y1="25" x2="80" y2="33" />
+            <line x1="80" y1="33" x2="88" y2="33" />
+          </svg>
+        </div>
+        <p class="prim-cell-note">Emitted target. Cut corner = "produced from." Same 48 × 30 footprint as Node.</p>
+      </div>
+
+      <!-- boundary -->
+      <div class="prim-cell svg-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Boundary</span><span class="prim-cell-kind">clay</span></div>
+        <div class="prim-cell-body">
+          <svg viewBox="0 0 128 80" fill="none" stroke-width="1.5">
+            <rect x="20" y="28" width="32" height="24" rx="4" stroke="currentColor" />
+            <line x1="64" y1="20" x2="64" y2="60" stroke="var(--clay)" stroke-dasharray="4 3" />
+            <rect x="76" y="28" width="32" height="24" rx="4" stroke="currentColor" stroke-opacity="0.45" stroke-dasharray="3 3" />
+          </svg>
+        </div>
+        <p class="prim-cell-note">Where the compiler stops. Beyond is unmodeled.</p>
+      </div>
+
+      <!-- checkpoint -->
+      <div class="prim-cell svg-cell">
+        <div class="prim-cell-head"><span class="prim-cell-name">Checkpoint</span><span class="prim-cell-kind">held invariant</span></div>
+        <div class="prim-cell-body">
+          <svg viewBox="0 0 128 80" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M40,25 L80,25 L88,33 L88,55 L40,55 Z" />
+            <line x1="40" y1="25" x2="40" y2="55" stroke="var(--moss-dim)" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <p class="prim-cell-note">Held invariant — artifact with a moss left rule (the same accent the Receipt panel uses). Same 48 × 30 footprint.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad-section">
+    <span class="pad-section-label">primitives · 12</span>
+    <h2 class="pad-section-title">States</h2>
+    <p class="pad-section-note">
+      Interactive states. Visible focus is mandatory (keyboard / accessibility). Hover lifts to moss for actionable elements. No disabled state — if something isn't available, it isn't shown.
+    </p>
+    <div style="max-width:32rem">
+      <div class="state-row">
+        <span class="name">default</span>
+        <span class="demo"><a href="#" class="link-inline">read the architecture</a></span>
+      </div>
+      <div class="state-row">
+        <span class="name">hover</span>
+        <span class="demo"><span class="state-static-hover">read the architecture</span></span>
+      </div>
+      <div class="state-row">
+        <span class="name">focus</span>
+        <span class="demo"><span class="state-static-focus">read the architecture</span></span>
+      </div>
+      <div class="state-row">
+        <span class="name">visited</span>
+        <span class="demo"><a href="#" class="link-inline" style="color:var(--stone-dim)">read the architecture</a></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad-section">
+    <span class="pad-section-label">primitives · 13</span>
+    <h2 class="pad-section-title">Out of scope</h2>
+    <p class="pad-section-note">
+      Primitives we deliberately don't have. Each is a small commitment to the moodboard's register. If a future surface needs one of these, it justifies the addition against the rule it would violate.
+    </p>
+    <div class="negative-grid">
+      <div class="negative-cell"><span class="x">✕</span><strong>Filled CTA button</strong>Use text action with arrow. Fills read as SaaS.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Status badges</strong>"Available now / Coming soon" → docs, not UI.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Success / warning / info callouts</strong>System has no traffic-light colors.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Tabs</strong>If content needs tabs, it's two pages.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Modal / dialog</strong>Pages don't interrupt themselves.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Toast / notification</strong>Compiler doesn't shout.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Tooltip</strong>Browser default <code>title</code> only.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Accordion / expander</strong>If it's collapsible, it's optional. If it's optional, why show it.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Carousel / slider</strong>Time-gated content hides itself.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Avatar / user chip</strong>No identity surface in the public site.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Progress bar</strong>Receipts show completion, not animation.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Gradient / glow</strong>Materials, not effects.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Iconography pack</strong>One mark. No icon set.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Drop shadow</strong>Borders, not depth.</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Hero video / animation</strong>No motion until V2 (rule 6).</div>
+      <div class="negative-cell"><span class="x">✕</span><strong>Feature card grid</strong>The drift vector. See PROPOSAL.md.</div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ AGED / DURABLE PRIMITIVES ═══════════════════════ -->
+
+  <section class="pad-section" id="aged">
+    <span class="pad-section-label">primitives · 14</span>
+    <h2 class="pad-section-title">Aged / durable primitives</h2>
+    <p class="pad-section-note">
+      Civic stone, ironwork, patina. Seven accent primitives that make the page feel built-to-last without going antique. <em>Ornament is allowed only when it identifies structure</em> — every one of these corresponds to a fact, relation, boundary, or receipt. No literal vines, no parchment, no fake skeuomorphism.
+    </p>
+
+    <div class="aged-grid">
+
+      <!-- 1. Carved rule -->
+      <div class="aged-cell">
+        <div class="aged-cell-head"><span class="aged-cell-name">Carved rule</span><span class="aged-cell-kind">divider</span></div>
+        <div class="aged-cell-body">
+          <div class="carved-rule"><span class="notch"></span></div>
+        </div>
+        <p class="aged-cell-note">Section divider with a center diamond notch. The hairline is denser at the edges; the notch is the anchor.</p>
+      </div>
+
+      <!-- 2. Stone seam -->
+      <div class="aged-cell">
+        <div class="aged-cell-head"><span class="aged-cell-name">Stone seam</span><span class="aged-cell-kind">background</span></div>
+        <div class="aged-cell-body">
+          <div class="stone-seam"></div>
+        </div>
+        <p class="aged-cell-note">Masonry courses, 24 px apart. Felt more than seen. Use behind a section to give a quiet vertical rhythm.</p>
+      </div>
+
+      <!-- 3. Lintel -->
+      <div class="aged-cell">
+        <div class="aged-cell-head"><span class="aged-cell-name">Lintel</span><span class="aged-cell-kind">section banner</span></div>
+        <div class="aged-cell-body">
+          <div class="lintel">structural compiler</div>
+        </div>
+        <p class="aged-cell-note">Heavier top border, lighter bottom. The visual weight of a stone above a doorway. Use above major sections.</p>
+      </div>
+
+      <!-- 4. Plaque -->
+      <div class="aged-cell">
+        <div class="aged-cell-head"><span class="aged-cell-name">Plaque</span><span class="aged-cell-kind">engraved panel</span></div>
+        <div class="aged-cell-body">
+          <div class="plaque">
+            <div class="plaque-label">gunbc · structural compiler</div>
+            <div class="plaque-body">A structural compiler for composable systems.</div>
+          </div>
+        </div>
+        <p class="aged-cell-note">Subtle inset top + inset bottom shadow give a slight engraved feel. Use for identity, install, or command blocks.</p>
+      </div>
+
+      <!-- 5. Cut corners -->
+      <div class="aged-cell">
+        <div class="aged-cell-head"><span class="aged-cell-name">Cut corners</span><span class="aged-cell-kind">carved block</span></div>
+        <div class="aged-cell-body">
+          <div class="cut-corners">
+            <span style="color:var(--moss)">$</span> cargo build --release
+          </div>
+        </div>
+        <p class="aged-cell-note">9 px clips on opposite corners — the panel reads as if cut from a block. Reserve for one or two surfaces per page or it becomes a gimmick.</p>
+      </div>
+
+      <!-- 6. Trellis graph -->
+      <div class="aged-cell">
+        <div class="aged-cell-head"><span class="aged-cell-name">Trellis graph</span><span class="aged-cell-kind">structure</span></div>
+        <div class="aged-cell-body">
+<pre class="trellis"><span class="node">system.dag</span>
+   <span class="branch">│</span>
+   <span class="branch">▼</span>
+<span class="node">graph</span> <span class="joint">●</span>
+   <span class="branch">├─</span> <span class="node">rust</span>
+   <span class="branch">├─</span> <span class="node">schema</span>
+   <span class="branch">└─</span> <span class="node">tests</span></pre>
+        </div>
+        <p class="aged-cell-note">ASCII DAG; moss dot marks the joint where the graph forks. The mono equivalent of an SVG trellis.</p>
+      </div>
+
+      <!-- 7. Keystone marker -->
+      <div class="aged-cell">
+        <div class="aged-cell-head"><span class="aged-cell-name">Keystone</span><span class="aged-cell-kind">anchor</span></div>
+        <div class="aged-cell-body">
+          <div style="display:flex; flex-direction:column; gap:0.65rem; align-items:flex-start">
+            <div class="keystone-row"><span class="keystone"></span>identity</div>
+            <div class="keystone-row"><span class="keystone"></span>install</div>
+            <div class="keystone-row"><span class="keystone"></span>diagnostic</div>
+          </div>
+        </div>
+        <p class="aged-cell-note">Small rotated square. Used once per section as the anchor mark. Moss variant for load-bearing anchors only.</p>
+      </div>
+
+    </div>
+
+    <p class="pad-section-note" style="margin-top:1.75rem; max-width:46em">
+      The combination test: identity, install, diagnostic in their aged forms.
+    </p>
+
+    <div style="display:grid; gap:1rem; grid-template-columns:1fr; max-width:42rem; margin-top:0.5rem">
+      <div class="lintel">identity</div>
+      <div class="plaque">
+        <div class="plaque-label">gunbc</div>
+        <div class="plaque-body">A structural compiler for composable systems.</div>
+      </div>
+      <div class="carved-rule"><span class="notch"></span></div>
+      <div class="cut-corners">
+        <span style="color:var(--moss)">$</span> git clone https://github.com/gunb-ai/daglang
+        <br/><span style="color:var(--moss)">$</span> cd daglang
+        <br/><span style="color:var(--moss)">$</span> cargo build --release
+      </div>
+      <div class="carved-rule"><span class="notch"></span></div>
+<pre class="trellis" style="margin:0 auto"><span class="node">system.dag</span>
+   <span class="branch">│</span>
+   <span class="branch">▼</span>
+<span class="node">graph</span> <span class="joint">●</span>
+   <span class="branch">├─</span> <span class="node">rust</span>
+   <span class="branch">├─</span> <span class="node">schema</span>
+   <span class="branch">└─</span> <span class="node">tests</span></pre>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ LESSONS ═══════════════════════ -->
+
+  <section class="pad-section" id="example">
+    <span class="pad-section-label">lessons · 15</span>
+    <h2 class="pad-section-title">From primitive concept to composition of rules</h2>
+    <p class="pad-section-note">
+      Six lessons. The <strong>source</strong> is canonical — real <code>.dag</code> code, expandable per card. The <strong>visualization</strong> is downstream — the SVG shows what the code produces in the graph. SVG carries intuition; code carries truth. Each lesson builds on the previous one, ending where rules (constraints) start to compose.
+    </p>
+
+    <!-- ─── Movement 1 — Atoms ─── -->
+    <div class="tut-movement">
+      <span class="tut-movement-eyebrow">movement 1 · atoms</span>
+      <h3 class="tut-movement-title">A declaration introduces a node</h3>
+      <p class="tut-story">
+        Everything starts with a declaration. A type with three variants creates a <strong>node</strong> with three internal options. Two declarations referencing each other create an <strong>edge</strong>. The graph grows one declaration at a time.
+      </p>
+
+      <!-- Lesson 01 — Node -->
+      <article class="lesson">
+        <div class="lesson-head">
+          <span class="lesson-num">01</span>
+          <span class="lesson-name">Node</span>
+          <span class="lesson-formal">vertex · variant type</span>
+        </div>
+        <div class="lesson-body">
+          <div class="lesson-vis">
+            <svg viewBox="0 0 240 140" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <rect x="60" y="22" width="120" height="96" rx="6"/>
+              <circle cx="84"  cy="48" r="3" fill="currentColor" stroke="none"/>
+              <circle cx="84"  cy="70" r="3" fill="currentColor" stroke="none"/>
+              <circle cx="84"  cy="92" r="3" fill="currentColor" stroke="none"/>
+              <line x1="98" y1="48" x2="156" y2="48" stroke-opacity="0.3"/>
+              <line x1="98" y1="70" x2="156" y2="70" stroke-opacity="0.3"/>
+              <line x1="98" y1="92" x2="156" y2="92" stroke-opacity="0.3"/>
+            </svg>
+          </div>
+          <div class="lesson-code">
+            <div class="lesson-code-head"><span class="src-name">examples/weather.dag</span></div>
+<pre><span class="com">-- a primitive: declare a variant type</span>
+<span class="kw">type</span> <span class="ty">Condition</span> =
+  | <span class="ty">Sunny</span>
+  | <span class="ty">Cloudy</span>
+  | <span class="ty">Rainy</span></pre>
+          </div>
+        </div>
+        <p class="lesson-desc">
+          The declaration creates one node in the graph: <code>Condition</code>. Inside the node lives the variant structure — three options that any reader of <code>Condition</code> will have to handle. The graph knows about the node and its shape. It doesn't yet know what to do with it.
+        </p>
+      </article>
+
+      <!-- Lesson 02 — Edge -->
+      <article class="lesson">
+        <div class="lesson-head">
+          <span class="lesson-num">02</span>
+          <span class="lesson-name">Edge</span>
+          <span class="lesson-formal">directed reference</span>
+        </div>
+        <div class="lesson-body">
+          <div class="lesson-vis">
+            <svg viewBox="0 0 240 140" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <rect x="10" y="56" width="80" height="28" rx="4"/>
+              <line x1="90" y1="62" x2="146" y2="34" marker-end="url(#arrow)"/>
+              <line x1="90" y1="78" x2="146" y2="106" marker-end="url(#arrow)"/>
+              <rect x="150" y="18" width="80" height="28" rx="4"/>
+              <rect x="150" y="94" width="80" height="28" rx="4"/>
+            </svg>
+          </div>
+          <div class="lesson-code">
+            <div class="lesson-code-head"><span class="src-name">examples/weather.dag</span></div>
+<pre><span class="com">-- relate two nodes by referencing them</span>
+<span class="kw">record</span> <span class="ty">Observation</span> =
+  condition   : <span class="ty">Condition</span>
+  temperature : <span class="ty">Celsius</span></pre>
+          </div>
+        </div>
+        <p class="lesson-desc">
+          <code>Observation</code> introduces a new node and two edges — one to <code>Condition</code>, one to <code>Celsius</code>. The edges aren't decorations; they're <strong>structural dependencies</strong>. Anything that reads <code>Observation</code> must reach the two referenced nodes. The dependency is now part of the graph, not folklore.
+        </p>
+      </article>
+    </div>
+
+    <!-- ─── Movement 2 — Composition ─── -->
+    <div class="tut-movement">
+      <span class="tut-movement-eyebrow">movement 2 · composition</span>
+      <h3 class="tut-movement-title">Folds read the structure; projections derive from it</h3>
+      <p class="tut-story">
+        Once the structure exists, the compiler can <strong>read it</strong>. A fold names a result for every variant; a projection maps that reading into a target language. The same graph becomes Rust, TypeScript, OpenAPI — every artifact stays consistent because every artifact comes from the same source.
+      </p>
+
+      <!-- Lesson 03 — Fold -->
+      <article class="lesson">
+        <div class="lesson-head">
+          <span class="lesson-num">03</span>
+          <span class="lesson-name">Fold</span>
+          <span class="lesson-formal">catamorphism</span>
+        </div>
+        <div class="lesson-body">
+          <div class="lesson-vis">
+            <svg viewBox="0 0 240 140" fill="none" stroke-linecap="round">
+              <!-- single zigzag: 3 variants (Sunny / Cloudy / Rainy), one seam -->
+              <polyline points="20,90 45,55 70,90 95,55 120,90 145,55 170,90"
+                        stroke="var(--moss-dim)" stroke-width="2.5"/>
+              <!-- output continues from the last valley to the result -->
+              <line x1="170" y1="90" x2="186" y2="90" stroke="var(--moss-dim)" stroke-width="2.5" marker-end="url(#arrow)"/>
+              <rect x="186" y="75" width="48" height="30" rx="4" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+          </div>
+          <div class="lesson-code">
+            <div class="lesson-code-head"><span class="src-name">examples/weather.dag</span></div>
+<pre><span class="com">-- name a result for every variant</span>
+<span class="kw">let</span> describe : <span class="ty">Condition</span> -> <span class="ty">String</span> =
+  <span class="kw">fold</span>
+    | <span class="ty">Sunny</span>  -> <span class="lit">"clear"</span>
+    | <span class="ty">Cloudy</span> -> <span class="lit">"overcast"</span>
+    | <span class="ty">Rainy</span>  -> <span class="lit">"wet"</span></pre>
+          </div>
+        </div>
+        <p class="lesson-desc">
+          A fold is a <strong>seam through every variant</strong>. The line passes once over each case — <code>Sunny</code>, <code>Cloudy</code>, <code>Rainy</code> — and exits to a single result on the right. The result of the fold becomes a new node in the graph — <code>describe</code> — that other nodes can reference. Composition continues.
+        </p>
+      </article>
+
+      <!-- Lesson 04 — Projection -->
+      <article class="lesson">
+        <div class="lesson-head">
+          <span class="lesson-num">04</span>
+          <span class="lesson-name">Projection</span>
+          <span class="lesson-formal">structure-preserving map</span>
+        </div>
+        <div class="lesson-body">
+          <div class="lesson-vis">
+            <svg viewBox="0 0 240 140" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <rect x="14" y="56" width="60" height="28" rx="4"/>
+              <line x1="74" y1="70" x2="120" y2="28" stroke-linecap="round"/>
+              <line x1="74" y1="70" x2="120" y2="56" stroke-linecap="round"/>
+              <line x1="74" y1="70" x2="120" y2="84" stroke-linecap="round"/>
+              <line x1="74" y1="70" x2="120" y2="112" stroke-linecap="round"/>
+              <path d="M120,18 L200,18 L214,32 L214,42 L120,42 Z"/>
+              <path d="M120,46 L200,46 L214,60 L214,70 L120,70 Z"/>
+              <path d="M120,74 L200,74 L214,88 L214,98 L120,98 Z"/>
+              <path d="M120,102 L200,102 L214,116 L214,126 L120,126 Z"/>
+            </svg>
+          </div>
+          <div class="lesson-code">
+            <div class="lesson-code-head"><span class="src-name">examples/weather.dag</span></div>
+<pre><span class="com">-- derive target artifacts from the same node</span>
+<span class="kw">project</span> <span class="ty">Observation</span> -> <span class="lit">rust</span>
+<span class="kw">project</span> <span class="ty">Observation</span> -> <span class="lit">typescript</span>
+<span class="kw">project</span> <span class="ty">Observation</span> -> <span class="lit">openapi</span>
+<span class="kw">project</span> <span class="ty">Observation</span> -> <span class="lit">tests</span></pre>
+          </div>
+        </div>
+        <p class="lesson-desc">
+          A projection is a structure-preserving translation. The same <code>Observation</code> node becomes a Rust struct, a TypeScript type, an OpenAPI schema, an exhaustive test set. <strong>Every artifact is consistent with every other artifact</strong> because every artifact reads the same source. This is where the system feels different from hand-written glue.
+        </p>
+      </article>
+    </div>
+
+    <!-- ─── Movement 3 — Rules ─── -->
+    <div class="tut-movement">
+      <span class="tut-movement-eyebrow">movement 3 · rules</span>
+      <h3 class="tut-movement-title">Rules compose; the compiler refuses to guess</h3>
+      <p class="tut-story">
+        Rules are not annotations. They're <strong>compositions of fold + projection</strong> that the compiler can check. If a fold misses a variant, no artifact emits. If a service is projected, every node it reaches inherits the projection requirement. These behaviors don't have to be added — they fall out of structure being load-bearing.
+      </p>
+
+      <!-- Lesson 05 — Boundary -->
+      <article class="lesson">
+        <div class="lesson-head">
+          <span class="lesson-num">05</span>
+          <span class="lesson-name">Boundary</span>
+          <span class="lesson-formal">fails closed</span>
+        </div>
+        <div class="lesson-body">
+          <div class="lesson-vis">
+            <svg viewBox="0 0 240 140" fill="none" stroke-linecap="round">
+              <!-- seam through first two variants (Sunny / Cloudy) — moss holds -->
+              <polyline points="20,90 45,55 70,90 95,55 120,90" stroke="var(--moss-dim)" stroke-width="2.5"/>
+              <!-- where the third tooth would have been: clay dashed, then nothing -->
+              <polyline points="120,90 138,68" stroke="var(--clay)" stroke-width="2.5" stroke-dasharray="4 4"/>
+              <!-- clay boundary wall — the seam can't continue past here -->
+              <line x1="160" y1="35" x2="160" y2="115" stroke="var(--clay)" stroke-dasharray="5 4" stroke-width="1.5"/>
+              <!-- ghost result rect: no artifact emitted -->
+              <rect x="176" y="75" width="48" height="30" rx="4" stroke="currentColor" stroke-width="1.5" stroke-opacity="0.32" stroke-dasharray="3 3"/>
+            </svg>
+          </div>
+          <div class="lesson-code">
+            <div class="lesson-code-head"><span class="src-name">examples/weather.dag</span></div>
+<pre><span class="kw">let</span> describe : <span class="ty">Condition</span> -> <span class="ty">String</span> =
+  <span class="kw">fold</span>
+    | <span class="ty">Sunny</span>  -> <span class="lit">"clear"</span>
+    | <span class="ty">Cloudy</span> -> <span class="lit">"overcast"</span>
+    <span class="com">-- Rainy missing</span>
+
+<span class="err">Invariant —</span>
+  match on <span class="ty">Condition</span> is not exhaustive
+  missing: <span class="ty">Rainy</span>
+  result:  no artifact emitted</pre>
+          </div>
+        </div>
+        <p class="lesson-desc">
+          The third variant has no handler. The seam holds in moss across <code>Sunny</code> and <code>Cloudy</code>, then breaks into clay where <code>Rainy</code> should have been — and stops at the clay wall. The compiler reaches the missing case at typecheck time, not at runtime. No Rust struct, no TypeScript type, no test is emitted past the wall: <strong>the compiler refuses to guess</strong>.
+        </p>
+      </article>
+
+      <!-- Lesson 06 — Composition of rules -->
+      <article class="lesson">
+        <div class="lesson-head">
+          <span class="lesson-num">06</span>
+          <span class="lesson-name">Composition of rules</span>
+          <span class="lesson-formal">constraint propagation</span>
+        </div>
+        <div class="lesson-body">
+          <div class="lesson-vis">
+            <svg viewBox="0 0 240 140" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <rect x="14" y="20" width="64" height="22" rx="4"/>
+              <rect x="14" y="58" width="64" height="22" rx="4"/>
+              <rect x="14" y="96" width="64" height="22" rx="4"/>
+              <line x1="78" y1="30" x2="106" y2="70"/>
+              <line x1="78" y1="70" x2="106" y2="70"/>
+              <line x1="78" y1="106" x2="106" y2="70"/>
+              <rect x="106" y="56" width="44" height="28" rx="4"/>
+              <line x1="150" y1="70" x2="178" y2="36"/>
+              <line x1="150" y1="70" x2="178" y2="70"/>
+              <line x1="150" y1="70" x2="178" y2="104"/>
+              <path d="M178,26 L216,26 L226,36 L226,46 L178,46 Z"/>
+              <path d="M178,60 L216,60 L226,70 L226,80 L178,80 Z"/>
+              <path d="M178,94 L216,94 L226,104 L226,114 L178,114 Z"/>
+              <path d="M8,8  L4,8  L4,132 L8,132" stroke="var(--moss-dim)" stroke-width="2"/>
+              <path d="M232,8 L236,8 L236,132 L232,132" stroke="var(--moss-dim)" stroke-width="2"/>
+            </svg>
+          </div>
+          <div class="lesson-code">
+            <div class="lesson-code-head"><span class="src-name">examples/weather.dag</span></div>
+<pre><span class="com">-- a rule that composes the previous lessons</span>
+<span class="kw">service</span> <span class="ty">WeatherStation</span> =
+  read    : () -> <span class="ty">Observation</span>
+  history : () -> <span class="ty">List</span>&lt;<span class="ty">Observation</span>&gt;
+
+<span class="com">-- projecting the service projects every field</span>
+<span class="kw">project</span> <span class="ty">WeatherStation</span> -> <span class="lit">rust</span>
+<span class="kw">project</span> <span class="ty">WeatherStation</span> -> <span class="lit">openapi</span>
+
+<span class="com">-- the compiler now requires:</span>
+<span class="com">--   Observation projects to rust AND openapi</span>
+<span class="com">--   List&lt;Observation&gt; projects to rust AND openapi</span>
+<span class="com">--   every fold on Condition is exhaustive</span></pre>
+          </div>
+        </div>
+        <p class="lesson-desc">
+          Projecting a service quietly propagates a constraint over every node it reaches. <strong>The rule isn't written; it's structural.</strong> Anything reachable from the projected node has to project too. Add a target later (say, TypeScript), and the same closure decides whether the rule still holds or whether you've discovered an unmodeled corner. Rules don't accumulate as comments — they accumulate as graph edges.
+        </p>
+      </article>
+    </div>
+
+    <p class="lesson-closer">Six lessons. Two atoms compose into a structure. Two operations read that structure into target artifacts. Two rules emerge — fail-closed, and constraint propagation — without anyone writing an extra annotation. The structure is the contract.</p>
+  </section>
+
+  <!-- ═══════════════════════ STORY DECK ═══════════════════════ -->
+
+  <section class="pad-section" id="decks">
+    <span class="pad-section-label">decks · 16</span>
+    <h2 class="pad-section-title">Concept decks — linear, accreting diagrams</h2>
+    <p class="pad-section-note">
+      Each deck tells one end-to-end story. The diagram accretes from card to card — every later card includes the previous diagram, with new structure layered on top in moss (held), clay (boundary), or stone (inert). Use the ← / → keys or the buttons. Code stays on the left as canonical source; SVG on the right carries the intuition.
+    </p>
+
+    <div class="deck" tabindex="0" data-deck="infra">
+      <div class="deck-head">
+        <span class="deck-name">Deck 01 — Infra without redundant bringups</span>
+        <div class="deck-ticks">
+          <span class="deck-tick"></span>
+          <span class="deck-tick"></span>
+          <span class="deck-tick"></span>
+          <span class="deck-tick"></span>
+        </div>
+        <span class="deck-pos"><span class="deck-current">01</span> / <span class="deck-total">04</span></span>
+      </div>
+
+      <div class="deck-stage">
+        <div class="card-track">
+
+          <!-- ─── Card 1 — Affected-set ─── -->
+          <article class="deck-card">
+            <div class="deck-card-head">
+              <span class="deck-card-num">01</span>
+              <span class="deck-card-name">Affected-set</span>
+            </div>
+            <p class="deck-card-concept">
+              A line edit resolves to a <strong>graph-node edit</strong>. The <span style="color:var(--clay)">clay identifier</span> in the source is the edited node; the <span style="color:var(--moss)">moss identifiers</span> are the dependent nodes the compiler will recheck. Everything else stays skipped with a receipt.
+            </p>
+
+            <div class="deck-card-body">
+              <div class="deck-card-code">
+                <div class="deck-card-code-head"><span class="src-name">examples/api.dag</span></div>
+<pre><span class="kw">service</span> <span class="ty">Api</span> {
+  <span class="kw">route</span> /todos -> <span class="clay">list_todos_v2</span>
+}
+
+<span class="com">-- compiler:</span>
+<span class="com">changed node: </span><span class="clay">Api.route.todos</span>
+<span class="com">affected:     </span><span class="add">list_handler</span><span class="com">, </span><span class="add">list_client</span>
+<span class="com">skipped:      27 nodes (with receipt)</span></pre>
+              </div>
+
+              <div class="deck-card-vis">
+                <svg viewBox="0 0 360 220" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                  <!-- dimmed unaffected branch (op2 + its children) -->
+                  <g stroke-opacity="0.32">
+                    <rect x="110" y="150" width="48" height="30" rx="4"/>
+                    <rect x="200" y="138" width="48" height="30" rx="4"/>
+                    <rect x="200" y="172" width="48" height="30" rx="4"/>
+                    <line x1="68" y1="110" x2="108" y2="165" marker-end="url(#arrow)"/>
+                    <line x1="158" y1="160" x2="198" y2="153" marker-end="url(#arrow)"/>
+                    <line x1="158" y1="170" x2="198" y2="187" marker-end="url(#arrow)"/>
+                  </g>
+                  <!-- api node (root, canonical 48×30) -->
+                  <rect x="20" y="85" width="48" height="30" rx="4"/>
+                  <!-- api → op1 edge -->
+                  <line x1="68" y1="95" x2="108" y2="35" marker-end="url(#arrow)"/>
+                  <!-- op1 edited — clay -->
+                  <rect x="110" y="20" width="48" height="30" rx="4" stroke="var(--clay)" stroke-width="2"/>
+                  <!-- op1 → children edges — moss -->
+                  <line x1="158" y1="30" x2="198" y2="23" stroke="var(--moss)" marker-end="url(#arrow)"/>
+                  <line x1="158" y1="40" x2="198" y2="57" stroke="var(--moss)" marker-end="url(#arrow)"/>
+                  <!-- affected children — moss -->
+                  <rect x="200" y="8" width="48" height="30" rx="4" stroke="var(--moss)" stroke-width="2"/>
+                  <rect x="200" y="42" width="48" height="30" rx="4" stroke="var(--moss)" stroke-width="2"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="deck-card-receipt">
+              <span class="receipt-key">changed</span>1 node<span class="receipt-sep">·</span><span class="receipt-key">affected</span>4 nodes<span class="receipt-sep">·</span><span class="receipt-key">skipped</span>27 (with receipt)
+            </div>
+
+            <div class="deck-card-stack">
+              <span class="stack-label">stack</span>
+              <span class="stack-piece">affected_set</span>
+            </div>
+          </article>
+
+          <!-- ─── Card 2 — Complexity lens ─── -->
+          <article class="deck-card">
+            <div class="deck-card-head">
+              <span class="deck-card-num">02</span>
+              <span class="deck-card-name">Complexity lens</span>
+            </div>
+            <p class="deck-card-concept">
+              A <code>lens</code> reads a named subgraph through one structural property — here, complexity. The <span style="color:var(--moss)">moss expression</span> in the source names the scope; the <span style="color:var(--moss)">dashed moss lasso</span> in the diagram traces that scope around the actual nodes. Same subgraph, two registers.
+            </p>
+
+            <div class="deck-card-body">
+              <div class="deck-card-code">
+                <div class="deck-card-code-head"><span class="src-name">examples/api.dag</span></div>
+<pre><span class="kw">service</span> <span class="ty">Api</span> {
+  <span class="kw">route</span> /todos -> <span class="clay">list_todos_v2</span>
+}
+
+<span class="com">-- read the affected subset through a structural lens</span>
+<span class="add"><span class="kw">let</span> cost = lens(complexity) over <span class="ty">Api.route.todos.affected</span></span>
+
+<span class="com">cost.class:  O(n)</span>
+<span class="com">cost.bound:  O(n)</span>
+<span class="com">cost.held:   true</span></pre>
+              </div>
+
+              <div class="deck-card-vis">
+                <svg viewBox="0 0 360 220" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                  <!-- accreted from Card 1 -->
+                  <g stroke-opacity="0.32">
+                    <rect x="110" y="150" width="48" height="30" rx="4"/>
+                    <rect x="200" y="138" width="48" height="30" rx="4"/>
+                    <rect x="200" y="172" width="48" height="30" rx="4"/>
+                    <line x1="68" y1="110" x2="108" y2="165" marker-end="url(#arrow)"/>
+                    <line x1="158" y1="160" x2="198" y2="153" marker-end="url(#arrow)"/>
+                    <line x1="158" y1="170" x2="198" y2="187" marker-end="url(#arrow)"/>
+                  </g>
+                  <rect x="20" y="85" width="48" height="30" rx="4"/>
+                  <line x1="68" y1="95" x2="108" y2="35" marker-end="url(#arrow)"/>
+                  <rect x="110" y="20" width="48" height="30" rx="4" stroke="var(--clay)" stroke-width="2"/>
+                  <line x1="158" y1="30" x2="198" y2="23" stroke="var(--moss)" marker-end="url(#arrow)"/>
+                  <line x1="158" y1="40" x2="198" y2="57" stroke="var(--moss)" marker-end="url(#arrow)"/>
+                  <rect x="200" y="8" width="48" height="30" rx="4" stroke="var(--moss)" stroke-width="2"/>
+                  <rect x="200" y="42" width="48" height="30" rx="4" stroke="var(--moss)" stroke-width="2"/>
+                  <!-- NEW: lens lasso — dashed moss boundary around the subgraph -->
+                  <polygon points="105,18 200,3 252,6 252,74 200,77 105,52"
+                           stroke="var(--moss)" stroke-dasharray="5 3" stroke-width="2"
+                           fill="none" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="deck-card-receipt">
+              <span class="receipt-key">lens</span>complexity<span class="receipt-sep">·</span><span class="receipt-key">scope</span>Api.route.todos.affected<span class="receipt-sep">·</span><span class="receipt-key">class</span>O(n)<span class="receipt-sep">·</span><span class="receipt-key">held</span>yes
+            </div>
+
+            <div class="deck-card-stack">
+              <span class="stack-label">stack</span>
+              <span class="stack-piece">affected_set</span>
+              <span class="stack-piece">complexity</span>
+            </div>
+          </article>
+
+          <!-- ─── Card 3 — Idempotent upsert ─── -->
+          <article class="deck-card">
+            <div class="deck-card-head">
+              <span class="deck-card-num">03</span>
+              <span class="deck-card-name">Idempotent upsert</span>
+            </div>
+            <p class="deck-card-concept">
+              Effects declared <code>upsert</code> compose safely — three resources here, three <span style="color:var(--moss)">moss dots</span> on the diagram (one per resource). Re-running the same upsert against the same desired state changes nothing, so retrying after partial failure doesn't duplicate infra.
+            </p>
+
+            <div class="deck-card-body">
+              <div class="deck-card-code">
+                <div class="deck-card-code-head"><span class="src-name">examples/api.dag</span></div>
+<pre><span class="kw">service</span> <span class="ty">Api</span> {
+  <span class="kw">route</span> /todos -> <span class="clay">list_todos_v2</span>
+}
+
+<span class="kw">let</span> cost = lens(complexity) over <span class="ty">Api.route.todos.affected</span>
+
+<span class="com">-- effects required by the affected route</span>
+<span class="add"><span class="kw">effect</span> <span class="ty">Api.route.todos.affected</span> {
+  upsert <span class="ty">postgres</span>     { version: <span class="lit">"15"</span> }
+  upsert <span class="ty">redis</span>        { version: <span class="lit">"7"</span> }
+  upsert <span class="ty">worker_pool</span>  { size: <span class="lit">8</span> }
+}</span>
+
+<span class="com">all upserts idempotent:  yes</span>
+<span class="com">duplicates_on_retry:     0</span></pre>
+              </div>
+
+              <div class="deck-card-vis">
+                <svg viewBox="0 0 360 220" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                  <g stroke-opacity="0.32">
+                    <rect x="110" y="150" width="48" height="30" rx="4"/>
+                    <rect x="200" y="138" width="48" height="30" rx="4"/>
+                    <rect x="200" y="172" width="48" height="30" rx="4"/>
+                    <line x1="68" y1="110" x2="108" y2="165" marker-end="url(#arrow)"/>
+                    <line x1="158" y1="160" x2="198" y2="153" marker-end="url(#arrow)"/>
+                    <line x1="158" y1="170" x2="198" y2="187" marker-end="url(#arrow)"/>
+                  </g>
+                  <rect x="20" y="85" width="48" height="30" rx="4"/>
+                  <line x1="68" y1="95" x2="108" y2="35" marker-end="url(#arrow)"/>
+                  <rect x="110" y="20" width="48" height="30" rx="4" stroke="var(--clay)" stroke-width="2"/>
+                  <line x1="158" y1="30" x2="198" y2="23" stroke="var(--moss)" marker-end="url(#arrow)"/>
+                  <line x1="158" y1="40" x2="198" y2="57" stroke="var(--moss)" marker-end="url(#arrow)"/>
+                  <rect x="200" y="8" width="48" height="30" rx="4" stroke="var(--moss)" stroke-width="2"/>
+                  <rect x="200" y="42" width="48" height="30" rx="4" stroke="var(--moss)" stroke-width="2"/>
+                  <polygon points="105,18 200,3 252,6 252,74 200,77 105,52"
+                           stroke="var(--moss)" stroke-dasharray="5 3" stroke-width="2"
+                           fill="none" stroke-linejoin="round"/>
+                  <!-- NEW: idempotent moss dots at top-right corner of affected nodes -->
+                  <circle cx="246" cy="11" r="3" fill="var(--moss)" stroke="none"/>
+                  <circle cx="246" cy="45" r="3" fill="var(--moss)" stroke="none"/>
+                  <circle cx="156" cy="23" r="3" fill="var(--moss)" stroke="none"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="deck-card-receipt">
+              <span class="receipt-key">effect</span>UpsertEffect<span class="receipt-sep">·</span><span class="receipt-key">duplicates</span>0<span class="receipt-sep">·</span><span class="receipt-key">retry</span>safe
+            </div>
+
+            <div class="deck-card-stack">
+              <span class="stack-label">stack</span>
+              <span class="stack-piece">affected_set</span>
+              <span class="stack-piece">complexity</span>
+              <span class="stack-piece">idempotency</span>
+            </div>
+          </article>
+
+          <!-- ─── Card 4 — Service generation ─── -->
+          <article class="deck-card">
+            <div class="deck-card-head">
+              <span class="deck-card-num">04</span>
+              <span class="deck-card-name">Service generation</span>
+            </div>
+            <p class="deck-card-concept">
+              Four <code>project</code> directives in the source, four <span style="color:var(--moss)">moss artifact slots</span> in the diagram — one each. The compiler re-emits <strong>only</strong> the files reachable from the affected subset; everything else stays unchanged with a receipt.
+            </p>
+
+            <div class="deck-card-body">
+              <div class="deck-card-code">
+                <div class="deck-card-code-head"><span class="src-name">examples/api.dag</span></div>
+<pre><span class="kw">service</span> <span class="ty">Api</span> {
+  <span class="kw">route</span> /todos -> <span class="clay">list_todos_v2</span>
+}
+
+<span class="kw">let</span> cost = lens(complexity) over <span class="ty">Api.route.todos.affected</span>
+
+<span class="kw">effect</span> <span class="ty">Api.route.todos.affected</span> {
+  upsert <span class="ty">postgres</span>, <span class="ty">redis</span>, <span class="ty">worker_pool</span>
+}
+
+<span class="com">-- omni-emit to multiple targets</span>
+<span class="add"><span class="kw">project</span> <span class="ty">Api</span> -> <span class="lit">rust</span>
+<span class="kw">project</span> <span class="ty">Api</span> -> <span class="lit">terraform</span>
+<span class="kw">project</span> <span class="ty">Api</span> -> <span class="lit">k8s</span>
+<span class="kw">project</span> <span class="ty">Api</span> -> <span class="lit">helm</span></span>
+
+<span class="com">-- re-emit narrowed by affected_set:</span>
+<span class="com">  rust:      handlers/list_todos_v2.rs</span>
+<span class="com">  terraform: routes_api.tf</span>
+<span class="com">  k8s:       deployment.yaml</span>
+<span class="com">  helm:      values.yaml</span></pre>
+              </div>
+
+              <div class="deck-card-vis">
+                <svg viewBox="0 0 360 220" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                  <g stroke-opacity="0.32">
+                    <rect x="110" y="150" width="48" height="30" rx="4"/>
+                    <rect x="200" y="138" width="48" height="30" rx="4"/>
+                    <rect x="200" y="172" width="48" height="30" rx="4"/>
+                    <line x1="68" y1="110" x2="108" y2="165" marker-end="url(#arrow)"/>
+                    <line x1="158" y1="160" x2="198" y2="153" marker-end="url(#arrow)"/>
+                    <line x1="158" y1="170" x2="198" y2="187" marker-end="url(#arrow)"/>
+                  </g>
+                  <rect x="20" y="85" width="48" height="30" rx="4"/>
+                  <line x1="68" y1="95" x2="108" y2="35" marker-end="url(#arrow)"/>
+                  <rect x="110" y="20" width="48" height="30" rx="4" stroke="var(--clay)" stroke-width="2"/>
+                  <line x1="158" y1="30" x2="198" y2="23" stroke="var(--moss)" marker-end="url(#arrow)"/>
+                  <line x1="158" y1="40" x2="198" y2="57" stroke="var(--moss)" marker-end="url(#arrow)"/>
+                  <rect x="200" y="8" width="48" height="30" rx="4" stroke="var(--moss)" stroke-width="2"/>
+                  <rect x="200" y="42" width="48" height="30" rx="4" stroke="var(--moss)" stroke-width="2"/>
+                  <polygon points="105,18 200,3 252,6 252,74 200,77 105,52"
+                           stroke="var(--moss)" stroke-dasharray="5 3" stroke-width="2"
+                           fill="none" stroke-linejoin="round"/>
+                  <circle cx="246" cy="11" r="3" fill="var(--moss)" stroke="none"/>
+                  <circle cx="246" cy="45" r="3" fill="var(--moss)" stroke="none"/>
+                  <circle cx="156" cy="23" r="3" fill="var(--moss)" stroke="none"/>
+                  <!-- NEW: 4 projection edges (moss) from api to artifact slots -->
+                  <line x1="68" y1="97"  x2="288" y2="23"  stroke="var(--moss)" marker-end="url(#arrow)"/>
+                  <line x1="68" y1="99"  x2="288" y2="62"  stroke="var(--moss)" marker-end="url(#arrow)"/>
+                  <line x1="68" y1="103" x2="288" y2="142" stroke="var(--moss)" marker-end="url(#arrow)"/>
+                  <line x1="68" y1="105" x2="288" y2="180" stroke="var(--moss)" marker-end="url(#arrow)"/>
+                  <!-- NEW: 4 artifact slots (canonical 48×30 cut-corner — same as Artifact primitive) -->
+                  <path d="M290,8 L322,8 L338,24 L338,38 L290,38 Z"/>
+                  <line x1="322" y1="8" x2="322" y2="24"/>
+                  <line x1="322" y1="24" x2="338" y2="24"/>
+                  <path d="M290,50 L322,50 L338,66 L338,80 L290,80 Z"/>
+                  <line x1="322" y1="50" x2="322" y2="66"/>
+                  <line x1="322" y1="66" x2="338" y2="66"/>
+                  <path d="M290,130 L322,130 L338,146 L338,160 L290,160 Z"/>
+                  <line x1="322" y1="130" x2="322" y2="146"/>
+                  <line x1="322" y1="146" x2="338" y2="146"/>
+                  <path d="M290,172 L322,172 L338,188 L338,202 L290,202 Z"/>
+                  <line x1="322" y1="172" x2="322" y2="188"/>
+                  <line x1="322" y1="188" x2="338" y2="188"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="deck-card-receipt">
+              <span class="receipt-key">artifacts</span>rust · terraform · k8s · helm<span class="receipt-sep">·</span><span class="receipt-key">re-emit</span>4 files<span class="receipt-sep">·</span><span class="receipt-key">unchanged</span>23 files
+            </div>
+
+            <div class="deck-card-stack">
+              <span class="stack-label">stack</span>
+              <span class="stack-piece">affected_set</span>
+              <span class="stack-piece">complexity</span>
+              <span class="stack-piece">idempotency</span>
+              <span class="stack-piece">projection</span>
+            </div>
+          </article>
+
+        </div>
+      </div>
+
+      <div class="deck-nav">
+        <button class="deck-btn" type="button" data-dir="prev">← prev</button>
+        <span style="flex:1"></span>
+        <button class="deck-btn" type="button" data-dir="next">next →</button>
+      </div>
+    </div>
+
+    <p class="pad-section-note" style="margin-top:1.5rem">
+      <em>Stories to add next (drafted, not built):</em> schema migration (variant added → testgen → cross-language re-emit), and target fan-out (add grpc → projection-only delta, no source change). Greenlight either and I'll author the cards.
+    </p>
+  </section>
+
+  <!-- ═══════════════════════ CONCEPTS ═══════════════════════ -->
+
+  <section class="pad-section" id="concepts">
+    <span class="pad-section-label">applications · 17</span>
+    <h2 class="pad-section-title">Concepts — V1 index assembled from the primitives</h2>
+    <p class="pad-section-note">
+      Same six-section argument in four registers. All four use the updated thesis copy (hand translation → structural description → derived artifacts). Pick a register, or specify which elements to combine across frames.
+    </p>
+
+    <div class="concept-grid">
+
+      <!-- ─── A — Manual ─── -->
+      <section class="frame">
+        <div class="frame-label">
+          <span class="tag">A</span>
+          <span class="name">Manual</span>
+          <span>prose-led · most restrained · the moodboard's own register</span>
+        </div>
+        <p class="frame-note">
+          Reads like the first page of a technical reference. Identity, two-line tagline, problem paragraph, command, one diagnostic, two links. The argument carried by typography and rhythm — no diagram.
+        </p>
+        <div class="frame-stage">
+          <div class="inner c-manual">
+            <div class="mark-row">
+              <svg class="mark" viewBox="0 0 120 120" aria-hidden="true"><use href="#stoic-idle"/></svg>
+              <span class="wordmark">gunb.ai</span>
+            </div>
+
+            <span class="label-eyebrow">gunbc · structural compiler</span>
+            <h1 class="identity">A structural compiler for composable systems.</h1>
+            <p class="identity-second">Describe the system once. Let the compiler derive the rest.</p>
+
+            <p class="prose">
+              Modern systems are full of hand-written translations: backend types to client types, models to schemas, services to docs, code to tests, source to build rules.
+            </p>
+            <p class="prose">
+              <strong>daglang</strong> describes the system once. <strong>gunbc</strong> checks that description and derives the mechanical pieces. When the description is incomplete, the compiler refuses to guess.
+            </p>
+
+            <pre class="panel-command"><span class="kbd">git clone</span> https://github.com/gunb-ai/daglang
+<span class="kbd">cd</span> daglang
+<span class="kbd">cargo build --release</span></pre>
+
+            <div style="margin-top:1.5rem">
+              <pre class="panel-invariant"><span class="title">Invariant —</span>
+  match on Condition is not exhaustive
+
+  missing:
+    Rainy
+    Snowy
+
+  at:
+    examples/weather.dag:14
+
+  result:
+    no artifact emitted</pre>
+            </div>
+
+            <div class="footer-links">
+              <a href="#">GitHub</a><span class="sep">·</span><a href="#">Architecture</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── B — Receipt ─── -->
+      <section class="frame">
+        <div class="frame-label">
+          <span class="tag">B</span>
+          <span class="name">Receipt</span>
+          <span>compiler-output ledger · mono throughout</span>
+        </div>
+        <p class="frame-note">
+          Same content as A, formatted as a compiler-output ledger. The page reads as if gunbc printed itself. Maximum monospace rhythm; minimum visual variety by design.
+        </p>
+        <div class="frame-stage">
+          <div class="inner c-receipt">
+            <div class="mark-row">
+              <svg class="mark" viewBox="0 0 120 120" aria-hidden="true"><use href="#stoic-idle"/></svg>
+              <span class="wordmark">gunb.ai</span>
+            </div>
+
+            <dl class="ledger">
+              <div class="row">
+                <dt>identity</dt>
+                <dd><strong>gunbc</strong> — a structural compiler for composable systems.</dd>
+              </div>
+              <div class="row">
+                <dt>premise</dt>
+                <dd>Describe the system once. Let the compiler derive the rest.</dd>
+              </div>
+              <div class="rule"></div>
+              <div class="row">
+                <dt>problem</dt>
+                <dd>Modern systems are full of hand-written translations: backend types to client types, models to schemas, services to docs, code to tests, source to build rules.</dd>
+              </div>
+              <div class="row">
+                <dt>proposal</dt>
+                <dd><strong>daglang</strong> describes the system once. <strong>gunbc</strong> checks that description and derives the mechanical pieces.</dd>
+              </div>
+              <div class="row">
+                <dt>boundary</dt>
+                <dd>When the description is incomplete, the compiler refuses to guess.</dd>
+              </div>
+              <div class="rule"></div>
+              <div class="row">
+                <dt>install</dt>
+                <dd style="white-space:pre; color:var(--warm-white)"><span style="color:var(--moss)">git clone</span> https://github.com/gunb-ai/daglang
+<span style="color:var(--moss)">cd</span> daglang
+<span style="color:var(--moss)">cargo build --release</span></dd>
+              </div>
+              <div class="rule"></div>
+              <div class="row">
+                <dt>diagnostic</dt>
+                <dd style="white-space:pre"><span style="color:var(--clay); font-weight:500">Invariant —</span>
+  match on Condition is not exhaustive
+  missing:  Rainy, Snowy
+  at:       examples/weather.dag:14
+  result:   no artifact emitted</dd>
+              </div>
+              <div class="rule"></div>
+              <div class="row">
+                <dt>see also</dt>
+                <dd><a href="#" style="color:var(--moss); text-decoration:none; border-bottom:1px solid currentColor">github.com/gunb-ai/daglang</a>  ·  <a href="#" style="color:var(--moss); text-decoration:none; border-bottom:1px solid currentColor">architecture</a></dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── C — Triptych ─── -->
+      <section class="frame">
+        <div class="frame-label">
+          <span class="tag">C</span>
+          <span class="name">Triptych</span>
+          <span>panel-tagged · grammar visible</span>
+        </div>
+        <p class="frame-note">
+          Each section is labeled with its canonical panel type (Fact / Command / Invariant). Slightly pedagogical — the visitor reads "what kind of object" each panel is. Useful while the design language is new; possibly drop the labels in production.
+        </p>
+        <div class="frame-stage">
+          <div class="inner c-triptych">
+            <div class="mark-row">
+              <svg class="mark" viewBox="0 0 120 120" aria-hidden="true"><use href="#stoic-idle"/></svg>
+              <span class="wordmark">gunb.ai</span>
+            </div>
+
+            <div class="section">
+              <div class="section-tag"><span class="dot"></span>fact</div>
+              <div class="panel-fact">
+                <p class="head" style="font-family:var(--font-sans); font-weight:600; font-size:1.3rem; line-height:1.25; margin:0 0 0.4rem">A structural compiler for composable systems.</p>
+                <p class="body" style="font-family:var(--font-sans); font-size:0.86rem; line-height:1.5; color:var(--stone); margin:0 0 0.85rem">Describe the system once. Let the compiler derive the rest.</p>
+                <p style="font-family:var(--font-sans); font-size:0.8rem; line-height:1.65; color:var(--warm-white-dim); margin:0">
+                  Modern systems are full of hand-written translations: backend types to client types, models to schemas, services to docs. <strong style="color:var(--warm-white)">daglang</strong> describes the system once. <strong style="color:var(--warm-white)">gunbc</strong> checks and derives the mechanical pieces.
+                </p>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-tag"><span class="dot"></span>command</div>
+              <pre class="panel-command"><span class="kbd">git clone</span> https://github.com/gunb-ai/daglang
+<span class="kbd">cd</span> daglang
+<span class="kbd">cargo build --release</span></pre>
+            </div>
+
+            <div class="section">
+              <div class="section-tag"><span class="dot"></span>invariant</div>
+              <pre class="panel-invariant"><span class="title">Invariant —</span>
+  match on Condition is not exhaustive
+
+  missing:
+    Rainy
+    Snowy
+
+  at:
+    examples/weather.dag:14
+
+  result:
+    no artifact emitted</pre>
+            </div>
+
+            <div class="footer-links">
+              <a href="#">GitHub</a><span class="sep">·</span><a href="#">Architecture</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── D — Field note ─── -->
+      <section class="frame">
+        <div class="frame-label">
+          <span class="tag">D</span>
+          <span class="name">Field note</span>
+          <span>asymmetric · identity rail + argument spine</span>
+        </div>
+        <p class="frame-note">
+          Left rail carries identity. Right spine carries problem → proposal → command → diagnostic in sequence. Reads like an instrument label more than a manifesto. Slightly more layout work for a slight density gain.
+        </p>
+        <div class="frame-stage">
+          <div class="inner c-field">
+            <div class="spine">
+              <div class="lhs">
+                <div class="mark-row" style="margin-bottom:1.5rem">
+                  <svg class="mark" viewBox="0 0 120 120" aria-hidden="true"><use href="#stoic-idle"/></svg>
+                  <span class="wordmark">gunb.ai</span>
+                </div>
+                <span class="label-eyebrow">gunbc</span>
+                <h1 class="identity">A structural compiler for composable systems.</h1>
+                <div class="micro">describe once · derive the rest</div>
+              </div>
+              <div class="rhs">
+                <span class="label-eyebrow">problem</span>
+                <p class="prose">
+                  Modern systems are full of hand-written translations: backend types to client types, models to schemas, services to docs, code to tests, source to build rules.
+                </p>
+
+                <span class="label-eyebrow">proposal</span>
+                <p class="prose">
+                  <strong>daglang</strong> describes the system once. <strong>gunbc</strong> checks the description and derives the mechanical pieces. When the description is incomplete, the compiler refuses to guess.
+                </p>
+
+                <div class="install-row">
+                  <span class="label-eyebrow">try it</span>
+                  <pre class="panel-command"><span class="kbd">git clone</span> https://github.com/gunb-ai/daglang
+<span class="kbd">cd</span> daglang
+<span class="kbd">cargo build --release</span></pre>
+                </div>
+
+                <div style="margin-top:1.25rem">
+                  <span class="label-eyebrow">a diagnostic</span>
+                  <pre class="panel-invariant"><span class="title">Invariant —</span>
+  match on Condition is not exhaustive
+  missing:  Rainy, Snowy
+  at:       examples/weather.dag:14
+  result:   no artifact emitted</pre>
+                </div>
+
+                <div class="footer-links">
+                  <a href="#">GitHub</a><span class="sep">·</span><a href="#">Architecture</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </section>
+
+</main>
+
+<script>
+  /* Story-deck navigation: ← / → keys or prev/next buttons. */
+  (function () {
+    function init(deck) {
+      var track = deck.querySelector(".card-track");
+      var cards = deck.querySelectorAll(".deck-card");
+      var ticks = deck.querySelectorAll(".deck-tick");
+      var current = deck.querySelector(".deck-current");
+      var total = deck.querySelector(".deck-total");
+      var prev = deck.querySelector('[data-dir="prev"]');
+      var next = deck.querySelector('[data-dir="next"]');
+      var idx = 0;
+
+      if (total) total.textContent = String(cards.length).padStart(2, "0");
+
+      function go(newIdx) {
+        idx = Math.max(0, Math.min(cards.length - 1, newIdx));
+        track.style.transform = "translateX(-" + (idx * 100) + "%)";
+        ticks.forEach(function (t, i) { t.classList.toggle("active", i <= idx); });
+        if (current) current.textContent = String(idx + 1).padStart(2, "0");
+        if (prev) prev.disabled = idx === 0;
+        if (next) next.disabled = idx === cards.length - 1;
+      }
+
+      if (prev) prev.addEventListener("click", function () { go(idx - 1); });
+      if (next) next.addEventListener("click", function () { go(idx + 1); });
+      deck.addEventListener("keydown", function (e) {
+        if (e.key === "ArrowLeft")  { go(idx - 1); e.preventDefault(); }
+        if (e.key === "ArrowRight") { go(idx + 1); e.preventDefault(); }
+      });
+
+      go(0);
+    }
+    document.querySelectorAll(".deck").forEach(init);
+  })();
+</script>
+
+</body>
+</html>
