@@ -69,18 +69,24 @@
     <!-- Carved rule — fills page width, aligns with specimen cards below -->
     <div class="carved-rule" aria-hidden="true"><span class="notch"></span></div>
 
-    <!-- Three specimens — one Users domain, causal sequence.
-         Every colored token in code maps to a same-colored element in the SVG. -->
+    <!-- Three specimens — one Users domain, three arguments in sequence:
+         STRUCTURE (one description, N languages)
+         → CHANGE (one edit, ripple across languages)
+         → CONSTRAINT (lens scope is a containing region; violation escapes)
+
+         Every colored token in code maps to a same-colored element in the SVG.
+         Like proto, but for the whole system — not just the RPC surface. -->
     <section class="story-ledger" aria-label="three specimens">
 
-      <!-- 01 — Projection closure (HELD) — sets up the domain -->
+      <!-- 01 — STRUCTURE: one description, four different language artifacts -->
       <article class="specimen">
         <header class="specimen-head">
           <span class="specimen-num">01</span>
-          <span class="specimen-name">projection closure</span>
+          <span class="specimen-name">one description · four languages</span>
         </header>
         <div class="specimen-body">
-<pre class="specimen-code"><span class="kw">type</span> <span class="ty">Timestamp</span> = <span class="ty">UnixMillis</span>
+<pre class="specimen-code"><span class="kw">type</span> <span class="ty">Timestamp</span> = <span class="ty">IsoDateTime</span>
+<span class="kw">type</span> <span class="ty">UserId</span>    = <span class="ty">String</span>
 
 <span class="kw">type</span> <span class="ty">User</span> {
   id         : <span class="ty">UserId</span>
@@ -88,117 +94,149 @@
   created_at : <span class="ty">Timestamp</span>
 }
 
-<span class="kw">service</span> <span class="ty">Users</span> {
-  list : () -> <span class="ty">List</span>&lt;<span class="ty">User</span>&gt;
-}
+<span class="kw">service</span> <span class="ty">Users</span>    { list : () -> <span class="ty">List</span>&lt;<span class="ty">User</span>&gt; }
+<span class="kw">table</span>   <span class="ty">users</span>    { schema_for <span class="ty">User</span> }
+<span class="kw">view</span>    <span class="ty">UserCard</span> { renders <span class="ty">User</span> }
 
-<span class="kw">project</span> <span class="ty">Users</span> -> <span class="moss">rust</span>
-<span class="kw">project</span> <span class="ty">Users</span> -> <span class="moss">openapi</span></pre>
+<span class="kw">project</span> <span class="ty">Users</span>      -> <span class="moss">rust</span>        <span class="com">-- backend</span>
+<span class="kw">project</span> <span class="ty">users</span>      -> <span class="moss">sql</span>         <span class="com">-- db schema</span>
+<span class="kw">project</span> <span class="ty">Users.list</span> -> <span class="moss">openapi</span>     <span class="com">-- public API</span>
+<span class="kw">project</span> <span class="ty">UserCard</span>   -> <span class="moss">typescript</span>  <span class="com">-- frontend</span></pre>
           <div class="specimen-graph">
-            <svg viewBox="0 0 280 200" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+            <svg viewBox="0 0 280 220" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
                  font-family="JetBrains Mono, ui-monospace, monospace" font-size="10">
-              <!-- moss lasso enclosing the reachable scope -->
-              <rect x="8" y="6" width="120" height="180" rx="10"
-                    stroke="var(--moss)" stroke-dasharray="5 3" stroke-width="1.8" fill="none"/>
-              <!-- vertical chain: Users → list → List<User> → User → Timestamp -->
-              <rect x="16" y="14" width="104" height="24" rx="4" stroke="var(--moss)" stroke-width="2"/>
-              <text x="68" y="30" text-anchor="middle" fill="var(--warm-white)" stroke="none" font-weight="500">Users</text>
-              <line x1="68" y1="38" x2="68" y2="48" stroke="var(--moss)" marker-end="url(#arrow)"/>
-              <rect x="16" y="50" width="104" height="22" rx="3" stroke="var(--moss)"/>
-              <text x="68" y="65" text-anchor="middle" fill="var(--moss)" stroke="none">list()</text>
-              <line x1="68" y1="72" x2="68" y2="82" stroke="var(--moss)" marker-end="url(#arrow)"/>
-              <rect x="16" y="84" width="104" height="22" rx="3" stroke="var(--moss)"/>
-              <text x="68" y="99" text-anchor="middle" fill="var(--moss)" stroke="none">List&lt;User&gt;</text>
-              <line x1="68" y1="106" x2="68" y2="116" stroke="var(--moss)" marker-end="url(#arrow)"/>
-              <rect x="16" y="118" width="104" height="22" rx="3" stroke="var(--moss)"/>
-              <text x="68" y="133" text-anchor="middle" fill="var(--moss)" stroke="none">User</text>
-              <line x1="68" y1="140" x2="68" y2="150" stroke="var(--moss)" marker-end="url(#arrow)"/>
-              <rect x="16" y="152" width="104" height="22" rx="3" stroke="var(--moss)"/>
-              <text x="68" y="167" text-anchor="middle" fill="var(--moss)" stroke="none">Timestamp</text>
-              <!-- 2 projection edges from scope to artifacts -->
-              <line x1="128" y1="56" x2="200" y2="60" stroke="var(--moss)" marker-end="url(#arrow)"/>
-              <line x1="128" y1="130" x2="200" y2="134" stroke="var(--moss)" marker-end="url(#arrow)"/>
-              <!-- 2 artifact slots — moss, ACTIVE (not gray) -->
-              <path d="M202,50 L246,50 L254,58 L254,80 L202,80 Z" stroke="var(--moss)" stroke-width="2"/>
-              <line x1="246" y1="50" x2="246" y2="58" stroke="var(--moss)" stroke-width="2"/>
-              <line x1="246" y1="58" x2="254" y2="58" stroke="var(--moss)" stroke-width="2"/>
-              <text x="228" y="69" text-anchor="middle" fill="var(--moss)" stroke="none">rust</text>
-              <path d="M202,124 L246,124 L254,132 L254,154 L202,154 Z" stroke="var(--moss)" stroke-width="2"/>
-              <line x1="246" y1="124" x2="246" y2="132" stroke="var(--moss)" stroke-width="2"/>
-              <line x1="246" y1="132" x2="254" y2="132" stroke="var(--moss)" stroke-width="2"/>
-              <text x="228" y="143" text-anchor="middle" fill="var(--moss)" stroke="none">openapi</text>
+              <!-- User — the shared description, warm-white prominent -->
+              <rect x="6" y="86" width="68" height="42" rx="5" stroke="var(--warm-white)" stroke-width="2.5"/>
+              <text x="40" y="103" text-anchor="middle" fill="var(--warm-white)" stroke="none" font-weight="600">User</text>
+              <text x="40" y="118" text-anchor="middle" fill="var(--stone-faint)" stroke="none" font-size="7" letter-spacing="2">type</text>
+
+              <!-- Row 1: service Users → .rs (rust, Shape A: backend) -->
+              <line x1="74" y1="98" x2="84" y2="26" stroke="var(--moss-dim)"/>
+              <rect x="86" y="14" width="78" height="22" rx="3" stroke="var(--moss)"/>
+              <text x="125" y="29" text-anchor="middle" fill="var(--moss)" stroke="none">service Users</text>
+              <line x1="164" y1="25" x2="190" y2="25" stroke="var(--moss)" marker-end="url(#arrow)"/>
+              <path d="M192,14 L228,14 L236,22 L236,36 L192,36 Z" stroke="var(--moss)" stroke-width="2"/>
+              <line x1="228" y1="14" x2="228" y2="22" stroke="var(--moss)" stroke-width="2"/>
+              <line x1="228" y1="22" x2="236" y2="22" stroke="var(--moss)" stroke-width="2"/>
+              <text x="214" y="29" text-anchor="middle" fill="var(--moss)" stroke="none" font-size="9">.rs</text>
+
+              <!-- Row 2: table users → .sql (Shape B: db) -->
+              <line x1="74" y1="102" x2="84" y2="73" stroke="var(--moss-dim)"/>
+              <rect x="86" y="62" width="78" height="22" rx="3" stroke="var(--moss)"/>
+              <text x="125" y="77" text-anchor="middle" fill="var(--moss)" stroke="none">table users</text>
+              <line x1="164" y1="73" x2="190" y2="73" stroke="var(--moss)" marker-end="url(#arrow)"/>
+              <path d="M192,62 L226,62 L234,70 L234,84 L192,84 Z" stroke="var(--moss)" stroke-width="2"/>
+              <line x1="226" y1="62" x2="226" y2="70" stroke="var(--moss)" stroke-width="2"/>
+              <line x1="226" y1="70" x2="234" y2="70" stroke="var(--moss)" stroke-width="2"/>
+              <text x="213" y="77" text-anchor="middle" fill="var(--moss)" stroke="none" font-size="9">.sql</text>
+
+              <!-- Row 3: Users.list → .openapi (Shape B: public API) -->
+              <line x1="74" y1="113" x2="84" y2="129" stroke="var(--moss-dim)"/>
+              <rect x="86" y="118" width="78" height="22" rx="3" stroke="var(--moss)"/>
+              <text x="125" y="133" text-anchor="middle" fill="var(--moss)" stroke="none">Users.list</text>
+              <line x1="164" y1="129" x2="190" y2="129" stroke="var(--moss)" marker-end="url(#arrow)"/>
+              <path d="M192,118 L222,118 L230,126 L230,140 L192,140 Z" stroke="var(--moss)" stroke-width="2"/>
+              <line x1="222" y1="118" x2="222" y2="126" stroke="var(--moss)" stroke-width="2"/>
+              <line x1="222" y1="126" x2="230" y2="126" stroke="var(--moss)" stroke-width="2"/>
+              <text x="240" y="133" fill="var(--moss)" stroke="none" font-size="8">.openapi</text>
+
+              <!-- Row 4: view UserCard → .ts (Shape A: frontend) -->
+              <line x1="74" y1="116" x2="84" y2="183" stroke="var(--moss-dim)"/>
+              <rect x="86" y="172" width="78" height="22" rx="3" stroke="var(--moss)"/>
+              <text x="125" y="187" text-anchor="middle" fill="var(--moss)" stroke="none">view UserCard</text>
+              <line x1="164" y1="183" x2="190" y2="183" stroke="var(--moss)" marker-end="url(#arrow)"/>
+              <path d="M192,172 L228,172 L236,180 L236,194 L192,194 Z" stroke="var(--moss)" stroke-width="2"/>
+              <line x1="228" y1="172" x2="228" y2="180" stroke="var(--moss)" stroke-width="2"/>
+              <line x1="228" y1="180" x2="236" y2="180" stroke="var(--moss)" stroke-width="2"/>
+              <text x="214" y="187" text-anchor="middle" fill="var(--moss)" stroke="none" font-size="9">.ts</text>
             </svg>
           </div>
         </div>
-        <p class="specimen-receipt"><span class="label">closure</span><span class="moss">held</span><span class="sep">·</span><span class="label">5 reachable types project to</span><span class="moss">rust + openapi</span></p>
+        <p class="specimen-receipt"><span class="label">one description</span><span class="moss">four language artifacts</span><span class="sep">·</span><span class="label">hand-written translations</span><span class="moss">zero</span></p>
       </article>
 
-      <!-- 02 — Affected set: change one line, see the exact downstream chain -->
+      <!-- 02 — CHANGE: one line ripples across languages, not lines within one file -->
       <article class="specimen">
         <header class="specimen-head">
           <span class="specimen-num">02</span>
-          <span class="specimen-name">affected set</span>
+          <span class="specimen-name">edit once · ripples across languages</span>
         </header>
         <div class="specimen-body">
 <pre class="specimen-code"><span class="ln">01 </span><span class="rem">- type Timestamp = UnixMillis</span>
 <span class="ln">01 </span><span class="add">+ type Timestamp = IsoDateTime</span>
 <span class="ln">02</span>
-<span class="ln">03 </span><span class="kw">type</span> <span class="ty">User</span> {
-<span class="ln">04 </span>  id   : <span class="ty">UserId</span>
-<span class="ln">05 </span>  name : <span class="ty">String</span>
-<span class="ln">06 </span>  <span class="moss">created_at : Timestamp</span>
-<span class="ln">07 </span>}
+<span class="ln">03 </span><span class="kw">type</span> <span class="ty">User</span> { id, name, created_at: <span class="moss">Timestamp</span> }
+<span class="ln">04</span>
+<span class="ln">05 </span><span class="kw">service</span> <span class="ty">Users</span>    { list : () -> <span class="ty">List</span>&lt;<span class="ty">User</span>&gt; }
+<span class="ln">06 </span><span class="kw">table</span>   <span class="ty">users</span>    { schema_for <span class="ty">User</span> }
+<span class="ln">07 </span><span class="kw">view</span>    <span class="ty">UserCard</span> { renders <span class="ty">User</span> }
 <span class="ln">08</span>
-<span class="ln">09 </span><span class="kw">service</span> <span class="ty">Users</span> {
-<span class="ln">10 </span>  <span class="moss">list : () -> List&lt;User&gt;</span>
-<span class="ln">11 </span>}
-<span class="ln">12</span>
-<span class="ln">13 </span><span class="moss">project Users -> rust</span>
-<span class="ln">14 </span><span class="moss">project Users -> openapi</span></pre>
+<span class="ln">09 </span><span class="moss">project Users      -> rust</span>
+<span class="ln">10 </span><span class="moss">project users      -> sql</span>
+<span class="ln">11 </span><span class="moss">project Users.list -> openapi</span>
+<span class="ln">12 </span><span class="moss">project UserCard   -> typescript</span></pre>
           <div class="specimen-graph">
             <svg viewBox="0 0 280 200" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
                  font-family="JetBrains Mono, ui-monospace, monospace" font-size="10">
-              <!-- L01 Timestamp — the changed line, clay -->
-              <rect x="14" y="10" width="100" height="26" rx="4" stroke="var(--clay)" stroke-width="2"/>
-              <text x="64" y="22" text-anchor="middle" fill="var(--clay)" stroke="none" font-size="8" letter-spacing="1">L01</text>
-              <text x="64" y="32" text-anchor="middle" fill="var(--clay)" stroke="none" font-weight="500">Timestamp</text>
-              <!-- propagation arrow ↓ moss -->
-              <line x1="64" y1="36" x2="64" y2="50" stroke="var(--moss)" marker-end="url(#arrow)"/>
-              <!-- L06 User.created_at — direct dependent, moss -->
-              <rect x="14" y="52" width="100" height="26" rx="4" stroke="var(--moss)"/>
-              <text x="64" y="64" text-anchor="middle" fill="var(--moss)" stroke="none" font-size="8" letter-spacing="1">L06</text>
-              <text x="64" y="74" text-anchor="middle" fill="var(--moss)" stroke="none">created_at</text>
-              <line x1="64" y1="78" x2="64" y2="92" stroke="var(--moss)" marker-end="url(#arrow)"/>
-              <!-- L10 Users.list — transitive, moss -->
-              <rect x="14" y="94" width="100" height="26" rx="4" stroke="var(--moss)"/>
-              <text x="64" y="106" text-anchor="middle" fill="var(--moss)" stroke="none" font-size="8" letter-spacing="1">L10</text>
-              <text x="64" y="116" text-anchor="middle" fill="var(--moss)" stroke="none">Users.list</text>
-              <!-- branch out to 2 artifact slots, moss -->
-              <line x1="114" y1="104" x2="180" y2="58"  stroke="var(--moss)" marker-end="url(#arrow)"/>
-              <line x1="114" y1="112" x2="180" y2="158" stroke="var(--moss)" marker-end="url(#arrow)"/>
-              <!-- L13 rust artifact, moss -->
-              <path d="M182,46 L226,46 L234,54 L234,76 L182,76 Z" stroke="var(--moss)" stroke-width="2"/>
-              <line x1="226" y1="46" x2="226" y2="54" stroke="var(--moss)" stroke-width="2"/>
-              <line x1="226" y1="54" x2="234" y2="54" stroke="var(--moss)" stroke-width="2"/>
-              <text x="208" y="58" text-anchor="middle" fill="var(--moss)" stroke="none" font-size="8" letter-spacing="1">L13</text>
-              <text x="208" y="69" text-anchor="middle" fill="var(--moss)" stroke="none">rust</text>
-              <!-- L14 openapi artifact, moss -->
-              <path d="M182,146 L226,146 L234,154 L234,176 L182,176 Z" stroke="var(--moss)" stroke-width="2"/>
-              <line x1="226" y1="146" x2="226" y2="154" stroke="var(--moss)" stroke-width="2"/>
-              <line x1="226" y1="154" x2="234" y2="154" stroke="var(--moss)" stroke-width="2"/>
-              <text x="208" y="158" text-anchor="middle" fill="var(--moss)" stroke="none" font-size="8" letter-spacing="1">L14</text>
-              <text x="208" y="169" text-anchor="middle" fill="var(--moss)" stroke="none">openapi</text>
+              <!-- Column headers — each downstream LANGUAGE -->
+              <text x="28" y="18" text-anchor="middle" fill="var(--stone-faint)" stroke="none" font-size="7" letter-spacing="2">dsl</text>
+              <text x="82" y="18" text-anchor="middle" fill="var(--stone-faint)" stroke="none" font-size="7" letter-spacing="2">rust</text>
+              <text x="138" y="18" text-anchor="middle" fill="var(--stone-faint)" stroke="none" font-size="7" letter-spacing="2">sql</text>
+              <text x="194" y="18" text-anchor="middle" fill="var(--stone-faint)" stroke="none" font-size="7" letter-spacing="2">ts</text>
+              <text x="252" y="18" text-anchor="middle" fill="var(--stone-faint)" stroke="none" font-size="7" letter-spacing="2">openapi</text>
+              <!-- column hairlines -->
+              <line x1="56" y1="22" x2="56" y2="190" stroke="var(--border-dark)" stroke-width="1"/>
+              <line x1="110" y1="22" x2="110" y2="190" stroke="var(--border-dark)" stroke-width="1"/>
+              <line x1="166" y1="22" x2="166" y2="190" stroke="var(--border-dark)" stroke-width="1"/>
+              <line x1="222" y1="22" x2="222" y2="190" stroke="var(--border-dark)" stroke-width="1"/>
+
+              <!-- DSL column: Timestamp (clay — the source edit) -->
+              <rect x="6" y="84" width="48" height="32" rx="4" stroke="var(--clay)" stroke-width="2"/>
+              <text x="30" y="98" text-anchor="middle" fill="var(--clay)" stroke="none" font-size="8" letter-spacing="1">L01</text>
+              <text x="30" y="110" text-anchor="middle" fill="var(--clay)" stroke="none">Timestamp</text>
+
+              <!-- Rust column: chrono::DateTime re-derives, moss -->
+              <rect x="62" y="84" width="44" height="32" rx="4" stroke="var(--moss)"/>
+              <text x="84" y="100" text-anchor="middle" fill="var(--moss)" stroke="none" font-size="9">chrono</text>
+              <text x="84" y="111" text-anchor="middle" fill="var(--moss)" stroke="none" font-size="9">DateTime</text>
+
+              <!-- SQL column: TIMESTAMPTZ, moss -->
+              <rect x="116" y="84" width="46" height="32" rx="4" stroke="var(--moss)"/>
+              <text x="139" y="100" text-anchor="middle" fill="var(--moss)" stroke="none" font-size="9">TIMESTAMP</text>
+              <text x="139" y="111" text-anchor="middle" fill="var(--moss)" stroke="none" font-size="9">TZ</text>
+
+              <!-- TS column: ISO 8601 string, moss -->
+              <rect x="172" y="84" width="46" height="32" rx="4" stroke="var(--moss)"/>
+              <text x="195" y="100" text-anchor="middle" fill="var(--moss)" stroke="none" font-size="9">ISO 8601</text>
+              <text x="195" y="111" text-anchor="middle" fill="var(--moss)" stroke="none" font-size="9">string</text>
+
+              <!-- OpenAPI column: format: date-time, moss -->
+              <rect x="228" y="84" width="46" height="32" rx="4" stroke="var(--moss)"/>
+              <text x="251" y="100" text-anchor="middle" fill="var(--moss)" stroke="none" font-size="9">format:</text>
+              <text x="251" y="111" text-anchor="middle" fill="var(--moss)" stroke="none" font-size="9">date-time</text>
+
+              <!-- 4 moss propagation edges from Timestamp to each language column -->
+              <line x1="54" y1="100" x2="60" y2="100" stroke="var(--moss)" marker-end="url(#arrow)"/>
+              <line x1="54" y1="100" x2="114" y2="100" stroke="var(--moss)" marker-end="url(#arrow)"/>
+              <line x1="54" y1="100" x2="170" y2="100" stroke="var(--moss)" marker-end="url(#arrow)"/>
+              <line x1="54" y1="100" x2="226" y2="100" stroke="var(--moss)" marker-end="url(#arrow)"/>
+
+              <!-- Bottom annotation -->
+              <text x="30" y="160" text-anchor="middle" fill="var(--clay)" stroke="none" font-size="8" letter-spacing="1">1 line</text>
+              <text x="30" y="172" text-anchor="middle" fill="var(--clay)" stroke="none" font-size="8" letter-spacing="1">changed</text>
+              <text x="140" y="160" text-anchor="middle" fill="var(--moss)" stroke="none" font-size="8" letter-spacing="1">4 languages re-derive</text>
+              <text x="140" y="172" text-anchor="middle" fill="var(--moss-dim)" stroke="none" font-size="8" letter-spacing="1">automatic · zero hand-edits</text>
             </svg>
           </div>
         </div>
-        <p class="specimen-receipt"><span class="label">changed</span><span class="clay">L01 Timestamp</span><span class="sep">·</span><span class="label">direct</span><span class="moss">L06 created_at</span><span class="sep">·</span><span class="label">transitive</span><span class="moss">L10 list</span><span class="sep">·</span><span class="label">rechecks</span><span class="moss">L13 rust, L14 openapi</span></p>
+        <p class="specimen-receipt"><span class="label">changed</span><span class="clay">1 line</span><span class="sep">·</span><span class="label">re-derived</span><span class="moss">rust + sql + ts + openapi</span><span class="sep">·</span><span class="label">hand-edits</span><span class="moss">zero</span></p>
       </article>
 
-      <!-- 03 — Complexity bound violation. The compiler rejects O(n²) under an O(n) lens. -->
+      <!-- 03 — CONSTRAINT: lens scope is a containing region; violation ESCAPES the envelope -->
       <article class="specimen">
         <header class="specimen-head">
           <span class="specimen-num">03</span>
-          <span class="specimen-name">complexity bound violation</span>
+          <span class="specimen-name">complexity bound · escape</span>
         </header>
         <div class="specimen-body">
 <pre class="specimen-code"><span class="kw">fn</span> unique_users(users: <span class="ty">List</span>&lt;<span class="ty">User</span>&gt;) -> <span class="ty">List</span>&lt;<span class="ty">User</span>&gt; {
@@ -209,27 +247,40 @@
 
 <span class="kw">lens</span> <span class="moss">complexity(unique_users) &lt;= O(n)</span></pre>
           <div class="specimen-graph">
-            <svg viewBox="0 0 280 180" fill="none" stroke-linecap="round" stroke-width="1.5"
+            <svg viewBox="0 0 280 200" fill="none" stroke-linecap="round" stroke-width="1.5"
                  font-family="JetBrains Mono, ui-monospace, monospace" font-size="10">
-              <!-- y-axis label -->
-              <text x="14" y="22" fill="var(--stone-faint)" stroke="none" font-size="8" letter-spacing="2">cost</text>
-              <!-- required bound: O(n) — moss bar -->
-              <text x="14" y="58" fill="var(--moss)" stroke="none" font-size="9" letter-spacing="1">required</text>
-              <rect x="80" y="46" width="80" height="20" rx="3"
-                    fill="var(--moss-subtle)" stroke="var(--moss)" stroke-width="1.5"/>
-              <text x="120" y="60" text-anchor="middle" fill="var(--moss)" stroke="none">O(n)</text>
-              <!-- derived bound: O(n²) — clay bar, overshoots -->
-              <text x="14" y="118" fill="var(--clay)" stroke="none" font-size="9" letter-spacing="1">derived</text>
-              <rect x="80" y="106" width="180" height="20" rx="3"
-                    fill="var(--clay-subtle)" stroke="var(--clay)" stroke-width="1.5"/>
-              <text x="170" y="120" text-anchor="middle" fill="var(--clay)" stroke="none">O(n²)</text>
-              <!-- violation marker — clay vertical at the bound boundary -->
-              <line x1="161" y1="40" x2="161" y2="140" stroke="var(--clay)" stroke-dasharray="3 3" stroke-width="1"/>
-              <text x="166" y="156" fill="var(--clay)" stroke="none" font-size="8" letter-spacing="1">violation past O(n)</text>
+              <!-- Moss envelope: the O(n) lens scope.
+                   What's inside fits the budget; anything that escapes violates it. -->
+              <rect x="12" y="14" width="180" height="92" rx="14"
+                    stroke="var(--moss)" stroke-dasharray="5 3" stroke-width="2"/>
+              <text x="186" y="28" text-anchor="end" fill="var(--moss)" stroke="none" font-size="9">lens · O(n)</text>
+
+              <!-- unique_users root, inside envelope -->
+              <rect x="38" y="32" width="110" height="22" rx="4" stroke="var(--moss)" stroke-width="2"/>
+              <text x="93" y="47" text-anchor="middle" fill="var(--moss)" stroke="none">unique_users</text>
+
+              <line x1="93" y1="54" x2="93" y2="64" stroke="var(--moss)" marker-end="url(#arrow)"/>
+
+              <!-- filter — inside envelope (× n) -->
+              <rect x="38" y="66" width="110" height="22" rx="4" stroke="var(--moss)" stroke-width="2"/>
+              <text x="93" y="81" text-anchor="middle" fill="var(--moss)" stroke="none">filter(users)</text>
+              <text x="156" y="81" fill="var(--moss-dim)" stroke="none" font-size="9">× n</text>
+
+              <!-- Clay arrow ESCAPES through the envelope wall -->
+              <line x1="93" y1="88" x2="93" y2="124" stroke="var(--clay)" stroke-width="2" marker-end="url(#arrow)"/>
+
+              <!-- count — OUTSIDE the envelope, clay (the violation) -->
+              <rect x="32" y="126" width="124" height="22" rx="4" stroke="var(--clay)" stroke-width="2"/>
+              <text x="94" y="141" text-anchor="middle" fill="var(--clay)" stroke="none">count(users, …)</text>
+              <text x="166" y="141" fill="var(--clay)" stroke="none" font-size="9">× n</text>
+
+              <!-- Composed cost annotation -->
+              <text x="32" y="172" fill="var(--clay)" stroke="none" font-size="10">composed: n × n = O(n²)</text>
+              <text x="32" y="186" fill="var(--clay)" stroke="none" font-size="8" letter-spacing="1">escapes lens scope</text>
             </svg>
           </div>
         </div>
-        <p class="specimen-receipt"><span class="label">required</span><span class="moss">O(n)</span><span class="sep">·</span><span class="label">derived</span><span class="clay">O(n²)</span><span class="sep">·</span><span class="label">result</span>no artifact emitted</p>
+        <p class="specimen-receipt"><span class="label">declared</span><span class="moss">O(n)</span><span class="sep">·</span><span class="label">observed</span><span class="clay">O(n²)</span><span class="sep">·</span><span class="label">escape</span><span class="clay">count inside filter</span><span class="sep">·</span><span class="label">result</span>no artifact emitted</p>
       </article>
 
     </section>
@@ -240,17 +291,16 @@
 <pre class="invariant"><span class="title">Invariant —</span>
   complexity bound violated
 
-  required:
+  declared:
     unique_users &lt;= O(n)
 
-  derived:
-    O(n²)
+  observed:
+    filter over users           × n
+    count(users, ...) inside    × n
+    composed: n × n = O(n²)
 
-  reached through:
-    users |&gt; filter(...)
-    count(users, ...)
-
-  result:
+  escape:
+    count(...) escapes lens scope
     no artifact emitted</pre>
     </section>
 
