@@ -371,14 +371,14 @@ a { color: inherit; }
 }
 .deck-card-concept strong { color: var(--warm-white); font-weight: 500; }
 
+/* Vertical stack: code and graph each get the full card width. The
+   richer system (with the Sessions parallel domain) makes the graph
+   wider than the code pane can accommodate when split 50/50; the
+   stacked layout keeps the SVG text readable. */
 .deck-card-body {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.25rem;
-  align-items: stretch;
-}
-@media (max-width: 820px) {
-  .deck-card-body { grid-template-columns: 1fr; }
+  grid-template-columns: 1fr;
+  gap: 0.85rem;
 }
 
 /* Code pane — no horizontal scroll. If a line would overflow it
@@ -420,18 +420,22 @@ a { color: inherit; }
 .ck-diff-add .ck-diff-sign { color: var(--moss); }
 .ck-ref { font-weight: 500; }
 
-/* Graph pane — SVG fills the pane (no excess whitespace). */
+/* Graph pane — SVG fills available width, capped at a reasonable
+   max-height so a tall viewBox does not push card height to absurd. */
 .card-graph {
   background: var(--void-up);
   border: 1px solid var(--border-dark);
   border-radius: 4px;
   padding: 0.7rem 0.85rem;
-  display: flex; align-items: stretch; justify-content: stretch;
+  display: flex; align-items: center; justify-content: center;
   overflow: hidden;
 }
 .card-graph svg {
   display: block;
-  width: 100%; height: auto;
+  max-width: 100%;
+  max-height: 22rem;
+  width: 100%;
+  height: auto;
   color: var(--stone);
   overflow: visible;
 }
