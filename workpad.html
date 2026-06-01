@@ -2360,34 +2360,43 @@ diagnostics: 0</div></div>
               <div class="deck-card-vis">
                 <svg viewBox="0 0 360 220" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
                   <g stroke-opacity="0.32">
-                    <rect x="110" y="118" width="70" height="24" rx="4"/>
-                    <rect x="220" y="100" width="60" height="22" rx="4"/>
-                    <rect x="220" y="128" width="60" height="22" rx="4"/>
-                    <line x1="70" y1="98" x2="107" y2="128" marker-end="url(#arrow)"/>
-                    <line x1="180" y1="126" x2="217" y2="113" marker-end="url(#arrow)"/>
-                    <line x1="180" y1="132" x2="217" y2="139" marker-end="url(#arrow)"/>
+                    <rect x="110" y="150" width="48" height="30" rx="4"/>
+                    <rect x="200" y="138" width="48" height="30" rx="4"/>
+                    <rect x="200" y="172" width="48" height="30" rx="4"/>
+                    <line x1="68" y1="110" x2="108" y2="165" marker-end="url(#arrow)"/>
+                    <line x1="158" y1="160" x2="198" y2="153" marker-end="url(#arrow)"/>
+                    <line x1="158" y1="170" x2="198" y2="187" marker-end="url(#arrow)"/>
                   </g>
-                  <rect x="20" y="76" width="50" height="28" rx="4"/>
-                  <line x1="70" y1="86" x2="107" y2="38" marker-end="url(#arrow)"/>
-                  <rect x="110" y="28" width="70" height="24" rx="4" stroke="var(--clay)" stroke-width="2"/>
-                  <line x1="180" y1="36" x2="217" y2="21" stroke="var(--moss)" marker-end="url(#arrow)"/>
-                  <line x1="180" y1="42" x2="217" y2="49" stroke="var(--moss)" marker-end="url(#arrow)"/>
-                  <rect x="220" y="10" width="60" height="22" rx="4" stroke="var(--moss)" stroke-width="2"/>
-                  <rect x="220" y="38" width="60" height="22" rx="4" stroke="var(--moss)" stroke-width="2"/>
-                  <circle cx="200" cy="35" r="72" stroke="currentColor" stroke-opacity="0.5"/>
-                  <line x1="252" y1="86" x2="290" y2="124" stroke-width="2.5" stroke-opacity="0.7"/>
-                  <circle cx="283" cy="13" r="3" fill="var(--moss)" stroke="none"/>
-                  <circle cx="283" cy="41" r="3" fill="var(--moss)" stroke="none"/>
-                  <circle cx="183" cy="31" r="3" fill="var(--moss)" stroke="none"/>
-                  <!-- NEW: 4 artifact slots fanning from api -->
-                  <line x1="45" y1="104" x2="48" y2="178" stroke="var(--moss)" marker-end="url(#arrow)"/>
-                  <line x1="45" y1="104" x2="125" y2="178" stroke="var(--moss)" marker-end="url(#arrow)"/>
-                  <line x1="45" y1="104" x2="205" y2="178" stroke="var(--moss)" marker-end="url(#arrow)"/>
-                  <line x1="45" y1="104" x2="285" y2="178" stroke="var(--moss)" marker-end="url(#arrow)"/>
-                  <path d="M20,182 L60,182 L68,190 L68,210 L20,210 Z"/>
-                  <path d="M100,182 L140,182 L148,190 L148,210 L100,210 Z"/>
-                  <path d="M180,182 L220,182 L228,190 L228,210 L180,210 Z"/>
-                  <path d="M260,182 L300,182 L308,190 L308,210 L260,210 Z"/>
+                  <rect x="20" y="85" width="48" height="30" rx="4"/>
+                  <line x1="68" y1="95" x2="108" y2="35" marker-end="url(#arrow)"/>
+                  <rect x="110" y="20" width="48" height="30" rx="4" stroke="var(--clay)" stroke-width="2"/>
+                  <line x1="158" y1="30" x2="198" y2="23" stroke="var(--moss)" marker-end="url(#arrow)"/>
+                  <line x1="158" y1="40" x2="198" y2="57" stroke="var(--moss)" marker-end="url(#arrow)"/>
+                  <rect x="200" y="8" width="48" height="30" rx="4" stroke="var(--moss)" stroke-width="2"/>
+                  <rect x="200" y="42" width="48" height="30" rx="4" stroke="var(--moss)" stroke-width="2"/>
+                  <circle cx="178" cy="30" r="78" stroke-opacity="0.5"/>
+                  <line x1="234" y1="86" x2="270" y2="122" stroke-width="2.5" stroke-opacity="0.7"/>
+                  <circle cx="246" cy="11" r="3" fill="var(--moss)" stroke="none"/>
+                  <circle cx="246" cy="45" r="3" fill="var(--moss)" stroke="none"/>
+                  <circle cx="156" cy="23" r="3" fill="var(--moss)" stroke="none"/>
+                  <!-- NEW: 4 projection edges (moss) from api to artifact slots -->
+                  <line x1="68" y1="97"  x2="288" y2="23"  stroke="var(--moss)" marker-end="url(#arrow)"/>
+                  <line x1="68" y1="99"  x2="288" y2="62"  stroke="var(--moss)" marker-end="url(#arrow)"/>
+                  <line x1="68" y1="103" x2="288" y2="142" stroke="var(--moss)" marker-end="url(#arrow)"/>
+                  <line x1="68" y1="105" x2="288" y2="180" stroke="var(--moss)" marker-end="url(#arrow)"/>
+                  <!-- NEW: 4 artifact slots (canonical 48×30 cut-corner — same as Artifact primitive) -->
+                  <path d="M290,8 L322,8 L338,24 L338,38 L290,38 Z"/>
+                  <line x1="322" y1="8" x2="322" y2="24"/>
+                  <line x1="322" y1="24" x2="338" y2="24"/>
+                  <path d="M290,50 L322,50 L338,66 L338,80 L290,80 Z"/>
+                  <line x1="322" y1="50" x2="322" y2="66"/>
+                  <line x1="322" y1="66" x2="338" y2="66"/>
+                  <path d="M290,130 L322,130 L338,146 L338,160 L290,160 Z"/>
+                  <line x1="322" y1="130" x2="322" y2="146"/>
+                  <line x1="322" y1="146" x2="338" y2="146"/>
+                  <path d="M290,172 L322,172 L338,188 L338,202 L290,202 Z"/>
+                  <line x1="322" y1="172" x2="322" y2="188"/>
+                  <line x1="322" y1="188" x2="338" y2="188"/>
                 </svg>
               </div>
             </div>
