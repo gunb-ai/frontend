@@ -1645,9 +1645,10 @@ diagnostics: 0</div></div>
             <circle cx="60" cy="32" r="2.8" fill="currentColor" stroke="none"/>
             <circle cx="66" cy="48" r="2.8" fill="currentColor" stroke="none"/>
             <line x1="60" y1="34" x2="65" y2="47"/>
-            <!-- lasso: dashed moss boundary around the selected nodes -->
-            <rect x="52" y="22" width="22" height="36" rx="9"
-                  stroke="var(--moss)" stroke-dasharray="3 2" stroke-width="1.5"/>
+            <!-- lasso: tight hull around the two selected nodes -->
+            <polygon points="54,29 60,25 66,28 72,45 70,52 64,55 58,53 53,38"
+                     stroke="var(--moss)" stroke-dasharray="3 2" stroke-width="1.5"
+                     fill="none" stroke-linejoin="round"/>
           </svg>
         </div>
         <p class="prim-cell-note">A lasso traces a named subgraph. The dashed moss boundary is the scope — what's inside is in view, what's outside is unchanged. Used for <code>affected_set</code>, complexity scope, projection slice.</p>
@@ -2249,8 +2250,9 @@ diagnostics: 0</div></div>
                   <rect x="200" y="8" width="48" height="30" rx="4" stroke="var(--moss)" stroke-width="2"/>
                   <rect x="200" y="42" width="48" height="30" rx="4" stroke="var(--moss)" stroke-width="2"/>
                   <!-- NEW: lens lasso — dashed moss boundary around the subgraph -->
-                  <rect x="104" y="2" width="150" height="76" rx="14"
-                        stroke="var(--moss)" stroke-dasharray="5 3" stroke-width="2"/>
+                  <polygon points="105,18 200,3 252,6 252,74 200,77 105,52"
+                           stroke="var(--moss)" stroke-dasharray="5 3" stroke-width="2"
+                           fill="none" stroke-linejoin="round"/>
                 </svg>
               </div>
             </div>
@@ -2313,8 +2315,9 @@ diagnostics: 0</div></div>
                   <line x1="158" y1="40" x2="198" y2="57" stroke="var(--moss)" marker-end="url(#arrow)"/>
                   <rect x="200" y="8" width="48" height="30" rx="4" stroke="var(--moss)" stroke-width="2"/>
                   <rect x="200" y="42" width="48" height="30" rx="4" stroke="var(--moss)" stroke-width="2"/>
-                  <rect x="104" y="2" width="150" height="76" rx="14"
-                        stroke="var(--moss)" stroke-dasharray="5 3" stroke-width="2"/>
+                  <polygon points="105,18 200,3 252,6 252,74 200,77 105,52"
+                           stroke="var(--moss)" stroke-dasharray="5 3" stroke-width="2"
+                           fill="none" stroke-linejoin="round"/>
                   <!-- NEW: idempotent moss dots at top-right corner of affected nodes -->
                   <circle cx="246" cy="11" r="3" fill="var(--moss)" stroke="none"/>
                   <circle cx="246" cy="45" r="3" fill="var(--moss)" stroke="none"/>
@@ -2388,8 +2391,9 @@ diagnostics: 0</div></div>
                   <line x1="158" y1="40" x2="198" y2="57" stroke="var(--moss)" marker-end="url(#arrow)"/>
                   <rect x="200" y="8" width="48" height="30" rx="4" stroke="var(--moss)" stroke-width="2"/>
                   <rect x="200" y="42" width="48" height="30" rx="4" stroke="var(--moss)" stroke-width="2"/>
-                  <rect x="104" y="2" width="150" height="76" rx="14"
-                        stroke="var(--moss)" stroke-dasharray="5 3" stroke-width="2"/>
+                  <polygon points="105,18 200,3 252,6 252,74 200,77 105,52"
+                           stroke="var(--moss)" stroke-dasharray="5 3" stroke-width="2"
+                           fill="none" stroke-linejoin="round"/>
                   <circle cx="246" cy="11" r="3" fill="var(--moss)" stroke="none"/>
                   <circle cx="246" cy="45" r="3" fill="var(--moss)" stroke="none"/>
                   <circle cx="156" cy="23" r="3" fill="var(--moss)" stroke="none"/>
