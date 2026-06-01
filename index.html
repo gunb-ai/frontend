@@ -4,14 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>gunb.ai — A structural compiler for composable systems</title>
-  <meta name="description" content="Modern systems are full of hand-written translations. daglang describes the system once. gunbc checks that description and derives the mechanical pieces. When the description is incomplete, the compiler refuses to guess." />
+  <meta name="description" content="Modern systems are full of hand-written translations. daglang gives the system one structural description. gunbc checks that description and derives the mechanical pieces. When the description is incomplete, the compiler refuses to guess." />
   <link rel="icon" type="image/svg+xml" href="/assets/mark.svg" />
   <meta name="theme-color" content="#0c0d0c" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
-    /* ── Material palette (from legacy/moodboard.html, parametric HSL) ─ */
+    /* ── Material palette (from legacy/moodboard.html, parametric HSL) ── */
     :root {
       --hue-warm: 37;
       --hue-moss: 134;
@@ -27,6 +27,7 @@
       --void-up: hsl(var(--hue-warm), 3%, 8%);
 
       --stone: hsl(var(--hue-warm), 20%, 76%);
+      --stone-dim: hsl(var(--hue-warm), 12%, 55%);
       --stone-faint: hsl(var(--hue-warm), 10%, 38%);
 
       --warm-white: hsl(var(--hue-warm), 27%, 94%);
@@ -38,8 +39,8 @@
       --font-mono: "JetBrains Mono", ui-monospace, monospace;
       --font-sans: "Noto Sans", system-ui, sans-serif;
 
-      --measure: 54rem;
-      --measure-prose: 36em;
+      --measure-page: 54rem;
+      --measure-prose: 42rem;
     }
 
     *, *::before, *::after { box-sizing: border-box; }
@@ -57,15 +58,15 @@
     a { color: inherit; }
 
     .page {
-      max-width: var(--measure);
+      max-width: var(--measure-page);
       margin: 0 auto;
-      padding: 4rem 1.75rem 4.5rem;
+      padding: clamp(2rem, 5vw, 4rem) 1.75rem clamp(2.5rem, 5vw, 4.5rem);
     }
 
-    /* ── Masthead — mark + wordmark + eyebrow ── */
+    /* ── Masthead ── */
     .masthead {
       display: flex; align-items: center; gap: 0.85rem;
-      margin-bottom: 4rem;
+      margin-bottom: 3.5rem;
       flex-wrap: wrap;
     }
     .mark { width: 28px; height: 28px; color: var(--stone); flex: 0 0 auto; }
@@ -80,27 +81,29 @@
       color: var(--stone-faint);
     }
 
-    /* ── Identity — one-sentence + tagline ── */
+    /* ── Identity ── */
+    .identity { margin-bottom: 2.25rem; }
     .identity h1 {
       font-family: var(--font-sans); font-weight: 600;
-      font-size: clamp(1.5rem, 3.2vw, 2rem);
-      line-height: 1.2; letter-spacing: -0.015em;
+      font-size: clamp(1.7rem, 4vw, 2.4rem);
+      line-height: 1.05;
+      letter-spacing: -0.018em;
       color: var(--warm-white);
-      margin: 0 0 0.6rem;
-      max-width: 22em;
+      margin: 0 0 0.7rem;
+      max-width: 18ch;
+      text-wrap: balance;
     }
     .identity .tagline {
       font-family: var(--font-sans); font-size: 1.05rem;
       line-height: 1.45; color: var(--stone);
-      margin: 0 0 3rem;
-      max-width: 32em;
+      margin: 0;
+      max-width: var(--measure-prose);
     }
 
-    /* ── Prose — problem / proposal paragraph ── */
-    .prose { max-width: var(--measure-prose); margin: 0; }
+    /* ── Prose — problem / proposal ── */
+    .prose { max-width: var(--measure-prose); margin: 0 0 2.5rem; }
     .prose p {
-      margin: 0 0 1.1rem;
-      line-height: 1.7;
+      margin: 0 0 1.05rem; line-height: 1.7;
       color: var(--warm-white-dim);
     }
     .prose p:last-child { margin-bottom: 0; }
@@ -110,12 +113,11 @@
       color: var(--warm-white);
     }
 
-    /* ── Carved rule — section separator with moss diamond notch ── */
+    /* ── Carved rule ── */
     .carved-rule {
       display: flex; align-items: center; gap: 0.7rem;
-      margin: 2.5rem 0;
+      margin: 2.75rem 0;
       max-width: var(--measure-prose);
-      color: var(--stone-faint);
     }
     .carved-rule::before, .carved-rule::after {
       content: ""; flex: 1; height: 0;
@@ -127,7 +129,7 @@
       transform: rotate(45deg);
     }
 
-    /* ── Section eyebrow (above install + invariant) ── */
+    /* ── Section eyebrow (above install + specimens + diagnostic) ── */
     .section-label {
       display: block;
       font-family: var(--font-mono); font-size: 0.6rem;
@@ -151,6 +153,68 @@
       max-width: var(--measure-prose);
     }
     .command .prompt { color: var(--moss); user-select: none; }
+
+    /* ── Story ledger — three specimens between install and diagnostic ── */
+    .story-ledger {
+      max-width: var(--measure-page);
+      margin: 2.5rem 0;
+      display: grid; gap: 0.85rem;
+    }
+    .specimen {
+      background: var(--void-up);
+      border: 1px solid var(--border-dark);
+      border-radius: 4px;
+      padding: 1rem 1.15rem 1.05rem;
+      display: grid;
+      gap: 0.75rem;
+    }
+    .specimen-head {
+      display: flex; align-items: baseline; gap: 0.65rem;
+      font-family: var(--font-mono); font-size: 0.62rem;
+      letter-spacing: 0.16em; text-transform: uppercase;
+    }
+    .specimen-num { color: var(--stone-faint); }
+    .specimen-name { color: var(--warm-white); font-weight: 500; }
+    .specimen-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+      gap: 0.85rem; align-items: start;
+    }
+    .specimen-code, .specimen-graph {
+      font-family: var(--font-mono); font-size: 0.76rem;
+      line-height: 1.7;
+      background: var(--void);
+      border: 1px solid var(--border-dark);
+      border-radius: 3px;
+      padding: 0.75rem 0.95rem;
+      color: var(--warm-white-dim);
+      margin: 0;
+      white-space: pre;
+      overflow-x: auto;
+    }
+    .specimen-code .kw  { color: var(--moss); }
+    .specimen-code .ty  { color: var(--warm-white); font-weight: 500; }
+    .specimen-code .com { color: var(--stone-faint); }
+    .specimen-code .lit { color: var(--stone); }
+    .specimen-code .add { color: var(--moss); }
+    .specimen-code .clay { color: var(--clay); }
+    .specimen-graph .node { color: var(--warm-white); }
+    .specimen-graph .b    { color: var(--stone-faint); }
+    .specimen-graph .ok   { color: var(--moss); }
+    .specimen-graph .fail { color: var(--clay); }
+    .specimen-graph .dim  { color: var(--stone-faint); }
+    .specimen-receipt {
+      margin: 0;
+      padding-top: 0.65rem;
+      border-top: 1px dashed var(--border-dark);
+      font-family: var(--font-mono); font-size: 0.7rem;
+      line-height: 1.6;
+      color: var(--warm-white-dim);
+    }
+    .specimen-receipt .clay  { color: var(--clay); }
+    .specimen-receipt .moss  { color: var(--moss); }
+    .specimen-receipt .label { color: var(--stone-faint); margin-right: 0.4rem; }
+    .specimen-receipt .sep   { color: var(--stone-faint); margin: 0 0.4rem; opacity: 0.55; }
 
     /* ── Invariant block (clay only here) ── */
     .invariant {
@@ -189,12 +253,27 @@
     .foot a:hover { color: var(--moss); border-bottom-color: currentColor; }
     .foot .sep { margin: 0 0.55rem; color: var(--stone-faint); opacity: 0.55; }
 
-    /* ── Mobile ── */
+    /* ── Mobile — specimens become horizontal snap/swipe ── */
+    @media (max-width: 700px) {
+      .specimen-body { grid-template-columns: 1fr; }
+      .story-ledger {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        padding-bottom: 0.85rem;
+        scrollbar-width: thin;
+        -webkit-overflow-scrolling: touch;
+      }
+      .specimen {
+        flex: 0 0 88vw;
+        scroll-snap-align: start;
+      }
+    }
+
     @media (max-width: 480px) {
-      .page { padding: 2.5rem 1.25rem 3rem; }
       .masthead { margin-bottom: 2.5rem; }
       .masthead .eyebrow { margin-left: 0; flex-basis: 100%; }
-      .identity .tagline { margin-bottom: 2rem; }
+      .identity { margin-bottom: 1.75rem; }
       .carved-rule { margin: 2rem 0; }
     }
   </style>
@@ -217,7 +296,7 @@
       <span class="eyebrow">gunbc · structural compiler</span>
     </header>
 
-    <!-- ── Identity ── -->
+    <!-- ── Identity — monumental H1, capped at ~18ch with balanced break ── -->
     <section class="identity">
       <h1>A structural compiler for composable systems.</h1>
       <p class="tagline">Describe the system once. Let the compiler derive the rest.</p>
@@ -226,17 +305,15 @@
     <!-- ── Problem / proposal ── -->
     <section class="prose">
       <p>
-        Modern systems are full of hand-written translations: backend types to client types, models to schemas, services to docs, code to tests, source to build rules.
+        Modern systems are full of hand-written translations: backend types into client types, models into schemas, services into docs, code into tests, source into build rules.
       </p>
       <p>
-        <strong>daglang</strong> describes the system once. <strong>gunbc</strong> checks that description and derives the mechanical pieces.
+        <strong>daglang</strong> gives the system one structural description. <strong>gunbc</strong> checks that description and derives the mechanical pieces.
       </p>
       <p>
         When the description is incomplete, the compiler refuses to guess.
       </p>
     </section>
-
-    <div class="carved-rule" aria-hidden="true"><span class="notch"></span></div>
 
     <!-- ── Install / early access ── -->
     <section class="install">
@@ -248,7 +325,72 @@
 
     <div class="carved-rule" aria-hidden="true"><span class="notch"></span></div>
 
-    <!-- ── Invariant — one example of the compiler's voice ── -->
+    <!-- ── Three specimens — code + tiny graph + receipt ── -->
+    <section class="story-ledger" aria-label="three specimens">
+
+      <article class="specimen">
+        <header class="specimen-head">
+          <span class="specimen-num">01</span>
+          <span class="specimen-name">structural description</span>
+        </header>
+        <div class="specimen-body">
+<pre class="specimen-code"><span class="kw">type</span> <span class="ty">Condition</span> =
+  | <span class="ty">Sunny</span>
+  | <span class="ty">Cloudy</span>
+  | <span class="ty">Rainy</span></pre>
+<pre class="specimen-graph"><span class="node">Condition</span>
+  <span class="b">├─</span> Rust enum
+  <span class="b">├─</span> TypeScript union
+  <span class="b">└─</span> OpenAPI enum</pre>
+        </div>
+        <p class="specimen-receipt"><span class="label">derives</span><span class="moss">one node · three artifacts</span></p>
+      </article>
+
+      <article class="specimen">
+        <header class="specimen-head">
+          <span class="specimen-num">02</span>
+          <span class="specimen-name">structural check</span>
+        </header>
+        <div class="specimen-body">
+<pre class="specimen-code"><span class="kw">fn</span> describe(c: <span class="ty">Condition</span>) -> <span class="ty">String</span> {
+  <span class="kw">match</span> c {
+    <span class="ty">Sunny</span>  => <span class="lit">"clear"</span>
+    <span class="ty">Cloudy</span> => <span class="lit">"cloudy"</span>
+  }
+}</pre>
+<pre class="specimen-graph"><span class="node">Sunny</span>  <span class="b">→</span> <span class="ok">handler</span>
+<span class="node">Cloudy</span> <span class="b">→</span> <span class="ok">handler</span>
+<span class="node">Rainy</span>  <span class="b">→</span> <span class="fail">⊥ none</span>
+
+<span class="dim">seam breaks at Rainy</span></pre>
+        </div>
+        <p class="specimen-receipt"><span class="clay">Invariant —</span> missing <span class="clay">Rainy</span><span class="sep">·</span><span class="label">result</span>no artifact emitted</p>
+      </article>
+
+      <article class="specimen">
+        <header class="specimen-head">
+          <span class="specimen-num">03</span>
+          <span class="specimen-name">affected set</span>
+        </header>
+        <div class="specimen-body">
+<pre class="specimen-code"><span class="kw">type</span> <span class="ty">Condition</span> =
+  | <span class="ty">Sunny</span>
+  | <span class="ty">Cloudy</span>
+  | <span class="ty">Rainy</span>
+  | <span class="add">Hail</span>          <span class="com">-- edit</span></pre>
+<pre class="specimen-graph"><span class="node">Condition</span> + <span class="ok">Hail</span>
+  <span class="b">├─</span> describe       <span class="ok">recheck</span>
+  <span class="b">├─</span> generated test <span class="ok">regen</span>
+  <span class="b">└─</span> rust · ts · oas <span class="ok">re-emit</span>
+
+<span class="dim">skip: 27 unrelated nodes</span></pre>
+        </div>
+        <p class="specimen-receipt"><span class="label">affected</span><span class="moss">3 nodes</span><span class="sep">·</span><span class="label">skipped</span>27 with receipt</p>
+      </article>
+
+    </section>
+
+    <!-- ── Invariant — one full diagnostic, grounded by specimen 02 ── -->
     <section class="diagnostic">
       <span class="section-label">a diagnostic</span>
 <pre class="invariant"><span class="title">Invariant —</span>
