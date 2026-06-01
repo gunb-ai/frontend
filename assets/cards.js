@@ -141,8 +141,28 @@
 
   const LINE_NUM_RE = /\bL\d+\b/;
 
+  // Card-shape-aware accessors. A lane-tree card carries its graph
+  // structure in card.lanes (cells × columns); a relation card uses
+  // card.graph (nodes + edges); a cost-area card has neither.
+  function cardCells(card) {
+    if (card.shape === "lane-tree") {
+      const out = [];
+      for (const row of card.lanes.rows) {
+        for (const cell of row.cells) {
+          if (cell) out.push(cell);
+        }
+      }
+      return out;
+    }
+    if (card.graph) return card.graph.nodes;
+    return [];
+  }
+  function cardNodeIds(card) {
+    return new Set(cardCells(card).map(c => c.id));
+  }
+
   function validateRefsAnchored(card) {
-    const ids = new Set(card.graph.nodes.map(n => n.id));
+    const ids = cardNodeIds(card);
     for (const line of card.code) {
       for (const p of line.parts) {
         if (p.kind === "ref" && !ids.has(p.id)) {
@@ -150,14 +170,16 @@
         }
       }
     }
-    for (const e of card.graph.edges) {
-      if (!ids.has(e.from)) throw new Error(card.id + ": edge from '" + e.from + "' missing");
-      if (!ids.has(e.to))   throw new Error(card.id + ": edge to '"   + e.to   + "' missing");
+    if (card.graph) {
+      for (const e of card.graph.edges) {
+        if (!ids.has(e.from)) throw new Error(card.id + ": edge from '" + e.from + "' missing");
+        if (!ids.has(e.to))   throw new Error(card.id + ": edge to '"   + e.to   + "' missing");
+      }
     }
   }
   function validateRoleConsistency(card) {
     const byId = {};
-    for (const n of card.graph.nodes) byId[n.id] = n;
+    for (const c of cardCells(card)) byId[c.id] = c;
     for (const line of card.code) {
       for (const p of line.parts) {
         if (p.kind !== "ref" || !p.role) continue;
@@ -174,19 +196,31 @@
     for (const line of card.code) {
       for (const p of line.parts) if (p.kind === "ref") codeRefs.add(p.id);
     }
-    for (const n of card.graph.nodes) {
-      if (n.generated || n.role === "context") continue;
-      if (!codeRefs.has(n.id)) {
-        throw new Error(card.id + ": active graph node '" + n.id + "' has no code anchor");
+    for (const c of cardCells(card)) {
+      if (c.generated || c.kind === "artifact" || c.role === "context") continue;
+      if (!codeRefs.has(c.id)) {
+        throw new Error(card.id + ": active graph node '" + c.id + "' has no code anchor");
       }
     }
   }
   function validateNoLineNumbersInGraph(card) {
-    for (const n of card.graph.nodes) {
-      if (LINE_NUM_RE.test(n.label)) throw new Error(card.id + ": graph label '" + n.label + "' uses L## semantics");
+    for (const c of cardCells(card)) {
+      const label = c.label || c.id;
+      if (LINE_NUM_RE.test(label)) throw new Error(card.id + ": graph label '" + label + "' uses L## semantics");
     }
-    for (const e of card.graph.edges) {
-      if (e.label && LINE_NUM_RE.test(e.label)) throw new Error(card.id + ": edge label '" + e.label + "' uses L## semantics");
+    if (card.graph) {
+      for (const e of card.graph.edges) {
+        if (e.label && LINE_NUM_RE.test(e.label)) throw new Error(card.id + ": edge label '" + e.label + "' uses L## semantics");
+      }
+    }
+    if (card.shape === "lane-tree") {
+      for (const row of card.lanes.rows) {
+        for (const cell of row.cells) {
+          if (cell && cell.via && LINE_NUM_RE.test(cell.via)) {
+            throw new Error(card.id + ": lane via label uses L## semantics");
+          }
+        }
+      }
     }
   }
   function validateReceiptNoLineNumbers(card) {
@@ -241,7 +275,7 @@
   }
   function renderCode(card) {
     const roleById = {};
-    for (const n of card.graph.nodes) roleById[n.id] = n.role;
+    for (const c of cardCells(card)) roleById[c.id] = c.role;
     const refRole = id => roleById[id];
     const head = '<div class="card-code-head">'
                + '<span class="ck-dot">●</span> '
@@ -441,8 +475,158 @@
          + '</svg></div>';
   }
 
+  /* Lane-tree: a story renderer for affected-set cards.
+     Fixed columns × fixed rows. Edges only connect adjacent columns
+     within the same row, so the diagram CANNOT cross — overlap is
+     structurally impossible, not "prevented by elbow staggering."
+
+     Spec shape:
+       card.shape = "lane-tree"
+       card.lanes = {
+         columns: ["fact", "field", "operation", "artifact"],
+         rows: [{ id, cells: [cell | null, ...] }, ...]
+       }
+       cell = { id, label, role, kind?, via? }
+         - via labels the OUTGOING edge from this cell to the next
+         - kind: "artifact" renders the cut-corner pentagon */
+  function renderLaneTree(card) {
+    const NODE_H = 28;
+    const ROW_GAP = 50;
+    const COL_GAP_MIN = 36;
+    const BASE_Y = 22;
+    const BASE_X = 18;
+    const PAD = 18;
+
+    const lanes = card.lanes;
+    const cols = lanes.columns;
+    const rows = lanes.rows;
+
+    // Per-column width = max cell label width across rows
+    const colWidth = cols.map((_, ci) => {
+      let max = 60;
+      for (const row of rows) {
+        const cell = row.cells[ci];
+        if (!cell) continue;
+        const w = labelWidth(cell.label || cell.id);
+        if (w > max) max = w;
+      }
+      return max;
+    });
+
+    // Per-gap demand: max via label crossing this boundary + clearance
+    const gapDemand = [];
+    for (let ci = 0; ci < cols.length - 1; ci++) {
+      let need = 0;
+      for (const row of rows) {
+        const left = row.cells[ci];
+        if (!left || !left.via) continue;
+        const next = row.cells[ci + 1];
+        if (!next) continue;
+        const w = edgeLabelWidth(left.via) + 20;
+        if (w > need) need = w;
+      }
+      gapDemand.push(Math.max(COL_GAP_MIN, need));
+    }
+
+    // Column x positions
+    const colX = [];
+    let cx = BASE_X;
+    for (let i = 0; i < cols.length; i++) {
+      colX.push(cx);
+      cx += colWidth[i];
+      if (i < cols.length - 1) cx += gapDemand[i];
+    }
+    const totalW = cx + PAD;
+    const totalH = BASE_Y + rows.length * ROW_GAP + PAD;
+
+    let nodesHtml = "";
+    let edgesHtml = "";
+    let labelsHtml = "";
+
+    for (let ri = 0; ri < rows.length; ri++) {
+      const row = rows[ri];
+      const y = BASE_Y + ri * ROW_GAP;
+      const cy = y + NODE_H / 2;
+
+      let prevX = null;
+      let prevW = null;
+      let prevCell = null;
+
+      for (let ci = 0; ci < row.cells.length; ci++) {
+        const cell = row.cells[ci];
+        if (!cell) { prevX = null; prevCell = null; continue; }
+
+        const xx = colX[ci];
+        const ww = colWidth[ci];
+        const cls = roleClass(cell.role);
+
+        // Render box (rect or cut-corner artifact)
+        if (cell.kind === "artifact") {
+          const cut = 8;
+          const d = "M " + xx + " " + y
+                  + " H " + (xx + ww - cut)
+                  + " L " + (xx + ww) + " " + (y + cut)
+                  + " V " + (y + NODE_H)
+                  + " H " + xx + " Z";
+          nodesHtml += '<g class="graph-node ' + cls + '">'
+                    + '<path d="' + d + '" />'
+                    + '<line x1="' + (xx + ww - cut) + '" y1="' + y
+                    + '" x2="' + (xx + ww - cut) + '" y2="' + (y + cut) + '" />'
+                    + '<line x1="' + (xx + ww - cut) + '" y1="' + (y + cut)
+                    + '" x2="' + (xx + ww) + '" y2="' + (y + cut) + '" />'
+                    + '<text x="' + (xx + ww / 2) + '" y="' + (cy + 4)
+                    + '" text-anchor="middle">' + esc(cell.label || cell.id) + '</text>'
+                    + '</g>';
+        } else {
+          nodesHtml += '<g class="graph-node ' + cls + '">'
+                    + '<rect x="' + xx + '" y="' + y + '" width="' + ww
+                    + '" height="' + NODE_H + '" rx="4" />'
+                    + '<text x="' + (xx + ww / 2) + '" y="' + (cy + 4)
+                    + '" text-anchor="middle">' + esc(cell.label || cell.id) + '</text>'
+                    + '</g>';
+        }
+
+        // Edge from prevCell to this cell (straight horizontal — same row)
+        if (prevX !== null) {
+          const ex1 = prevX + prevW;
+          const ex2 = xx;
+          // Edge color follows the TARGET's role (the downstream node)
+          edgesHtml += '<line class="graph-edge ' + cls + '" x1="' + ex1
+                    + '" y1="' + cy + '" x2="' + ex2 + '" y2="' + cy
+                    + '" marker-end="url(#card-arrow)" />';
+
+          // Via label sits on the edge, above the line.
+          // The via lives on the PREV cell (it annotates the outgoing edge).
+          if (prevCell && prevCell.via) {
+            const midX = (ex1 + ex2) / 2;
+            labelsHtml += '<text class="graph-edge-label ' + cls + '" x="' + midX
+                       + '" y="' + (cy - 6) + '" text-anchor="middle">'
+                       + esc(prevCell.via) + '</text>';
+          }
+        }
+
+        prevX = xx;
+        prevW = ww;
+        prevCell = cell;
+      }
+    }
+
+    const defs = '<defs>'
+               + '<marker id="card-arrow" viewBox="0 0 10 10" refX="9" refY="5"'
+               + ' markerWidth="6" markerHeight="6" orient="auto">'
+               + '<path d="M0,0 L10,5 L0,10 Z" fill="context-stroke"/>'
+               + '</marker></defs>';
+
+    return '<div class="card-graph">'
+         + '<svg viewBox="0 0 ' + totalW + ' ' + totalH
+         + '" preserveAspectRatio="xMidYMid meet" aria-label="' + esc(card.name || "") + '">'
+         + defs + edgesHtml + labelsHtml + nodesHtml
+         + '</svg></div>';
+  }
+
   function renderGraph(card) {
     if (card.shape === "cost-area") return renderCostArea(card);
+    if (card.shape === "lane-tree") return renderLaneTree(card);
     return renderRelationGraph(card);
   }
 
@@ -561,72 +745,34 @@
     }
   };
 
-  /* ── Shared base layout for cards 01 and 02.
-        baseLayoutNodes/Edges describe User + containers + artifacts.
-        Card 01 uses this directly. Card 02 calls withTimestamp() to
-        prepend Timestamp + the Timestamp → User edge at a leftward
-        column, leaving the User+downstream layout structurally
-        identical between the two cards. */
-  // Base graph for cards 01/02 — one User-rooted DAG with three
-  // operation branches. Each branch reads a different field:
+  // Layout for card 01 (projection view) — simple User-rooted tree.
+  // Card 01 is "one description · three operations · three artifacts":
+  // teach the SHAPE of the system. format_joined and field-level
+  // dependencies belong to card 02's lane-tree view, not here.
   //
-  //   Users.profile  uses .created_at (via format_joined)
-  //   Users.email    uses .email
-  //   Users.token    uses .id
-  //
-  // format_joined is its own graph node — it's the bridge between
-  // Timestamp and the profile branch. Profile (the return type) has
-  // a joined: String field computed by calling format_joined on
-  // u.created_at. The visual chain in card 02 is:
-  //
-  //   Timestamp ──→ User           ──→ Users.profile
-  //             \                 /
-  //              ──→ format_joined
-  //
-  // ...with User also branching to .email and .token (grey, untouched).
-  function baseLayoutNodes(system) {
+  //   User → Users.profile → profile.rs
+  //        → Users.email   → email.rs
+  //        → Users.token   → token.rs
+  function projectionLayoutNodes(system) {
     return [
-      node("User",          "User",          0, 0.5),
-      node("format_joined", "format_joined", 0, 2),
-      node("UsersProfile",  "Users.profile", 1, 0),
-      node("UsersEmail",    "Users.email",   1, 1),
-      node("UsersToken",    "Users.token",   1, 2),
+      node("User",         "User",          0, 1),
+      node("UsersProfile", "Users.profile", 1, 0),
+      node("UsersEmail",   "Users.email",   1, 1),
+      node("UsersToken",   "Users.token",   1, 2),
       artifact("profile_rs", system.artifacts.profile_rs.label, 2, 0),
       artifact("email_rs",   system.artifacts.email_rs.label,   2, 1),
       artifact("token_rs",   system.artifacts.token_rs.label,   2, 2)
     ];
   }
-  function baseLayoutEdges() {
+  function projectionLayoutEdges() {
     return [
-      edge("User",          "UsersProfile", "uses .created_at"),
-      edge("User",          "UsersEmail",   "uses .email"),
-      edge("User",          "UsersToken",   "uses .id"),
-      edge("format_joined", "UsersProfile", "called in"),
-      edge("UsersProfile",  "profile_rs",   ""),
-      edge("UsersEmail",    "email_rs",     ""),
-      edge("UsersToken",    "token_rs",     "")
+      edge("User", "UsersProfile", "profile"),
+      edge("User", "UsersEmail",   "email"),
+      edge("User", "UsersToken",   "token"),
+      edge("UsersProfile", "profile_rs", ""),
+      edge("UsersEmail",   "email_rs",   ""),
+      edge("UsersToken",   "token_rs",   "")
     ];
-  }
-  // Card 02 prepends Timestamp by shifting the base layout one column
-  // right and inserting Timestamp at col 0 with a single edge to User.
-  // Session does NOT get a Timestamp edge — that's the structural point
-  // of card 02: the affected set tracks the edit through created_at
-  // but doesn't follow into the parallel Sessions domain.
-  function withTimestamp(baseNodes, baseEdges) {
-    const shiftedNodes = baseNodes.map(n =>
-      Object.assign({}, n, { col: n.col + 1 })
-    );
-    return {
-      nodes: [
-        node("Timestamp", "Timestamp", 0, 1.25),
-        ...shiftedNodes
-      ],
-      edges: [
-        edge("Timestamp", "User",          "created_at"),
-        edge("Timestamp", "format_joined", "param"),
-        ...baseEdges
-      ]
-    };
   }
   function applyNodeRoles(nodes, roleMap) {
     return nodes.map(n => {
@@ -654,40 +800,30 @@
       codeFile: "examples/users.dag",
       code: [
         ln(1,  [kw("type"), tx(" "), ref("User", "User", "stable"),
-                tx(" { id, email, name, created_at : "),
-                mark("Timestamp", "stable"), tx(" }")]),
-        ln(2,  [kw("type"), tx(" Profile { name, joined : String }       "),
-                com("-- joined comes from a Timestamp")]),
+                tx(" { id, email, name, created_at : Timestamp }")]),
+        ln(2,  [kw("type"), tx(" Profile { name, joined : String }")]),
         blank(3),
-        ln(4,  [kw("fn"), tx(" "), ref("format_joined", "format_joined", "derived"),
-                tx("(t: "), mark("Timestamp", "stable"), tx(") -> String")]),
-        blank(5),
-        ln(6,  [kw("service"), tx(" Users {")]),
-        ln(7,  [tx("  "), ref("UsersProfile", "profile", "derived"),
-                tx("(id) -> Profile      "),
-                com("-- joined = format_joined(u.created_at)")]),
-        ln(8,  [tx("  "), ref("UsersEmail",   "email",   "derived"),
-                tx("(id)   -> Email        "), com("-- address = u.email")]),
-        ln(9,  [tx("  "), ref("UsersToken",   "token",   "derived"),
-                tx("(id)   -> AuthToken    "), com("-- hash = hash(u.id)")]),
-        ln(10, [tx("}")]),
-        blank(11),
-        ln(12, [kw("project"), tx(" Users."), ref("UsersProfile", "profile", "derived"),
+        ln(4,  [kw("service"), tx(" Users {")]),
+        ln(5,  [tx("  "), ref("UsersProfile", "profile", "derived"), tx("(id) -> Profile")]),
+        ln(6,  [tx("  "), ref("UsersEmail",   "email",   "derived"), tx("(id)   -> Email")]),
+        ln(7,  [tx("  "), ref("UsersToken",   "token",   "derived"), tx("(id)   -> AuthToken")]),
+        ln(8,  [tx("}")]),
+        blank(9),
+        ln(10, [kw("project"), tx(" Users."), ref("UsersProfile", "profile", "derived"),
                 tx(" -> "), ref("profile_rs")]),
-        ln(13, [kw("project"), tx(" Users."), ref("UsersEmail",   "email",   "derived"),
+        ln(11, [kw("project"), tx(" Users."), ref("UsersEmail",   "email",   "derived"),
                 tx("   -> "), ref("email_rs")]),
-        ln(14, [kw("project"), tx(" Users."), ref("UsersToken",   "token",   "derived"),
+        ln(12, [kw("project"), tx(" Users."), ref("UsersToken",   "token",   "derived"),
                 tx("   -> "), ref("token_rs")])
       ],
       graph: {
-        nodes: applyNodeRoles(baseLayoutNodes(system), {
-          User:          "stable",
-          format_joined: "derived",
-          UsersProfile:  "derived",
-          UsersEmail:    "derived",
-          UsersToken:    "derived"
+        nodes: applyNodeRoles(projectionLayoutNodes(system), {
+          User:         "stable",
+          UsersProfile: "derived",
+          UsersEmail:   "derived",
+          UsersToken:   "derived"
         }),
-        edges: applyEdgeRoles(baseLayoutEdges(), {}, "derived")
+        edges: applyEdgeRoles(projectionLayoutEdges(), {}, "derived")
       },
       receipt: [
         { label: "structure",    value: "{stable:one description} · {derived:three operations}" },
@@ -708,71 +844,83 @@
       name: "edit Timestamp · one branch re-derived, two unrelated",
       systemId: system.id,
       codeFile: "examples/users.dag",
+      shape: "lane-tree",
       code: [
         diffRm(1,  [kw("type"), tx(" "), ref("Timestamp", "Timestamp", "focus"), tx(" = UnixMillis")]),
         diffAdd(1, [kw("type"), tx(" "), ref("Timestamp", "Timestamp", "focus"), tx(" = IsoDateTime")]),
         blank(2),
-        ln(3,  [kw("type"), tx(" "), ref("User"),
-                tx(" { id, email, name, created_at : "), ref("Timestamp"), tx(" }")]),
-        ln(4,  [kw("type"), tx(" Profile { name, joined : String }       "),
-                com("-- joined comes from a Timestamp")]),
+        ln(3,  [kw("type"), tx(" User { id, email, name, "),
+                ref("user_created_at", "created_at", "derived"), tx(" : "),
+                ref("Timestamp"), tx(" }")]),
+        ln(4,  [kw("type"), tx(" Profile { name, joined : String }")]),
         blank(5),
-        ln(6,  [kw("fn"), tx(" "), ref("format_joined", "format_joined", "derived"),
-                tx("(t: "), ref("Timestamp"), tx(") -> String")]),
+        ln(6,  [kw("fn"), tx(" format_joined(t: "), ref("Timestamp"), tx(") -> String")]),
         blank(7),
         ln(8,  [kw("service"), tx(" Users {")]),
         ln(9,  [tx("  "), ref("UsersProfile", "profile", "transitive"),
-                tx("(id) -> Profile      "),
-                com("-- joined = format_joined(u.created_at)")]),
-        ln(10, [tx("  "), ref("UsersEmail",   "email",   "context"),
-                tx("(id)   -> Email        "), com("-- address = u.email")]),
-        ln(11, [tx("  "), ref("UsersToken",   "token",   "context"),
-                tx("(id)   -> AuthToken    "), com("-- hash = hash(u.id)")]),
-        ln(12, [tx("}")]),
-        blank(13),
-        ln(14, [kw("project"), tx(" Users."), ref("UsersProfile", "profile", "transitive"),
+                tx("(id) -> Profile {")]),
+        ln(10, [tx("    name:   u.name,")]),
+        ln(11, [tx("    joined: format_joined(u."),
+                ref("user_created_at", "created_at", "derived"), tx(")")]),
+        ln(12, [tx("  }")]),
+        ln(13, [tx("  "), ref("UsersEmail",   "email",   "context"),
+                tx("(id)   -> Email     { u."), ref("user_email", "email", "context"), tx(" }")]),
+        ln(14, [tx("  "), ref("UsersToken",   "token",   "context"),
+                tx("(id)   -> AuthToken { hash(u."), ref("user_id", "id", "context"), tx(") }")]),
+        ln(15, [tx("}")]),
+        blank(16),
+        ln(17, [kw("project"), tx(" Users."), ref("UsersProfile", "profile", "transitive"),
                 tx(" -> "), ref("profile_rs")]),
-        ln(15, [kw("project"), tx(" Users."), ref("UsersEmail",   "email",   "context"),
+        ln(18, [kw("project"), tx(" Users."), ref("UsersEmail",   "email",   "context"),
                 tx("   -> "), ref("email_rs")]),
-        ln(16, [kw("project"), tx(" Users."), ref("UsersToken",   "token",   "context"),
+        ln(19, [kw("project"), tx(" Users."), ref("UsersToken",   "token",   "context"),
                 tx("   -> "), ref("token_rs")])
       ],
-      graph: (() => {
-        const wt = withTimestamp(baseLayoutNodes(system), baseLayoutEdges());
-        const nodes = applyNodeRoles(wt.nodes, {
-          Timestamp:     "focus",
-          User:          "derived",     // its created_at field changed
-          format_joined: "derived",     // directly takes Timestamp as param
-          UsersProfile:  "transitive",  // uses both — feeds Profile.joined
-          UsersEmail:    "context",     // unrelated branch
-          UsersToken:    "context"      // unrelated branch
-        }).map(n => {
-          if (n.id === "email_rs" || n.id === "token_rs") {
-            return Object.assign({}, n, { role: "context" });
+      // Lane tree: 4 columns × 3 rows. Each row is a branch; edges
+      // only connect adjacent cells in the same row. Overlap is
+      // structurally impossible.
+      lanes: {
+        columns: ["fact", "field", "operation", "artifact"],
+        rows: [
+          {
+            id: "profile",
+            cells: [
+              { id: "Timestamp",       label: "Timestamp",        role: "focus" },
+              { id: "user_created_at", label: "User.created_at",  role: "derived",
+                via: "format_joined(...)" },
+              { id: "UsersProfile",    label: "Users.profile",    role: "transitive" },
+              { id: "profile_rs",      label: "profile.rs",       role: "artifact",
+                kind: "artifact" }
+            ]
+          },
+          {
+            id: "email",
+            cells: [
+              null,
+              { id: "user_email",      label: "User.email",       role: "context" },
+              { id: "UsersEmail",      label: "Users.email",      role: "context" },
+              { id: "email_rs",        label: "email.rs",         role: "context",
+                kind: "artifact" }
+            ]
+          },
+          {
+            id: "token",
+            cells: [
+              null,
+              { id: "user_id",         label: "User.id",          role: "context" },
+              { id: "UsersToken",      label: "Users.token",      role: "context" },
+              { id: "token_rs",        label: "token.rs",         role: "context",
+                kind: "artifact" }
+            ]
           }
-          return n;
-        });
-        return {
-          nodes,
-          edges: applyEdgeRoles(wt.edges, {
-            "Timestamp→User":             "focus",
-            "Timestamp→format_joined":    "focus",
-            "User→UsersProfile":          "transitive",
-            "User→UsersEmail":            "context",
-            "User→UsersToken":            "context",
-            "format_joined→UsersProfile": "transitive",
-            "UsersProfile→profile_rs":    "transitive",
-            "UsersEmail→email_rs":        "context",
-            "UsersToken→token_rs":        "context"
-          }, "derived")
-        };
-      })(),
+        ]
+      },
       receipt: [
         { label: "changed",    value: "{focus:Timestamp representation}" },
-        { label: "direct",     value: "{derived:User.created_at} · {derived:format_joined}" },
-        { label: "transitive", value: "{transitive:Users.profile} · {transitive:Profile.joined}" },
+        { label: "direct",     value: "{derived:User.created_at}" },
+        { label: "transitive", value: "{transitive:Profile.joined} · {transitive:Users.profile}" },
         { label: "re-derived", value: "{artifact:profile.rs}" },
-        { label: "unrelated",  value: "{context:Users.email · Users.token · email.rs · token.rs}" },
+        { label: "unrelated",  value: "{context:User.email · User.id · Users.email · Users.token · email.rs · token.rs}" },
         { label: "hand-edits", value: "{derived:zero}" }
       ]
     };
