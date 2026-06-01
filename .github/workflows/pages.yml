@@ -27,10 +27,20 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
+      # Publish ONLY the public site. Everything else in the repo
+      # (workpad.html, legacy/, docs/, scripts/, *.md, ...) stays in
+      # source but is never uploaded, so it is not served at gunb.ai.
+      - name: Stage public files
+        run: |
+          mkdir -p _site
+          cp index.html _site/
+          cp -R assets _site/
+          cp CNAME _site/
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
 
       - name: Deploy to GitHub Pages
         id: deployment
