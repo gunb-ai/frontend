@@ -8,55 +8,20 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/site.css" />
   <style>
-    /* ── Palette tokens (lifted from legacy/moodboard.html) ── */
+    /* Page-specific styles only — shared tokens + base live in /assets/site.css. */
+
+    /* Workpad-specific overrides on top of the base */
     :root {
-      --hue-warm: 37;
-      --hue-moss: 134;
-      --hue-clay: 3;
-      --accent-sat: 36%;
-      --accent-l: 48%;
-      --accent-l-dim: 36%;
-
-      --moss: hsl(var(--hue-moss), var(--accent-sat), var(--accent-l));
-      --moss-dim: hsl(var(--hue-moss), var(--accent-sat), var(--accent-l-dim));
-      --moss-subtle: hsla(var(--hue-moss), var(--accent-sat), var(--accent-l), 0.14);
-
-      --clay: hsl(var(--hue-clay), var(--accent-sat), var(--accent-l));
-      --clay-dim: hsl(var(--hue-clay), var(--accent-sat), var(--accent-l-dim));
-      --clay-subtle: hsla(var(--hue-clay), var(--accent-sat), var(--accent-l), 0.14);
-
-      --void: hsl(var(--hue-warm), 0%, 5%);
-      --void-up: hsl(var(--hue-warm), 3%, 8%);
-      --void-up2: hsl(var(--hue-warm), 4%, 11%);
-
-      --stone: hsl(var(--hue-warm), 20%, 76%);
-      --stone-dim: hsl(var(--hue-warm), 12%, 55%);
-      --stone-faint: hsl(var(--hue-warm), 10%, 38%);
-
-      --warm-white: hsl(var(--hue-warm), 27%, 94%);
-      --warm-white-dim: hsl(var(--hue-warm), 18%, 87%);
-
-      --border-dark: hsla(var(--hue-warm), 20%, 76%, 0.08);
-      --border-dark-strong: hsla(var(--hue-warm), 20%, 76%, 0.16);
-
-      --font-mono: "JetBrains Mono", ui-monospace, monospace;
-      --font-sans: "Noto Sans", system-ui, sans-serif;
-
-      --stroke: 1.5px;
+      --stroke: 1.5px;   /* canonical SVG primitive stroke weight */
     }
-
-    *, *::before, *::after { box-sizing: border-box; }
-
     html {
-      background: hsl(var(--hue-warm), 0%, 3%);
+      background: hsl(var(--hue-warm), 0%, 3%);  /* slightly darker than --void for the workpad surface */
       color: var(--warm-white);
-      font-family: var(--font-sans);
       font-size: 15px;
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
     }
-    body { margin: 0; min-height: 100vh; }
+    body { min-height: 100vh; }
 
     /* ── Workpad chrome ── */
 
