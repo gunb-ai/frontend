@@ -983,7 +983,7 @@
 </head>
 <body>
 
-<!-- Shared Stoic Giant SVG symbol -->
+<!-- Shared Stoic Giant SVG symbol + auto-orienting arrow marker -->
 <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
   <symbol id="stoic-idle" viewBox="0 0 120 120">
     <g transform="translate(-12 -12) scale(1.2)">
@@ -995,6 +995,12 @@
       "/>
     </g>
   </symbol>
+  <!-- Auto-orienting arrowhead. Referenced via marker-end="url(#arrow)". -->
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+          markerWidth="6" markerHeight="6"
+          markerUnits="strokeWidth" orient="auto">
+    <path d="M0,0 L10,5 L0,10 Z" fill="currentColor"/>
+  </marker>
 </svg>
 
 <header class="workpad-header">
@@ -1378,10 +1384,9 @@ diagnostics: 0</div></div>
         <div class="prim-cell-head"><span class="prim-cell-name">Edge</span><span class="prim-cell-kind">relation</span></div>
         <div class="prim-cell-body">
           <svg viewBox="0 0 128 80" fill="none" stroke="currentColor" stroke-width="1.5">
-            <rect x="14" y="28" width="32" height="24" rx="4" />
-            <rect x="82" y="28" width="32" height="24" rx="4" />
-            <line x1="46" y1="40" x2="82" y2="40" />
-            <polyline points="76,36 82,40 76,44" />
+            <rect x="14" y="24" width="32" height="32" rx="4" />
+            <rect x="82" y="24" width="32" height="32" rx="4" />
+            <line x1="46" y1="40" x2="78" y2="40" stroke-linecap="round" marker-end="url(#arrow)"/>
           </svg>
         </div>
         <p class="prim-cell-note">Directed relation between two nodes.</p>
