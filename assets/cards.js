@@ -263,21 +263,30 @@
     for (const n of nodes) byId[n.id] = n;
     const bounds = graphBounds(nodes);
 
-    // Stagger incoming edges so when N arrows converge on one target
-    // they enter the left edge at different y points. Without this,
-    // the final horizontal segments superimpose and read as a single
-    // double-thickness arrow. (Outgoing fan-out, by contrast, IS the
-    // intended "bus" pattern — shared vertical reads as a tree branch.)
+    // Two-axis edge staggering so multi-incoming convergence and
+    // multi-outgoing fan-outs don't pile arrows on top of each other:
+    //   - incoming offset: when N arrows converge on one target, they
+    //     enter the left edge at different y points so their final
+    //     horizontal segments don't superimpose.
+    //   - outgoing elbow fan: when N arrows leave one source, they
+    //     turn at slightly different elbow x columns so the verticals
+    //     don't share a single bus line.
     const incomingCount = {};
+    const outgoingCount = {};
     for (const e of card.graph.edges) {
       incomingCount[e.to] = (incomingCount[e.to] || 0) + 1;
+      outgoingCount[e.from] = (outgoingCount[e.from] || 0) + 1;
     }
     const incomingIdx = new Map();
+    const outgoingIdx = new Map();
     {
-      const seen = {};
+      const inSeen = {};
+      const outSeen = {};
       for (const e of card.graph.edges) {
-        seen[e.to] = seen[e.to] || 0;
-        incomingIdx.set(e, seen[e.to]++);
+        inSeen[e.to]    = inSeen[e.to]    || 0;
+        outSeen[e.from] = outSeen[e.from] || 0;
+        incomingIdx.set(e, inSeen[e.to]++);
+        outgoingIdx.set(e, outSeen[e.from]++);
       }
     }
     function tyFor(e) {
@@ -288,6 +297,18 @@
       const step = spread / (total - 1);
       return b.y + b.h / 2 - spread / 2 + incomingIdx.get(e) * step;
     }
+    function midFor(e, sx, tx) {
+      const total = outgoingCount[e.from];
+      let baseMid = sx + ELBOW_OFFSET;
+      if (total > 1) {
+        // Each outgoing edge gets its own elbow column. Step is small
+        // (4 px) so the fan still reads as siblings of one source
+        // rather than independent arrows.
+        const step = 5;
+        baseMid = sx + ELBOW_OFFSET + outgoingIdx.get(e) * step;
+      }
+      return Math.min(baseMid, tx - 8);
+    }
     function geomFor(e) {
       const a = byId[e.from];
       const b = byId[e.to];
@@ -296,8 +317,7 @@
       const tx = b.x;
       const ty = tyFor(e);
       const sameRow = Math.abs(sy - ty) < 1;
-      const baseMid = sx + ELBOW_OFFSET;
-      const mid = Math.min(baseMid, tx - 8);
+      const mid = midFor(e, sx, tx);
       return { sx, sy, tx, ty, mid, sameRow };
     }
     function pathFor(e) {
