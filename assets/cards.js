@@ -491,15 +491,14 @@
 
   const USERS_SYSTEM = {
     id: "users-system",
+    // One service with three operations, each using a different
+    // field of User. This is the "single tree" structure the
+    // operator asked for: the three coloring categories (direct,
+    // transitive, unrelated) are siblings under the same root.
     artifacts: {
-      // Users domain
-      users_rs:    { label: "users.rs",        from: "Users"     },
-      users_sql:   { label: "users.sql",       from: "users"     },
-      users_api:   { label: "users.openapi",   from: "UsersList" },
-      user_ts:     { label: "user_card.ts",    from: "UserCard"  },
-      // Sessions domain (parallel; does not depend on Timestamp)
-      sess_rs:     { label: "sessions.rs",     from: "Sessions"  },
-      sess_sql:    { label: "sessions.sql",    from: "sessions"  }
+      profile_rs: { label: "profile.rs", from: "UsersProfile" },
+      email_rs:   { label: "email.rs",   from: "UsersEmail"   },
+      token_rs:   { label: "token.rs",   from: "UsersToken"   }
     }
   };
 
@@ -509,48 +508,36 @@
         prepend Timestamp + the Timestamp → User edge at a leftward
         column, leaving the User+downstream layout structurally
         identical between the two cards. */
-  // Base graph for cards 01/02 — two parallel domains:
-  //   Users  (col 0: User)  → 4 containers → 4 artifacts
-  //   Sessions (col 0: Session) → 2 containers → 2 artifacts
-  // Sessions exists to demonstrate "affected set survives library
-  // boundaries" in card 02: a Timestamp edit ripples through Users
-  // but leaves Sessions untouched (grey).
+  // Base graph for cards 01/02 — one User-rooted tree with three
+  // branches. Each branch is a service operation using a different
+  // field of User:
+  //
+  //   Users.profile  uses User.created_at (via format_joined)
+  //   Users.email    uses User.email
+  //   Users.token    uses User.id
+  //
+  // When Timestamp changes (card 02): profile branch is affected
+  // (transitive), email and token branches are unrelated (grey).
+  // Three coloring categories under one roof.
   function baseLayoutNodes(system) {
     return [
-      // Users domain
-      node("User",      "User",       0, 1.5),
-      node("Users",     "Users",      1, 0),
-      node("UsersList", "Users.list", 1, 1),
-      node("UserCard",  "UserCard",   1, 2),
-      node("users",     "users",      1, 3),
-      artifact("users_rs",  system.artifacts.users_rs.label,  2, 0),
-      artifact("users_api", system.artifacts.users_api.label, 2, 1),
-      artifact("user_ts",   system.artifacts.user_ts.label,   2, 2),
-      artifact("users_sql", system.artifacts.users_sql.label, 2, 3),
-      // Sessions domain (parallel, doesn't reference Timestamp)
-      node("Session",   "Session",    0, 5),
-      node("Sessions",  "Sessions",   1, 4.5),
-      node("sessions",  "sessions",   1, 5.5),
-      artifact("sess_rs",   system.artifacts.sess_rs.label,   2, 4.5),
-      artifact("sess_sql",  system.artifacts.sess_sql.label,  2, 5.5)
+      node("User",         "User",          0, 1),
+      node("UsersProfile", "Users.profile", 1, 0),
+      node("UsersEmail",   "Users.email",   1, 1),
+      node("UsersToken",   "Users.token",   1, 2),
+      artifact("profile_rs", system.artifacts.profile_rs.label, 2, 0),
+      artifact("email_rs",   system.artifacts.email_rs.label,   2, 1),
+      artifact("token_rs",   system.artifacts.token_rs.label,   2, 2)
     ];
   }
   function baseLayoutEdges() {
     return [
-      // Users chain
-      edge("User",      "Users",      "service"),
-      edge("User",      "UsersList",  "operation"),
-      edge("User",      "UserCard",   "view"),
-      edge("User",      "users",      "table"),
-      edge("Users",     "users_rs",   ""),
-      edge("UsersList", "users_api",  ""),
-      edge("UserCard",  "user_ts",    ""),
-      edge("users",     "users_sql",  ""),
-      // Sessions chain
-      edge("Session",   "Sessions",   "service"),
-      edge("Session",   "sessions",   "table"),
-      edge("Sessions",  "sess_rs",    ""),
-      edge("sessions",  "sess_sql",   "")
+      edge("User", "UsersProfile", "created_at"),
+      edge("User", "UsersEmail",   "email"),
+      edge("User", "UsersToken",   "id"),
+      edge("UsersProfile", "profile_rs", ""),
+      edge("UsersEmail",   "email_rs",   ""),
+      edge("UsersToken",   "token_rs",   "")
     ];
   }
   // Card 02 prepends Timestamp by shifting the base layout one column
@@ -564,7 +551,7 @@
     );
     return {
       nodes: [
-        node("Timestamp", "Timestamp", 0, 1.5),
+        node("Timestamp", "Timestamp", 0, 1),
         ...shiftedNodes
       ],
       edges: [
@@ -594,45 +581,44 @@
     return {
       id: "card-01",
       num: "01",
-      name: "one system · six target artifacts",
+      name: "one description · three operations · three artifacts",
       systemId: system.id,
       codeFile: "examples/users.dag",
       code: [
         ln(1,  [kw("type"), tx(" "), ref("User", "User", "stable"),
-                tx(" { id, name, created_at : "), mark("Timestamp", "stable"), tx(" }")]),
-        ln(2,  [kw("type"), tx(" "), ref("Session", "Session", "stable"),
-                tx(" { id, user_id, expires_at : Duration }")]),
-        ln(3,  [kw("fn"), tx(" public_user(u: "), ref("User"), tx(") -> UserView")]),
+                tx(" { id, email, name, created_at : "),
+                mark("Timestamp", "stable"), tx(" }")]),
+        blank(2),
+        ln(3,  [kw("fn"), tx(" format_joined(t: "), mark("Timestamp", "stable"), tx(") -> String")]),
         blank(4),
-        ln(5,  [kw("service"), tx(" "), ref("Users", "Users", "derived"), tx(" { list -> List<UserView> }")]),
-        ln(6,  [kw("service"), tx(" "), ref("Sessions", "Sessions", "derived"), tx(" { auth -> "), ref("Session"), tx(" }")]),
-        ln(7,  [kw("table"),   tx("   "), ref("users", "users", "derived"), tx(" { schema_for "), ref("User"), tx(" }")]),
-        ln(8,  [kw("table"),   tx("   "), ref("sessions", "sessions", "derived"), tx(" { schema_for "), ref("Session"), tx(" }")]),
-        ln(9,  [kw("view"),    tx("    "), ref("UserCard", "UserCard", "derived"), tx(" { renders UserView }")]),
+        ln(5,  [kw("service"), tx(" Users {")]),
+        ln(6,  [tx("  "), ref("UsersProfile", "profile", "derived"),
+                tx("(id) -> Profile   "), com("-- created_at via format_joined")]),
+        ln(7,  [tx("  "), ref("UsersEmail",   "email",   "derived"),
+                tx("(id)   -> Email     "), com("-- u.email")]),
+        ln(8,  [tx("  "), ref("UsersToken",   "token",   "derived"),
+                tx("(id)   -> AuthToken "), com("-- hash(u.id)")]),
+        ln(9,  [tx("}")]),
         blank(10),
-        ln(11, [kw("project"), tx(" "), ref("Users"),                   tx("     -> "), ref("users_rs")]),
-        ln(12, [kw("project"), tx(" "), ref("users"),                   tx("     -> "), ref("users_sql")]),
-        ln(13, [kw("project"), tx(" "), ref("UsersList", "Users.list"), tx(" -> "), ref("users_api")]),
-        ln(14, [kw("project"), tx(" "), ref("UserCard"),                tx("  -> "), ref("user_ts")]),
-        ln(15, [kw("project"), tx(" "), ref("Sessions"),                tx("  -> "), ref("sess_rs")]),
-        ln(16, [kw("project"), tx(" "), ref("sessions"),                tx("  -> "), ref("sess_sql")])
+        ln(11, [kw("project"), tx(" Users."), ref("UsersProfile", "profile", "derived"),
+                tx(" -> "), ref("profile_rs")]),
+        ln(12, [kw("project"), tx(" Users."), ref("UsersEmail",   "email",   "derived"),
+                tx("   -> "), ref("email_rs")]),
+        ln(13, [kw("project"), tx(" Users."), ref("UsersToken",   "token",   "derived"),
+                tx("   -> "), ref("token_rs")])
       ],
       graph: {
         nodes: applyNodeRoles(baseLayoutNodes(system), {
-          User:      "stable",
-          Users:     "derived",
-          UsersList: "derived",
-          UserCard:  "derived",
-          users:     "derived",
-          Session:   "stable",
-          Sessions:  "derived",
-          sessions:  "derived"
+          User:         "stable",
+          UsersProfile: "derived",
+          UsersEmail:   "derived",
+          UsersToken:   "derived"
         }),
         edges: applyEdgeRoles(baseLayoutEdges(), {}, "derived")
       },
       receipt: [
-        { label: "structure",    value: "{stable:two domains} · User and Session" },
-        { label: "emissions",    value: "{artifact:Rust} · {artifact:SQL} · {artifact:OpenAPI} · {artifact:TypeScript}" },
+        { label: "structure",    value: "{stable:one description} · {derived:three operations}" },
+        { label: "emissions",    value: "{artifact:profile.rs} · {artifact:email.rs} · {artifact:token.rs}" },
         { label: "translations", value: "{derived:zero hand-written}" }
       ]
     };
@@ -646,50 +632,47 @@
     return {
       id: "card-02",
       num: "02",
-      name: "edit Timestamp · ripple across User domain, Sessions untouched",
+      name: "edit Timestamp · one branch re-derived, two unrelated",
       systemId: system.id,
       codeFile: "examples/users.dag",
       code: [
         diffRm(1,  [kw("type"), tx(" "), ref("Timestamp", "Timestamp", "focus"), tx(" = UnixMillis")]),
         diffAdd(1, [kw("type"), tx(" "), ref("Timestamp", "Timestamp", "focus"), tx(" = IsoDateTime")]),
         blank(2),
-        ln(3,  [kw("type"), tx(" "), ref("User"), tx(" { created_at : "), ref("Timestamp"), tx(" }")]),
-        ln(4,  [kw("type"), tx(" "), ref("Session"), tx(" { user_id, expires_at : Duration }")]),
-        blank(5),
-        ln(6,  [kw("fn"), tx(" format_joined(t: "), ref("Timestamp"), tx(") -> String")]),
-        ln(7,  [kw("fn"), tx(" public_user(u: "), ref("User"), tx(") -> UserView")]),
-        blank(8),
-        ln(9,  [kw("service"), tx(" "), ref("Users"),    tx(" { list -> List<UserView> }")]),
-        ln(10, [kw("service"), tx(" "), ref("Sessions"), tx(" { auth -> "), ref("Session"), tx(" }")]),
-        ln(11, [kw("table"),   tx("   "), ref("users"),    tx(" { schema_for "), ref("User"), tx(" }")]),
-        ln(12, [kw("table"),   tx("   "), ref("sessions"), tx(" { schema_for "), ref("Session"), tx(" }")]),
-        ln(13, [kw("view"),    tx("    "), ref("UserCard"), tx(" { renders UserView }")]),
-        blank(14),
-        ln(15, [kw("project"), tx(" "), ref("Users"),                   tx("     -> "), ref("users_rs")]),
-        ln(16, [kw("project"), tx(" "), ref("users"),                   tx("     -> "), ref("users_sql")]),
-        ln(17, [kw("project"), tx(" "), ref("UsersList", "Users.list"), tx(" -> "), ref("users_api")]),
-        ln(18, [kw("project"), tx(" "), ref("UserCard"),                tx("  -> "), ref("user_ts")]),
-        ln(19, [kw("project"), tx(" "), ref("Sessions"),                tx("  -> "), ref("sess_rs")]),
-        ln(20, [kw("project"), tx(" "), ref("sessions"),                tx("  -> "), ref("sess_sql")])
+        ln(3,  [kw("type"), tx(" "), ref("User"),
+                tx(" { id, email, name, created_at : "), ref("Timestamp"), tx(" }")]),
+        blank(4),
+        ln(5,  [kw("fn"), tx(" format_joined(t: "), ref("Timestamp"), tx(") -> String")]),
+        blank(6),
+        ln(7,  [kw("service"), tx(" Users {")]),
+        ln(8,  [tx("  "), ref("UsersProfile", "profile", "transitive"),
+                tx("(id) -> Profile   "), com("-- created_at via format_joined")]),
+        ln(9,  [tx("  "), ref("UsersEmail",   "email",   "context"),
+                tx("(id)   -> Email     "), com("-- u.email")]),
+        ln(10, [tx("  "), ref("UsersToken",   "token",   "context"),
+                tx("(id)   -> AuthToken "), com("-- hash(u.id)")]),
+        ln(11, [tx("}")]),
+        blank(12),
+        ln(13, [kw("project"), tx(" Users."), ref("UsersProfile", "profile", "transitive"),
+                tx(" -> "), ref("profile_rs")]),
+        ln(14, [kw("project"), tx(" Users."), ref("UsersEmail",   "email",   "context"),
+                tx("   -> "), ref("email_rs")]),
+        ln(15, [kw("project"), tx(" Users."), ref("UsersToken",   "token",   "context"),
+                tx("   -> "), ref("token_rs")])
       ],
       graph: (() => {
         const wt = withTimestamp(baseLayoutNodes(system), baseLayoutEdges());
-        // Override Sessions-domain artifact roles to context (grey).
-        // Default artifact role is "artifact" (warm-white); we mutate
-        // here because applyNodeRoles deliberately preserves the
-        // artifact role for kind: "artifact" nodes.
+        // Override email/token artifact roles to context (grey).
+        // Default artifact role is artifact (warm-white); mutate so
+        // the two unrelated artifacts read as grey.
         const nodes = applyNodeRoles(wt.nodes, {
-          Timestamp: "focus",
-          User:      "derived",       // direct: created_at field
-          users:     "derived",       // direct: schema_for User
-          Users:     "transitive",    // via public_user → UserView
-          UsersList: "transitive",
-          UserCard:  "transitive",
-          Session:   "context",       // unrelated domain
-          Sessions:  "context",
-          sessions:  "context"
+          Timestamp:    "focus",
+          User:         "derived",     // its created_at field changed
+          UsersProfile: "transitive",  // uses User.created_at → format_joined
+          UsersEmail:   "context",     // uses User.email — unaffected
+          UsersToken:   "context"      // uses User.id — unaffected
         }).map(n => {
-          if (n.id === "sess_rs" || n.id === "sess_sql") {
+          if (n.id === "email_rs" || n.id === "token_rs") {
             return Object.assign({}, n, { role: "context" });
           }
           return n;
@@ -697,30 +680,23 @@
         return {
           nodes,
           edges: applyEdgeRoles(wt.edges, {
-            "Timestamp→User":      "focus",
-            "User→users":          "derived",
-            "User→Users":          "transitive",
-            "User→UsersList":      "transitive",
-            "User→UserCard":       "transitive",
-            "users→users_sql":     "derived",
-            "Users→users_rs":      "transitive",
-            "UsersList→users_api": "transitive",
-            "UserCard→user_ts":    "transitive",
-            // Sessions-side edges stay grey
-            "Session→Sessions":    "context",
-            "Session→sessions":    "context",
-            "Sessions→sess_rs":    "context",
-            "sessions→sess_sql":   "context"
+            "Timestamp→User":            "focus",
+            "User→UsersProfile":         "transitive",
+            "User→UsersEmail":           "context",
+            "User→UsersToken":           "context",
+            "UsersProfile→profile_rs":   "transitive",
+            "UsersEmail→email_rs":       "context",
+            "UsersToken→token_rs":       "context"
           }, "derived")
         };
       })(),
       receipt: [
-        { label: "changed",      value: "{focus:Timestamp representation}" },
-        { label: "direct",       value: "{derived:User.created_at} · {derived:format_joined} · {derived:table users}" },
-        { label: "transitive",   value: "{transitive:public_user · UserView · service Users · Users.list · UserCard}" },
-        { label: "re-derived",   value: "{artifact:users.rs} · {artifact:users.sql} · {artifact:users.openapi} · {artifact:user_card.ts}" },
-        { label: "untouched",    value: "{context:Session · Sessions · sessions · sessions.rs · sessions.sql}" },
-        { label: "hand-edits",   value: "{derived:zero}" }
+        { label: "changed",    value: "{focus:Timestamp representation}" },
+        { label: "direct",     value: "{derived:User.created_at} · {derived:format_joined}" },
+        { label: "transitive", value: "{transitive:Users.profile} · Profile.joined" },
+        { label: "re-derived", value: "{artifact:profile.rs}" },
+        { label: "unrelated",  value: "{context:Users.email · Users.token · email.rs · token.rs}" },
+        { label: "hand-edits", value: "{derived:zero}" }
       ]
     };
   }
@@ -747,7 +723,8 @@
         ln(5, [tx("}")]),
         blank(6),
         ln(7, [kw("lens"), tx(" complexity("), ref("unique_users", "unique_users", "focus"),
-               tx(") "), mark("budget O(n)", "boundary")])
+               tx(") <= O(n)")]),
+        ln(8, [com("-- complexity budget set to O(n)")])
       ],
       panels: [
         { id: "declared", label: "declared", sublabel: "O(n)",  cols: 6, rows: 1, budgetRows: 1 },
