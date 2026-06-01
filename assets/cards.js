@@ -885,13 +885,20 @@
         ln(16, [tx("  iso8601(t: t)")]),
         ln(17, [tx("}")]),
         blank(18),
-        ln(19, [kw("fn"), tx(" build_profile(u: "), ref("User", "User", "context"), tx(") -> Profile {")]),
+        ln(19, [kw("fn"), tx(" build_profile(u: "), ty("User"), tx(") -> Profile {")]),
         ln(20, [tx("  Profile {")]),
         ln(21, [tx("    name: u.name,")]),
         ln(22, [tx("    joined: format_joined(t: u."),
                 ref("user_created_at", "created_at", "derived"), tx(")")]),
         ln(23, [tx("  }")]),
-        ln(24, [tx("}")])
+        ln(24, [tx("}")]),
+        blank(25),
+        ln(26, [kw("service"), tx(" Users {")]),
+        ln(27, [tx("  "), kw("operation"), tx(" "), ref("UsersProfile", "Profile", "transitive"), tx(" {")]),
+        ln(28, [tx("    input  { id: String }")]),
+        ln(29, [tx("    output { profile: Profile }")]),
+        ln(30, [tx("  }")]),
+        ln(31, [tx("}")])
       ],
       // Lane tree: 4 columns × 3 rows. Each row is a branch; edges
       // only connect adjacent cells in the same row. Overlap is
