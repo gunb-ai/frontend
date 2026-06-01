@@ -462,6 +462,8 @@ a { color: inherit; }
 .graph-node.map-boundary text   { fill: var(--clay); font-weight: 500; }
 .graph-node.map-context rect    { stroke: var(--stone-faint); stroke-width: 1; stroke-opacity: 0.55; }
 .graph-node.map-context text    { fill: var(--stone-dim); }
+.graph-node.map-skipped rect    { stroke: var(--stone); stroke-width: 1; stroke-opacity: 0.32; }
+.graph-node.map-skipped text    { fill: var(--stone-dim); fill-opacity: 0.4; }
 
 /* Artifact (cut-corner) — warm-white so artifacts read as the
    system's terminal bookends, distinct from moss derived nodes.
@@ -477,6 +479,7 @@ a { color: inherit; }
 .graph-edge.map-removed    { stroke: var(--clay); stroke-dasharray: 4 3; }
 .graph-edge.map-boundary   { stroke: var(--clay); }
 .graph-edge.map-context    { stroke: var(--stone-faint); stroke-opacity: 0.5; }
+.graph-edge.map-skipped    { stroke: var(--stone); stroke-opacity: 0.32; }
 
 .graph-edge-label {
   font-family: var(--font-mono);

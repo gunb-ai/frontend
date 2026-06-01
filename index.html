@@ -59,44 +59,10 @@
     <!-- Carved rule — fills page width, aligns with specimen cards below -->
     <div class="carved-rule" aria-hidden="true"><span class="notch"></span></div>
 
-    <!-- Three cards — generated from assets/cards.js. Each card spec
-         drives both code rendering and SVG graph. Validation catches
-         any code ref that does not map to a graph node. -->
-    <section class="story-ledger" aria-label="three causal proofs">
-      <div data-card="card-01"></div>
-      <div data-card="card-02"></div>
-      <div data-card="card-03"></div>
-    </section>
-
-    <!-- Invariant — IS the receipt for Card 03. Same failure, full form.
-         Includes the suggested replacement shape: the compiler does not
-         just diagnose, it shows the O(n) rewrite. -->
-    <section class="diagnostic">
-      <span class="section-label">a diagnostic — and the suggested fix</span>
-<pre class="invariant"><span class="title">Invariant —</span>
-  complexity bound violated
-
-  declared:
-    unique_users &lt;= O(n)
-
-  observed:
-    filter(users)   × n
-    count(users)    × n
-    composed: n × n = O(n²)
-
-  reached through:
-    filter(users) -&gt; count(users)
-
-  suggested:
-    index users by id once, then filter buckets of size 1
-
-  replacement shape:
-    let by_id = group_by(users, key: fn(u) { u.id })
-    by_id |&gt; values |&gt; filter(fn(bucket) { length(bucket) == 1 })
-
-  result:
-    no artifact emitted</pre>
-    </section>
+    <!-- One progressive example, four accreting stages. The deck is
+         generated from assets/cards.js. Navigate with prev/next or
+         ← / → keys. Each stage adds a layer to the same base diagram. -->
+    <div data-deck="api.dag"></div>
 
     <!-- Footer -->
     <footer class="foot">
