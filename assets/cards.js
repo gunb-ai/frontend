@@ -508,23 +508,30 @@
         prepend Timestamp + the Timestamp → User edge at a leftward
         column, leaving the User+downstream layout structurally
         identical between the two cards. */
-  // Base graph for cards 01/02 — one User-rooted tree with three
-  // branches. Each branch is a service operation using a different
-  // field of User:
+  // Base graph for cards 01/02 — one User-rooted DAG with three
+  // operation branches. Each branch reads a different field:
   //
-  //   Users.profile  uses User.created_at (via format_joined)
-  //   Users.email    uses User.email
-  //   Users.token    uses User.id
+  //   Users.profile  uses .created_at (via format_joined)
+  //   Users.email    uses .email
+  //   Users.token    uses .id
   //
-  // When Timestamp changes (card 02): profile branch is affected
-  // (transitive), email and token branches are unrelated (grey).
-  // Three coloring categories under one roof.
+  // format_joined is its own graph node — it's the bridge between
+  // Timestamp and the profile branch. Profile (the return type) has
+  // a joined: String field computed by calling format_joined on
+  // u.created_at. The visual chain in card 02 is:
+  //
+  //   Timestamp ──→ User           ──→ Users.profile
+  //             \                 /
+  //              ──→ format_joined
+  //
+  // ...with User also branching to .email and .token (grey, untouched).
   function baseLayoutNodes(system) {
     return [
-      node("User",         "User",          0, 1),
-      node("UsersProfile", "Users.profile", 1, 0),
-      node("UsersEmail",   "Users.email",   1, 1),
-      node("UsersToken",   "Users.token",   1, 2),
+      node("User",          "User",          0, 0.5),
+      node("format_joined", "format_joined", 0, 2),
+      node("UsersProfile",  "Users.profile", 1, 0),
+      node("UsersEmail",    "Users.email",   1, 1),
+      node("UsersToken",    "Users.token",   1, 2),
       artifact("profile_rs", system.artifacts.profile_rs.label, 2, 0),
       artifact("email_rs",   system.artifacts.email_rs.label,   2, 1),
       artifact("token_rs",   system.artifacts.token_rs.label,   2, 2)
@@ -532,12 +539,13 @@
   }
   function baseLayoutEdges() {
     return [
-      edge("User", "UsersProfile", "created_at"),
-      edge("User", "UsersEmail",   "email"),
-      edge("User", "UsersToken",   "id"),
-      edge("UsersProfile", "profile_rs", ""),
-      edge("UsersEmail",   "email_rs",   ""),
-      edge("UsersToken",   "token_rs",   "")
+      edge("User",          "UsersProfile", "uses .created_at"),
+      edge("User",          "UsersEmail",   "uses .email"),
+      edge("User",          "UsersToken",   "uses .id"),
+      edge("format_joined", "UsersProfile", "called in"),
+      edge("UsersProfile",  "profile_rs",   ""),
+      edge("UsersEmail",    "email_rs",     ""),
+      edge("UsersToken",    "token_rs",     "")
     ];
   }
   // Card 02 prepends Timestamp by shifting the base layout one column
@@ -588,31 +596,36 @@
         ln(1,  [kw("type"), tx(" "), ref("User", "User", "stable"),
                 tx(" { id, email, name, created_at : "),
                 mark("Timestamp", "stable"), tx(" }")]),
-        blank(2),
-        ln(3,  [kw("fn"), tx(" format_joined(t: "), mark("Timestamp", "stable"), tx(") -> String")]),
-        blank(4),
-        ln(5,  [kw("service"), tx(" Users {")]),
-        ln(6,  [tx("  "), ref("UsersProfile", "profile", "derived"),
-                tx("(id) -> Profile   "), com("-- created_at via format_joined")]),
-        ln(7,  [tx("  "), ref("UsersEmail",   "email",   "derived"),
-                tx("(id)   -> Email     "), com("-- u.email")]),
-        ln(8,  [tx("  "), ref("UsersToken",   "token",   "derived"),
-                tx("(id)   -> AuthToken "), com("-- hash(u.id)")]),
-        ln(9,  [tx("}")]),
-        blank(10),
-        ln(11, [kw("project"), tx(" Users."), ref("UsersProfile", "profile", "derived"),
+        ln(2,  [kw("type"), tx(" Profile { name, joined : String }       "),
+                com("-- joined comes from a Timestamp")]),
+        blank(3),
+        ln(4,  [kw("fn"), tx(" "), ref("format_joined", "format_joined", "derived"),
+                tx("(t: "), mark("Timestamp", "stable"), tx(") -> String")]),
+        blank(5),
+        ln(6,  [kw("service"), tx(" Users {")]),
+        ln(7,  [tx("  "), ref("UsersProfile", "profile", "derived"),
+                tx("(id) -> Profile      "),
+                com("-- joined = format_joined(u.created_at)")]),
+        ln(8,  [tx("  "), ref("UsersEmail",   "email",   "derived"),
+                tx("(id)   -> Email        "), com("-- address = u.email")]),
+        ln(9,  [tx("  "), ref("UsersToken",   "token",   "derived"),
+                tx("(id)   -> AuthToken    "), com("-- hash = hash(u.id)")]),
+        ln(10, [tx("}")]),
+        blank(11),
+        ln(12, [kw("project"), tx(" Users."), ref("UsersProfile", "profile", "derived"),
                 tx(" -> "), ref("profile_rs")]),
-        ln(12, [kw("project"), tx(" Users."), ref("UsersEmail",   "email",   "derived"),
+        ln(13, [kw("project"), tx(" Users."), ref("UsersEmail",   "email",   "derived"),
                 tx("   -> "), ref("email_rs")]),
-        ln(13, [kw("project"), tx(" Users."), ref("UsersToken",   "token",   "derived"),
+        ln(14, [kw("project"), tx(" Users."), ref("UsersToken",   "token",   "derived"),
                 tx("   -> "), ref("token_rs")])
       ],
       graph: {
         nodes: applyNodeRoles(baseLayoutNodes(system), {
-          User:         "stable",
-          UsersProfile: "derived",
-          UsersEmail:   "derived",
-          UsersToken:   "derived"
+          User:          "stable",
+          format_joined: "derived",
+          UsersProfile:  "derived",
+          UsersEmail:    "derived",
+          UsersToken:    "derived"
         }),
         edges: applyEdgeRoles(baseLayoutEdges(), {}, "derived")
       },
