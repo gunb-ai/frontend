@@ -1601,18 +1601,24 @@ diagnostics: 0</div></div>
         <p class="prim-cell-note">Typed boundary point on a node.</p>
       </div>
 
-      <!-- fold -->
+      <!-- fold (zipper seam) -->
       <div class="prim-cell svg-cell">
-        <div class="prim-cell-head"><span class="prim-cell-name">Fold</span><span class="prim-cell-kind">structure</span></div>
+        <div class="prim-cell-head"><span class="prim-cell-name">Fold</span><span class="prim-cell-kind">zipper seam</span></div>
         <div class="prim-cell-body">
-          <svg viewBox="0 0 128 80" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M40,22 L36,22 L36,58 L40,58" />
-            <path d="M88,22 L92,22 L92,58 L88,58" />
-            <line x1="50" y1="34" x2="78" y2="34" />
-            <line x1="50" y1="46" x2="78" y2="46" />
+          <svg viewBox="0 0 128 80" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <!-- top teeth (variants above the seam) -->
+            <polyline points="10,40 19,24 28,40 37,24 46,40 55,24 64,40"/>
+            <!-- bottom teeth interlocking below the seam -->
+            <polyline points="10,56 19,40 28,56 37,40 46,56 55,40 64,56"/>
+            <!-- moss seam where teeth close -->
+            <line x1="10" y1="40" x2="64" y2="40" stroke="var(--moss-dim)" stroke-width="2"/>
+            <!-- output exits the seam -->
+            <line x1="64" y1="40" x2="80" y2="40" marker-end="url(#arrow)"/>
+            <!-- result node (canonical 48×30 ratio, scaled to cell) -->
+            <rect x="82" y="28" width="32" height="24" rx="4"/>
           </svg>
         </div>
-        <p class="prim-cell-note">Bracket: contents folded as a unit (catamorphism).</p>
+        <p class="prim-cell-note">Variants on top, handlers below — every case must meet at the seam. A missing tooth means the structure can't close (non-exhaustive fold). Result exits right.</p>
       </div>
 
       <!-- lens -->
@@ -1955,15 +1961,15 @@ diagnostics: 0</div></div>
         <div class="lesson-body">
           <div class="lesson-vis">
             <svg viewBox="0 0 240 140" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-              <path d="M40,24 L30,24 L30,116 L40,116"/>
-              <path d="M134,24 L144,24 L144,116 L134,116"/>
-              <rect x="50" y="32" width="74" height="20" rx="4"/>
-              <rect x="50" y="60" width="74" height="20" rx="4"/>
-              <rect x="50" y="88" width="74" height="20" rx="4"/>
-              <line x1="124" y1="42" x2="170" y2="70" stroke-opacity="0.55"/>
-              <line x1="124" y1="70" x2="170" y2="70" stroke-opacity="0.55"/>
-              <line x1="124" y1="98" x2="170" y2="70" stroke-opacity="0.55"/>
-              <rect x="170" y="56" width="56" height="28" rx="4"/>
+              <!-- top teeth: 3 variants (Sunny / Cloudy / Rainy) -->
+              <polyline points="20,70 50,40 80,70 110,40 140,70 170,40"/>
+              <!-- bottom teeth: 3 handlers interlocking -->
+              <polyline points="20,100 50,70 80,100 110,70 140,100 170,70"/>
+              <!-- moss seam — where every case must close -->
+              <line x1="20" y1="70" x2="170" y2="70" stroke="var(--moss-dim)" stroke-width="2.5"/>
+              <!-- output flows from the seam to the result node -->
+              <line x1="170" y1="70" x2="184" y2="70" marker-end="url(#arrow)"/>
+              <rect x="184" y="55" width="48" height="30" rx="4"/>
             </svg>
           </div>
           <div class="lesson-code">
@@ -1977,7 +1983,7 @@ diagnostics: 0</div></div>
           </div>
         </div>
         <p class="lesson-desc">
-          A fold reads the node by handling every variant. The bracket is the compiler's promise: <strong>every case will be named</strong>. The result of the fold becomes a new node in the graph — <code>describe</code> — that other nodes can reference. Composition continues.
+          A fold is a <strong>zipper</strong>: every variant on top must meet a handler on the bottom — the moss seam is where the cases close. If one tooth is missing (a variant without a handler), the structure can't close and no artifact is emitted. The result of the fold becomes a new node in the graph — <code>describe</code> — that other nodes can reference. Composition continues.
         </p>
       </article>
 
@@ -2035,15 +2041,17 @@ diagnostics: 0</div></div>
         <div class="lesson-body">
           <div class="lesson-vis">
             <svg viewBox="0 0 240 140" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-              <path d="M40,24 L30,24 L30,116 L40,116"/>
-              <path d="M134,24 L144,24 L144,116 L134,116"/>
-              <rect x="50" y="32" width="74" height="20" rx="4"/>
-              <rect x="50" y="60" width="74" height="20" rx="4"/>
-              <rect x="50" y="88" width="74" height="20" rx="4" stroke="var(--clay)" stroke-dasharray="4 3"/>
-              <line x1="124" y1="42" x2="160" y2="70" stroke-opacity="0.55"/>
-              <line x1="124" y1="70" x2="160" y2="70" stroke-opacity="0.55"/>
-              <line x1="160" y1="14" x2="160" y2="126" stroke="var(--clay)" stroke-dasharray="5 4"/>
-              <rect x="176" y="56" width="56" height="28" rx="4" stroke-opacity="0.32" stroke-dasharray="3 3"/>
+              <!-- top teeth: 3 variants present (Sunny / Cloudy / Rainy) -->
+              <polyline points="20,70 50,40 80,70 110,40 140,70 170,40"/>
+              <!-- bottom teeth: only 2 handlers (Sunny / Cloudy) — third is missing -->
+              <polyline points="20,100 50,70 80,100 110,70 140,100"/>
+              <!-- broken seam: moss for first 2/3, then clay where it can't close -->
+              <line x1="20" y1="70" x2="110" y2="70" stroke="var(--moss-dim)" stroke-width="2.5"/>
+              <line x1="110" y1="70" x2="170" y2="70" stroke="var(--clay)" stroke-width="2.5" stroke-dasharray="5 4"/>
+              <!-- clay boundary wall where the zipper failed to close -->
+              <line x1="180" y1="20" x2="180" y2="120" stroke="var(--clay)" stroke-dasharray="5 4"/>
+              <!-- result node is faded (no artifact emitted) -->
+              <rect x="194" y="55" width="48" height="30" rx="4" stroke-opacity="0.32" stroke-dasharray="3 3"/>
             </svg>
           </div>
           <div class="lesson-code">
@@ -2061,7 +2069,7 @@ diagnostics: 0</div></div>
           </div>
         </div>
         <p class="lesson-desc">
-          The third variant never appears in the fold. The compiler reaches the missing case at typecheck time, not at runtime. No Rust struct, no TypeScript type, no test is emitted past this boundary — <strong>the compiler refuses to guess</strong>. The clay wall is the visible form of fail-closed.
+          The third variant has no handler. The zipper closes for <code>Sunny</code> and <code>Cloudy</code> — the moss seam holds — then opens to clay where <code>Rainy</code> should have met its handler. The compiler reaches the missing case at typecheck time, not at runtime. No Rust struct, no TypeScript type, no test is emitted past the clay wall: <strong>the compiler refuses to guess</strong>.
         </p>
       </article>
 
@@ -2161,28 +2169,28 @@ diagnostics: 0</div></div>
               </div>
 
               <div class="deck-card-vis">
-                <svg viewBox="0 0 360 200" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-                  <!-- dimmed unaffected branch -->
+                <svg viewBox="0 0 360 220" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                  <!-- dimmed unaffected branch (op2 + its children) -->
                   <g stroke-opacity="0.32">
-                    <rect x="110" y="118" width="70" height="24" rx="4"/>
-                    <rect x="220" y="100" width="60" height="22" rx="4"/>
-                    <rect x="220" y="128" width="60" height="22" rx="4"/>
-                    <line x1="70" y1="98" x2="107" y2="128" marker-end="url(#arrow)"/>
-                    <line x1="180" y1="126" x2="217" y2="113" marker-end="url(#arrow)"/>
-                    <line x1="180" y1="132" x2="217" y2="139" marker-end="url(#arrow)"/>
+                    <rect x="110" y="150" width="48" height="30" rx="4"/>
+                    <rect x="200" y="138" width="48" height="30" rx="4"/>
+                    <rect x="200" y="172" width="48" height="30" rx="4"/>
+                    <line x1="68" y1="110" x2="108" y2="165" marker-end="url(#arrow)"/>
+                    <line x1="158" y1="160" x2="198" y2="153" marker-end="url(#arrow)"/>
+                    <line x1="158" y1="170" x2="198" y2="187" marker-end="url(#arrow)"/>
                   </g>
-                  <!-- api node -->
-                  <rect x="20" y="76" width="50" height="28" rx="4"/>
-                  <!-- api -> op1 edge -->
-                  <line x1="70" y1="86" x2="107" y2="38" marker-end="url(#arrow)"/>
-                  <!-- op1 (edited) — clay -->
-                  <rect x="110" y="28" width="70" height="24" rx="4" stroke="var(--clay)" stroke-width="2"/>
-                  <!-- op1 -> children — moss -->
-                  <line x1="180" y1="36" x2="217" y2="21" stroke="var(--moss)" marker-end="url(#arrow)"/>
-                  <line x1="180" y1="42" x2="217" y2="49" stroke="var(--moss)" marker-end="url(#arrow)"/>
+                  <!-- api node (root, canonical 48×30) -->
+                  <rect x="20" y="85" width="48" height="30" rx="4"/>
+                  <!-- api → op1 edge -->
+                  <line x1="68" y1="95" x2="108" y2="35" marker-end="url(#arrow)"/>
+                  <!-- op1 edited — clay -->
+                  <rect x="110" y="20" width="48" height="30" rx="4" stroke="var(--clay)" stroke-width="2"/>
+                  <!-- op1 → children edges — moss -->
+                  <line x1="158" y1="30" x2="198" y2="23" stroke="var(--moss)" marker-end="url(#arrow)"/>
+                  <line x1="158" y1="40" x2="198" y2="57" stroke="var(--moss)" marker-end="url(#arrow)"/>
                   <!-- affected children — moss -->
-                  <rect x="220" y="10" width="60" height="22" rx="4" stroke="var(--moss)" stroke-width="2"/>
-                  <rect x="220" y="38" width="60" height="22" rx="4" stroke="var(--moss)" stroke-width="2"/>
+                  <rect x="200" y="8" width="48" height="30" rx="4" stroke="var(--moss)" stroke-width="2"/>
+                  <rect x="200" y="42" width="48" height="30" rx="4" stroke="var(--moss)" stroke-width="2"/>
                 </svg>
               </div>
             </div>
@@ -2222,30 +2230,26 @@ diagnostics: 0</div></div>
               </div>
 
               <div class="deck-card-vis">
-                <svg viewBox="0 0 360 200" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                <svg viewBox="0 0 360 220" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
                   <!-- accreted from Card 1 -->
                   <g stroke-opacity="0.32">
-                    <rect x="110" y="118" width="70" height="24" rx="4"/>
-                    <rect x="220" y="100" width="60" height="22" rx="4"/>
-                    <rect x="220" y="128" width="60" height="22" rx="4"/>
-                    <line x1="70" y1="98" x2="107" y2="128" marker-end="url(#arrow)"/>
-                    <line x1="180" y1="126" x2="217" y2="113" marker-end="url(#arrow)"/>
-                    <line x1="180" y1="132" x2="217" y2="139" marker-end="url(#arrow)"/>
+                    <rect x="110" y="150" width="48" height="30" rx="4"/>
+                    <rect x="200" y="138" width="48" height="30" rx="4"/>
+                    <rect x="200" y="172" width="48" height="30" rx="4"/>
+                    <line x1="68" y1="110" x2="108" y2="165" marker-end="url(#arrow)"/>
+                    <line x1="158" y1="160" x2="198" y2="153" marker-end="url(#arrow)"/>
+                    <line x1="158" y1="170" x2="198" y2="187" marker-end="url(#arrow)"/>
                   </g>
-                  <rect x="20" y="76" width="50" height="28" rx="4"/>
-                  <line x1="70" y1="86" x2="107" y2="38" marker-end="url(#arrow)"/>
-                  <rect x="110" y="28" width="70" height="24" rx="4" stroke="var(--clay)" stroke-width="2"/>
-                  <line x1="180" y1="36" x2="217" y2="21" stroke="var(--moss)" marker-end="url(#arrow)"/>
-                  <line x1="180" y1="42" x2="217" y2="49" stroke="var(--moss)" marker-end="url(#arrow)"/>
-                  <rect x="220" y="10" width="60" height="22" rx="4" stroke="var(--moss)" stroke-width="2"/>
-                  <rect x="220" y="38" width="60" height="22" rx="4" stroke="var(--moss)" stroke-width="2"/>
-                  <!-- NEW: lens overlay -->
-                  <circle cx="200" cy="35" r="72" stroke="currentColor" stroke-opacity="0.5"/>
-                  <line x1="252" y1="86" x2="290" y2="124" stroke-width="2.5" stroke-opacity="0.7"/>
-                  <!-- NEW: cost-class ladder bottom-right -->
-                  <line x1="280" y1="180" x2="295" y2="180" stroke-opacity="0.4" stroke-width="2.5"/>
-                  <line x1="280" y1="170" x2="320" y2="170" stroke="var(--moss)" stroke-width="2.5"/>
-                  <line x1="280" y1="160" x2="345" y2="160" stroke-opacity="0.3" stroke-width="2.5"/>
+                  <rect x="20" y="85" width="48" height="30" rx="4"/>
+                  <line x1="68" y1="95" x2="108" y2="35" marker-end="url(#arrow)"/>
+                  <rect x="110" y="20" width="48" height="30" rx="4" stroke="var(--clay)" stroke-width="2"/>
+                  <line x1="158" y1="30" x2="198" y2="23" stroke="var(--moss)" marker-end="url(#arrow)"/>
+                  <line x1="158" y1="40" x2="198" y2="57" stroke="var(--moss)" marker-end="url(#arrow)"/>
+                  <rect x="200" y="8" width="48" height="30" rx="4" stroke="var(--moss)" stroke-width="2"/>
+                  <rect x="200" y="42" width="48" height="30" rx="4" stroke="var(--moss)" stroke-width="2"/>
+                  <!-- NEW: lens overlay (magnifying glass; same primitive vocab) -->
+                  <circle cx="178" cy="30" r="78" stroke-opacity="0.5"/>
+                  <line x1="234" y1="86" x2="270" y2="122" stroke-width="2.5" stroke-opacity="0.7"/>
                 </svg>
               </div>
             </div>
@@ -2286,31 +2290,28 @@ diagnostics: 0</div></div>
               </div>
 
               <div class="deck-card-vis">
-                <svg viewBox="0 0 360 200" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                <svg viewBox="0 0 360 220" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
                   <g stroke-opacity="0.32">
-                    <rect x="110" y="118" width="70" height="24" rx="4"/>
-                    <rect x="220" y="100" width="60" height="22" rx="4"/>
-                    <rect x="220" y="128" width="60" height="22" rx="4"/>
-                    <line x1="70" y1="98" x2="107" y2="128" marker-end="url(#arrow)"/>
-                    <line x1="180" y1="126" x2="217" y2="113" marker-end="url(#arrow)"/>
-                    <line x1="180" y1="132" x2="217" y2="139" marker-end="url(#arrow)"/>
+                    <rect x="110" y="150" width="48" height="30" rx="4"/>
+                    <rect x="200" y="138" width="48" height="30" rx="4"/>
+                    <rect x="200" y="172" width="48" height="30" rx="4"/>
+                    <line x1="68" y1="110" x2="108" y2="165" marker-end="url(#arrow)"/>
+                    <line x1="158" y1="160" x2="198" y2="153" marker-end="url(#arrow)"/>
+                    <line x1="158" y1="170" x2="198" y2="187" marker-end="url(#arrow)"/>
                   </g>
-                  <rect x="20" y="76" width="50" height="28" rx="4"/>
-                  <line x1="70" y1="86" x2="107" y2="38" marker-end="url(#arrow)"/>
-                  <rect x="110" y="28" width="70" height="24" rx="4" stroke="var(--clay)" stroke-width="2"/>
-                  <line x1="180" y1="36" x2="217" y2="21" stroke="var(--moss)" marker-end="url(#arrow)"/>
-                  <line x1="180" y1="42" x2="217" y2="49" stroke="var(--moss)" marker-end="url(#arrow)"/>
-                  <rect x="220" y="10" width="60" height="22" rx="4" stroke="var(--moss)" stroke-width="2"/>
-                  <rect x="220" y="38" width="60" height="22" rx="4" stroke="var(--moss)" stroke-width="2"/>
-                  <circle cx="200" cy="35" r="72" stroke="currentColor" stroke-opacity="0.5"/>
-                  <line x1="252" y1="86" x2="290" y2="124" stroke-width="2.5" stroke-opacity="0.7"/>
-                  <line x1="280" y1="180" x2="295" y2="180" stroke-opacity="0.4" stroke-width="2.5"/>
-                  <line x1="280" y1="170" x2="320" y2="170" stroke="var(--moss)" stroke-width="2.5"/>
-                  <line x1="280" y1="160" x2="345" y2="160" stroke-opacity="0.3" stroke-width="2.5"/>
-                  <!-- NEW: idempotent dots at top-right of affected nodes -->
-                  <circle cx="283" cy="13" r="3" fill="var(--moss)" stroke="none"/>
-                  <circle cx="283" cy="41" r="3" fill="var(--moss)" stroke="none"/>
-                  <circle cx="183" cy="31" r="3" fill="var(--moss)" stroke="none"/>
+                  <rect x="20" y="85" width="48" height="30" rx="4"/>
+                  <line x1="68" y1="95" x2="108" y2="35" marker-end="url(#arrow)"/>
+                  <rect x="110" y="20" width="48" height="30" rx="4" stroke="var(--clay)" stroke-width="2"/>
+                  <line x1="158" y1="30" x2="198" y2="23" stroke="var(--moss)" marker-end="url(#arrow)"/>
+                  <line x1="158" y1="40" x2="198" y2="57" stroke="var(--moss)" marker-end="url(#arrow)"/>
+                  <rect x="200" y="8" width="48" height="30" rx="4" stroke="var(--moss)" stroke-width="2"/>
+                  <rect x="200" y="42" width="48" height="30" rx="4" stroke="var(--moss)" stroke-width="2"/>
+                  <circle cx="178" cy="30" r="78" stroke-opacity="0.5"/>
+                  <line x1="234" y1="86" x2="270" y2="122" stroke-width="2.5" stroke-opacity="0.7"/>
+                  <!-- NEW: idempotent moss dots at top-right corner of affected nodes -->
+                  <circle cx="246" cy="11" r="3" fill="var(--moss)" stroke="none"/>
+                  <circle cx="246" cy="45" r="3" fill="var(--moss)" stroke="none"/>
+                  <circle cx="156" cy="23" r="3" fill="var(--moss)" stroke="none"/>
                 </svg>
               </div>
             </div>
