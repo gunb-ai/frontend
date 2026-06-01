@@ -2140,21 +2140,20 @@ diagnostics: 0</div></div>
               <span class="deck-card-name">Affected-set</span>
             </div>
             <p class="deck-card-concept">
-              A line edit resolves to a <strong>graph-node edit</strong>. The compiler computes the dependent subset; everything else stays skipped with a receipt.
+              A line edit resolves to a <strong>graph-node edit</strong>. The <span style="color:var(--clay)">clay identifier</span> in the source is the edited node; the <span style="color:var(--moss)">moss identifiers</span> are the dependent nodes the compiler will recheck. Everything else stays skipped with a receipt.
             </p>
 
             <div class="deck-card-body">
               <div class="deck-card-code">
                 <div class="deck-card-code-head"><span class="src-name">examples/api.dag</span></div>
 <pre><span class="kw">service</span> <span class="ty">Api</span> {
-  <span class="kw">route</span> /todos -> <span class="ty">list_todos</span>
-  <span class="kw">route</span> /todos -> <span class="add">list_todos_v2</span>   <span class="com">-- edit</span>
+  <span class="kw">route</span> /todos -> <span class="clay">list_todos_v2</span>
 }
 
 <span class="com">-- compiler:</span>
-<span class="com">changed node:  Api.route.todos</span>
-<span class="com">affected:      4 nodes</span>
-<span class="com">skipped:       27 (with receipt)</span></pre>
+<span class="com">changed node: </span><span class="clay">Api.route.todos</span>
+<span class="com">affected:     </span><span class="add">list_handler</span><span class="com">, </span><span class="add">list_client</span>
+<span class="com">skipped:      27 nodes (with receipt)</span></pre>
               </div>
 
               <div class="deck-card-vis">
@@ -2262,21 +2261,21 @@ diagnostics: 0</div></div>
               <span class="deck-card-name">Idempotent upsert</span>
             </div>
             <p class="deck-card-concept">
-              Effects declared idempotent <strong>compose safely</strong>. Re-running the same upsert against the same desired state changes nothing — so retrying after partial failure doesn't duplicate infra.
+              Effects declared <code>upsert</code> compose safely — three resources here, three <span style="color:var(--moss)">moss dots</span> on the diagram (one per resource). Re-running the same upsert against the same desired state changes nothing, so retrying after partial failure doesn't duplicate infra.
             </p>
 
             <div class="deck-card-body">
               <div class="deck-card-code">
                 <div class="deck-card-code-head"><span class="src-name">examples/api.dag</span></div>
-<pre><span class="kw">upsert</span> <span class="ty">postgres</span> { version: <span class="lit">"15"</span> }
-<span class="kw">upsert</span> <span class="ty">redis</span>    { version: <span class="lit">"7"</span> }
-<span class="kw">upsert</span> <span class="ty">worker_pool</span> { size: <span class="lit">8</span> }
+<pre><span class="com">-- effects required by the affected route</span>
+<span class="kw">effect</span> <span class="ty">Api.route.todos.affected</span> {
+  <span class="add">upsert</span> <span class="ty">postgres</span>     { version: <span class="lit">"15"</span> }
+  <span class="add">upsert</span> <span class="ty">redis</span>        { version: <span class="lit">"7"</span> }
+  <span class="add">upsert</span> <span class="ty">worker_pool</span>  { size: <span class="lit">8</span> }
+}
 
-<span class="com">-- compiler:</span>
-<span class="com">effect:        UpsertEffect</span>
-<span class="com">idempotent:    yes</span>
-<span class="com">duplicates:    0</span>
-<span class="com">retry_safe:    yes</span></pre>
+<span class="com">all upserts idempotent:  yes</span>
+<span class="com">duplicates_on_retry:     0</span></pre>
               </div>
 
               <div class="deck-card-vis">
@@ -2325,7 +2324,7 @@ diagnostics: 0</div></div>
               <span class="deck-card-name">Service generation</span>
             </div>
             <p class="deck-card-concept">
-              Every projection now narrows to the affected subset. The compiler re-emits <strong>only</strong> the rust handler and ts client touched by the edit — terraform / k8s / helm artifacts re-derive consistently from the same source.
+              Four <code>project</code> directives in the source, four <span style="color:var(--moss)">moss artifact slots</span> in the diagram — one each. The compiler re-emits <strong>only</strong> the files reachable from the affected subset; everything else stays unchanged with a receipt.
             </p>
 
             <div class="deck-card-body">
@@ -2335,10 +2334,10 @@ diagnostics: 0</div></div>
   <span class="kw">route</span> /todos -> <span class="ty">list_todos_v2</span>
 }
 
-<span class="kw">project</span> <span class="ty">Api</span> -> <span class="lit">rust</span>
-<span class="kw">project</span> <span class="ty">Api</span> -> <span class="lit">terraform</span>
-<span class="kw">project</span> <span class="ty">Api</span> -> <span class="lit">k8s</span>
-<span class="kw">project</span> <span class="ty">Api</span> -> <span class="lit">helm</span>
+<span class="add">project</span> <span class="ty">Api</span> -> <span class="lit">rust</span>
+<span class="add">project</span> <span class="ty">Api</span> -> <span class="lit">terraform</span>
+<span class="add">project</span> <span class="ty">Api</span> -> <span class="lit">k8s</span>
+<span class="add">project</span> <span class="ty">Api</span> -> <span class="lit">helm</span>
 
 <span class="com">-- re-emit narrowed by affected_set:</span>
 <span class="com">  rust:      handlers/list_todos_v2.rs</span>
