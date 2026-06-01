@@ -1,15 +1,17 @@
 /* ════════════════════════════════════════════════════════════════════
-   gunb.ai · shared design tokens + base
+   gunb.ai · canonical design system
    ────────────────────────────────────────────────────────────────────
-   This is the canonical root config. Every page references it via
-   <link rel="stylesheet" href="/assets/site.css">.
+   Tokens, base typography, AND the shared primitive vocabulary.
 
-   Change a hue parameter here and every page that uses it updates.
-   Page-specific primitives still live in each page's own <style> block
-   for now; this file owns the tokens, reset, and base typography.
+   Every public page composes named primitives from this file.
+   Pages should only add inline CSS for genuinely page-specific
+   structure (e.g. workpad has dev chrome that doesn't belong in the
+   public design system).
    ══════════════════════════════════════════════════════════════════ */
 
-/* ── Material palette (parametric HSL, from legacy/moodboard.html) ── */
+
+/* ╔══ TOKENS ═════════════════════════════════════════════════════════ */
+
 :root {
   /* Hue and accent parameters — change once, propagate everywhere */
   --hue-warm: 37;
@@ -18,7 +20,7 @@
   --accent-sat: 36%;
   --accent-l: 48%;
 
-  /* Accents */
+  /* Accents — moss = structural continuity, clay = boundary/diagnostic */
   --moss:        hsl(var(--hue-moss), var(--accent-sat), var(--accent-l));
   --moss-dim:    hsl(var(--hue-moss), var(--accent-sat), 36%);
   --moss-subtle: hsla(var(--hue-moss), var(--accent-sat), var(--accent-l), 0.14);
@@ -48,15 +50,25 @@
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
   --font-sans: "Noto Sans", system-ui, sans-serif;
 
-  /* Measures */
+  /* Measures — width grammar */
   --measure-page:  56rem;
+  --measure-wide:  62rem;
   --measure-prose: 42rem;
+  --measure-title: 16ch;
+
+  /* Gaps — vertical/spacing rhythm */
+  --gap-xs: 0.4rem;
+  --gap-sm: 0.85rem;
+  --gap-md: 1.25rem;
+  --gap-lg: 2.5rem;
+  --gap-xl: 4rem;
 }
 
-/* ── Reset ── */
+
+/* ╔══ RESET + BASE ══════════════════════════════════════════════════ */
+
 *, *::before, *::after { box-sizing: border-box; }
 
-/* ── Base ── */
 html {
   background: var(--void);
   color: var(--warm-white-dim);
@@ -68,3 +80,289 @@ html {
 }
 body { margin: 0; }
 a { color: inherit; }
+
+
+/* ╔══ LAYOUT ════════════════════════════════════════════════════════ */
+
+.page {
+  width: min(calc(100% - 2rem), var(--measure-page));
+  margin-inline: auto;
+  padding-block: clamp(2rem, 5vw, 4rem);
+}
+
+
+/* ╔══ MASTHEAD ══════════════════════════════════════════════════════ */
+
+.masthead {
+  display: flex; align-items: center; gap: var(--gap-sm);
+  margin-bottom: 3.5rem;
+  flex-wrap: wrap;
+}
+.mark {
+  width: 28px; height: 28px;
+  color: var(--stone);
+  flex: 0 0 auto;
+}
+.wordmark {
+  font-family: var(--font-mono); font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  color: var(--warm-white);
+}
+
+
+/* ╔══ TEXT ROLES ════════════════════════════════════════════════════ */
+
+.eyebrow {
+  font-family: var(--font-mono); font-size: 0.62rem;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--stone-faint);
+}
+.eyebrow.right { margin-left: auto; }
+
+.section-label {
+  display: block;
+  font-family: var(--font-mono); font-size: 0.6rem;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--stone-faint);
+  margin-bottom: 0.65rem;
+}
+
+
+/* ╔══ HERO — field-note split (left identity, right prose) ═════════ */
+
+.hero-spine {
+  display: grid;
+  grid-template-columns: minmax(15rem, 0.72fr) minmax(0, 1fr);
+  gap: clamp(2rem, 6vw, 5rem);
+  align-items: start;
+  margin-bottom: 3.5rem;
+}
+.hero-left h1 {
+  margin: 0 0 0.85rem;
+  max-width: var(--measure-title);
+  font-family: var(--font-sans); font-weight: 600;
+  font-size: clamp(2.2rem, 5.5vw, 4rem);
+  line-height: 1.04;
+  letter-spacing: -0.04em;
+  color: var(--warm-white);
+  text-wrap: balance;
+}
+.hero-left .tagline {
+  font-family: var(--font-sans); font-size: 1.02rem;
+  line-height: 1.45;
+  color: var(--stone);
+  margin: 0;
+  max-width: 24em;
+}
+.hero-right {
+  max-width: 38rem;
+  padding-top: 0.45rem;
+}
+.hero-right p {
+  margin: 0 0 1.05rem;
+  line-height: 1.7;
+  color: var(--warm-white-dim);
+}
+.hero-right p:last-child { margin-bottom: 0; }
+.hero-right strong { color: var(--warm-white); font-weight: 500; }
+.hero-right code {
+  font-family: var(--font-mono); font-size: 0.88em;
+  color: var(--warm-white);
+}
+
+
+/* ╔══ PROSE — generic body paragraphs ══════════════════════════════ */
+
+.prose { max-width: var(--measure-prose); margin: 0; }
+.prose p {
+  margin: 0 0 1.05rem;
+  line-height: 1.7;
+  color: var(--warm-white-dim);
+}
+.prose p:last-child { margin-bottom: 0; }
+.prose strong { color: var(--warm-white); font-weight: 500; }
+.prose code {
+  font-family: var(--font-mono); font-size: 0.88em;
+  color: var(--warm-white);
+}
+
+
+/* ╔══ CARVED RULE — section break with moss diamond notch ═════════ */
+
+.carved-rule {
+  display: flex; align-items: center; gap: 0.7rem;
+  margin: 2.75rem 0;
+  max-width: var(--measure-prose);
+}
+.carved-rule::before, .carved-rule::after {
+  content: ""; flex: 1; height: 0;
+  border-top: 1px solid var(--border-dark-strong);
+}
+.carved-rule .notch {
+  width: 6px; height: 6px;
+  background: var(--moss-dim);
+  transform: rotate(45deg);
+}
+
+
+/* ╔══ COMMAND PANEL ═════════════════════════════════════════════════ */
+
+.command {
+  background: var(--void-up);
+  border: 1px solid var(--border-dark);
+  border-radius: 3px;
+  padding: 0.95rem 1.2rem;
+  font-family: var(--font-mono); font-size: 0.82rem;
+  line-height: 1.85;
+  color: var(--warm-white-dim);
+  margin: 0;
+  white-space: pre;
+  overflow-x: auto;
+  max-width: var(--measure-prose);
+}
+.command .prompt { color: var(--moss); user-select: none; }
+
+
+/* ╔══ INVARIANT PANEL — clay only here ═════════════════════════════ */
+
+.invariant {
+  background: var(--void-up);
+  border: 1px solid var(--border-dark);
+  border-left: 2px solid var(--clay);
+  border-radius: 0 3px 3px 0;
+  padding: 1rem 1.25rem;
+  font-family: var(--font-mono); font-size: 0.82rem;
+  line-height: 1.75;
+  color: var(--warm-white-dim);
+  margin: 0;
+  white-space: pre;
+  overflow-x: auto;
+  max-width: var(--measure-prose);
+}
+.invariant .title {
+  color: var(--clay);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+
+/* ╔══ STORY LEDGER — specimen card sequence ════════════════════════ */
+
+.story-ledger {
+  max-width: var(--measure-page);
+  margin: var(--gap-lg) 0;
+  display: grid; gap: var(--gap-sm);
+}
+.specimen {
+  background: var(--void-up);
+  border: 1px solid var(--border-dark);
+  border-radius: 4px;
+  padding: 1rem 1.15rem 1.05rem;
+  display: grid; gap: 0.75rem;
+}
+.specimen-head {
+  display: flex; align-items: baseline; gap: 0.65rem;
+  font-family: var(--font-mono); font-size: 0.62rem;
+  letter-spacing: 0.16em; text-transform: uppercase;
+}
+.specimen-num  { color: var(--stone-faint); }
+.specimen-name { color: var(--warm-white); font-weight: 500; }
+
+.specimen-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 0.85rem; align-items: start;
+}
+.specimen-code, .specimen-graph {
+  font-family: var(--font-mono); font-size: 0.76rem;
+  line-height: 1.7;
+  background: var(--void);
+  border: 1px solid var(--border-dark);
+  border-radius: 3px;
+  padding: 0.75rem 0.95rem;
+  color: var(--warm-white-dim);
+  margin: 0;
+  white-space: pre;
+  overflow-x: auto;
+}
+.specimen-code .kw   { color: var(--moss); }
+.specimen-code .ty   { color: var(--warm-white); font-weight: 500; }
+.specimen-code .com  { color: var(--stone-faint); }
+.specimen-code .lit  { color: var(--stone); }
+.specimen-code .add  { color: var(--moss); }
+.specimen-code .rem  { color: var(--clay); }
+.specimen-code .clay { color: var(--clay); }
+
+.specimen-graph .node { color: var(--warm-white); }
+.specimen-graph .b    { color: var(--stone-faint); }
+.specimen-graph .ok   { color: var(--moss); }
+.specimen-graph .fail { color: var(--clay); }
+.specimen-graph .dim  { color: var(--stone-faint); }
+
+.specimen-receipt {
+  margin: 0;
+  padding-top: 0.65rem;
+  border-top: 1px dashed var(--border-dark);
+  font-family: var(--font-mono); font-size: 0.7rem;
+  line-height: 1.6;
+  color: var(--warm-white-dim);
+}
+.specimen-receipt .clay  { color: var(--clay); }
+.specimen-receipt .moss  { color: var(--moss); }
+.specimen-receipt .label { color: var(--stone-faint); margin-right: 0.4rem; }
+.specimen-receipt .sep   { color: var(--stone-faint); margin: 0 0.4rem; opacity: 0.55; }
+
+
+/* ╔══ FOOTER ════════════════════════════════════════════════════════ */
+
+.foot {
+  margin-top: 3rem;
+  font-family: var(--font-mono); font-size: 0.72rem;
+  color: var(--stone-faint);
+  letter-spacing: 0.04em;
+}
+.foot a {
+  color: var(--warm-white-dim);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s, color 0.15s;
+}
+.foot a:hover { color: var(--moss); border-bottom-color: currentColor; }
+.foot .sep {
+  margin: 0 0.55rem;
+  color: var(--stone-faint);
+  opacity: 0.55;
+}
+
+
+/* ╔══ MEDIA QUERIES ═════════════════════════════════════════════════ */
+
+@media (max-width: 760px) {
+  .hero-spine {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  .hero-left h1 { max-width: 18ch; }
+}
+
+@media (max-width: 700px) {
+  .specimen-body { grid-template-columns: 1fr; }
+  .story-ledger {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 0.85rem;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+  .specimen {
+    flex: 0 0 88vw;
+    scroll-snap-align: start;
+  }
+}
+
+@media (max-width: 480px) {
+  .masthead { margin-bottom: 2.5rem; }
+  .masthead .eyebrow { margin-left: 0; flex-basis: 100%; }
+  .carved-rule { margin: 2rem 0; }
+}

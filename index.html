@@ -11,249 +11,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/site.css" />
-  <style>
-    /* Page-specific styles only — shared tokens + base live in /assets/site.css */
-
-    .page {
-      max-width: var(--measure-page);
-      margin: 0 auto;
-      padding: clamp(2rem, 5vw, 4rem) 1.75rem clamp(2.5rem, 5vw, 4.5rem);
-    }
-
-    /* ── Masthead ── */
-    .masthead {
-      display: flex; align-items: center; gap: 0.85rem;
-      margin-bottom: 3.5rem;
-      flex-wrap: wrap;
-    }
-    .mark { width: 28px; height: 28px; color: var(--stone); flex: 0 0 auto; }
-    .wordmark {
-      font-family: var(--font-mono); font-size: 0.95rem;
-      letter-spacing: 0.04em; color: var(--warm-white);
-    }
-    .eyebrow {
-      margin-left: auto;
-      font-family: var(--font-mono); font-size: 0.62rem;
-      letter-spacing: 0.18em; text-transform: uppercase;
-      color: var(--stone-faint);
-    }
-
-    /* ── Hero spine — deliberate field-note split ──
-       Left: monumental H1 + tagline.   Right: problem/proposal prose. */
-    .hero-spine {
-      display: grid;
-      grid-template-columns: minmax(17rem, 0.72fr) minmax(0, 1fr);
-      gap: clamp(2rem, 6vw, 5rem);
-      align-items: start;
-      margin-bottom: 3.5rem;
-    }
-    .hero-left h1 {
-      margin: 0 0 0.85rem;
-      max-width: 15ch;
-      font-family: var(--font-sans); font-weight: 600;
-      font-size: clamp(2.2rem, 5.5vw, 4rem);
-      line-height: 1.04;
-      letter-spacing: -0.04em;
-      color: var(--warm-white);
-      text-wrap: balance;
-    }
-    .hero-left .tagline {
-      font-family: var(--font-sans); font-size: 1.02rem;
-      line-height: 1.45; color: var(--stone);
-      margin: 0;
-      max-width: 24em;
-    }
-    .hero-right {
-      max-width: 38rem;
-      padding-top: 0.45rem;
-    }
-    .hero-right p {
-      margin: 0 0 1.05rem; line-height: 1.7;
-      color: var(--warm-white-dim);
-    }
-    .hero-right p:last-child { margin-bottom: 0; }
-    .hero-right strong { color: var(--warm-white); font-weight: 500; }
-    .hero-right code {
-      font-family: var(--font-mono); font-size: 0.88em;
-      color: var(--warm-white);
-    }
-    @media (max-width: 760px) {
-      .hero-spine {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-      }
-      .hero-left h1 { max-width: 18ch; }
-    }
-
-    /* ── Carved rule (single, between install and specimens) ── */
-    .carved-rule {
-      display: flex; align-items: center; gap: 0.7rem;
-      margin: 2.75rem 0;
-      max-width: var(--measure-prose);
-    }
-    .carved-rule::before, .carved-rule::after {
-      content: ""; flex: 1; height: 0;
-      border-top: 1px solid var(--border-dark-strong);
-    }
-    .carved-rule .notch {
-      width: 6px; height: 6px;
-      background: var(--moss-dim);
-      transform: rotate(45deg);
-    }
-
-    /* ── Section eyebrow ── */
-    .section-label {
-      display: block;
-      font-family: var(--font-mono); font-size: 0.6rem;
-      letter-spacing: 0.18em; text-transform: uppercase;
-      color: var(--stone-faint);
-      margin-bottom: 0.65rem;
-    }
-
-    /* ── Install command ── */
-    .command {
-      background: var(--void-up);
-      border: 1px solid var(--border-dark);
-      border-radius: 3px;
-      padding: 0.95rem 1.2rem;
-      font-family: var(--font-mono); font-size: 0.82rem;
-      line-height: 1.85;
-      color: var(--warm-white-dim);
-      margin: 0;
-      white-space: pre;
-      overflow-x: auto;
-      max-width: var(--measure-prose);
-    }
-    .command .prompt { color: var(--moss); user-select: none; }
-
-    /* ── Story ledger — three specimens ── */
-    .story-ledger {
-      max-width: var(--measure-page);
-      margin: 2.5rem 0;
-      display: grid; gap: 0.85rem;
-    }
-    .specimen {
-      background: var(--void-up);
-      border: 1px solid var(--border-dark);
-      border-radius: 4px;
-      padding: 1rem 1.15rem 1.05rem;
-      display: grid; gap: 0.75rem;
-    }
-    .specimen-head {
-      display: flex; align-items: baseline; gap: 0.65rem;
-      font-family: var(--font-mono); font-size: 0.62rem;
-      letter-spacing: 0.16em; text-transform: uppercase;
-    }
-    .specimen-num { color: var(--stone-faint); }
-    .specimen-name { color: var(--warm-white); font-weight: 500; }
-    .specimen-body {
-      display: grid;
-      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-      gap: 0.85rem; align-items: start;
-    }
-    .specimen-code, .specimen-graph {
-      font-family: var(--font-mono); font-size: 0.76rem;
-      line-height: 1.7;
-      background: var(--void);
-      border: 1px solid var(--border-dark);
-      border-radius: 3px;
-      padding: 0.75rem 0.95rem;
-      color: var(--warm-white-dim);
-      margin: 0;
-      white-space: pre;
-      overflow-x: auto;
-    }
-    .specimen-code .kw  { color: var(--moss); }
-    .specimen-code .ty  { color: var(--warm-white); font-weight: 500; }
-    .specimen-code .com { color: var(--stone-faint); }
-    .specimen-code .lit { color: var(--stone); }
-    .specimen-code .add { color: var(--moss); }
-    .specimen-code .rem { color: var(--clay); }
-    .specimen-code .clay { color: var(--clay); }
-    .specimen-graph .node { color: var(--warm-white); }
-    .specimen-graph .b    { color: var(--stone-faint); }
-    .specimen-graph .ok   { color: var(--moss); }
-    .specimen-graph .fail { color: var(--clay); }
-    .specimen-graph .dim  { color: var(--stone-faint); }
-    .specimen-receipt {
-      margin: 0;
-      padding-top: 0.65rem;
-      border-top: 1px dashed var(--border-dark);
-      font-family: var(--font-mono); font-size: 0.7rem;
-      line-height: 1.6;
-      color: var(--warm-white-dim);
-    }
-    .specimen-receipt .clay  { color: var(--clay); }
-    .specimen-receipt .moss  { color: var(--moss); }
-    .specimen-receipt .label { color: var(--stone-faint); margin-right: 0.4rem; }
-    .specimen-receipt .sep   { color: var(--stone-faint); margin: 0 0.4rem; opacity: 0.55; }
-
-    /* ── Invariant block (clay only here) ── */
-    .invariant {
-      background: var(--void-up);
-      border: 1px solid var(--border-dark);
-      border-left: 2px solid var(--clay);
-      border-radius: 0 3px 3px 0;
-      padding: 1rem 1.25rem;
-      font-family: var(--font-mono); font-size: 0.82rem;
-      line-height: 1.75;
-      color: var(--warm-white-dim);
-      margin: 0;
-      white-space: pre;
-      overflow-x: auto;
-      max-width: var(--measure-prose);
-    }
-    .invariant .title {
-      color: var(--clay);
-      font-weight: 600;
-      letter-spacing: 0.04em;
-    }
-
-    /* ── Footer ── */
-    .foot {
-      margin-top: 3rem;
-      font-family: var(--font-mono); font-size: 0.72rem;
-      color: var(--stone-faint);
-      letter-spacing: 0.04em;
-    }
-    .foot a {
-      color: var(--warm-white-dim);
-      text-decoration: none;
-      border-bottom: 1px solid transparent;
-      transition: border-color 0.15s, color 0.15s;
-    }
-    .foot a:hover { color: var(--moss); border-bottom-color: currentColor; }
-    .foot .sep { margin: 0 0.55rem; color: var(--stone-faint); opacity: 0.55; }
-
-    /* ── Mobile — specimens become horizontal snap/swipe ── */
-    @media (max-width: 700px) {
-      .specimen-body { grid-template-columns: 1fr; }
-      .story-ledger {
-        display: flex;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        padding-bottom: 0.85rem;
-        scrollbar-width: thin;
-        -webkit-overflow-scrolling: touch;
-      }
-      .specimen {
-        flex: 0 0 88vw;
-        scroll-snap-align: start;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .masthead { margin-bottom: 2.5rem; }
-      .masthead .eyebrow { margin-left: 0; flex-basis: 100%; }
-      .carved-rule { margin: 2rem 0; }
-    }
-  </style>
 </head>
 <body>
 
   <main class="page">
 
-    <!-- ── Mark + wordmark ── -->
+    <!-- Mark + wordmark -->
     <header class="masthead">
       <svg class="mark" viewBox="0 0 120 120" aria-hidden="true">
         <path fill-rule="evenodd" fill="currentColor" d="
@@ -264,10 +27,10 @@
         "/>
       </svg>
       <span class="wordmark">gunb.ai</span>
-      <span class="eyebrow">gunbc · structural compiler</span>
+      <span class="eyebrow right">gunbc · structural compiler</span>
     </header>
 
-    <!-- ── Hero spine — identity on the left, problem/proposal on the right ── -->
+    <!-- Hero spine — identity on the left, problem/proposal on the right -->
     <section class="hero-spine">
       <div class="hero-left">
         <h1>A structural compiler for composable systems.</h1>
@@ -286,7 +49,7 @@
       </div>
     </section>
 
-    <!-- ── Install / early access ── -->
+    <!-- Install / early access -->
     <section class="install">
       <span class="section-label">early access · build from source</span>
 <pre class="command"><span class="prompt">$ </span>git clone https://github.com/gunb-ai/daglang
@@ -296,7 +59,7 @@
 
     <div class="carved-rule" aria-hidden="true"><span class="notch"></span></div>
 
-    <!-- ── Three specimens — things normal compilers don't do ── -->
+    <!-- Three specimens — things normal compilers don't do -->
     <section class="story-ledger" aria-label="three specimens">
 
       <!-- 01 — Projection closure -->
@@ -371,7 +134,7 @@
 
     </section>
 
-    <!-- ── Invariant — projection closure failure (not exhaustiveness) ── -->
+    <!-- Invariant — projection closure failure -->
     <section class="diagnostic">
       <span class="section-label">a diagnostic</span>
 <pre class="invariant"><span class="title">Invariant —</span>
@@ -392,7 +155,7 @@
     no artifact emitted</pre>
     </section>
 
-    <!-- ── Footer ── -->
+    <!-- Footer -->
     <footer class="foot">
       <a href="https://github.com/gunb-ai/daglang">GitHub</a>
       <span class="sep">·</span>
