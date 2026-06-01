@@ -39,7 +39,7 @@
       --font-mono: "JetBrains Mono", ui-monospace, monospace;
       --font-sans: "Noto Sans", system-ui, sans-serif;
 
-      --measure-page: 54rem;
+      --measure-page: 56rem;
       --measure-prose: 42rem;
     }
 
@@ -81,39 +81,54 @@
       color: var(--stone-faint);
     }
 
-    /* ── Identity ── */
-    .identity { margin-bottom: 2.25rem; }
-    .identity h1 {
+    /* ── Hero spine — deliberate field-note split ──
+       Left: monumental H1 + tagline.   Right: problem/proposal prose. */
+    .hero-spine {
+      display: grid;
+      grid-template-columns: minmax(17rem, 0.72fr) minmax(0, 1fr);
+      gap: clamp(2rem, 6vw, 5rem);
+      align-items: start;
+      margin-bottom: 3.5rem;
+    }
+    .hero-left h1 {
+      margin: 0 0 0.85rem;
+      max-width: 15ch;
       font-family: var(--font-sans); font-weight: 600;
-      font-size: clamp(1.7rem, 4vw, 2.4rem);
-      line-height: 1.05;
-      letter-spacing: -0.018em;
+      font-size: clamp(2.2rem, 5.5vw, 4rem);
+      line-height: 1.04;
+      letter-spacing: -0.04em;
       color: var(--warm-white);
-      margin: 0 0 0.7rem;
-      max-width: 18ch;
       text-wrap: balance;
     }
-    .identity .tagline {
-      font-family: var(--font-sans); font-size: 1.05rem;
+    .hero-left .tagline {
+      font-family: var(--font-sans); font-size: 1.02rem;
       line-height: 1.45; color: var(--stone);
       margin: 0;
-      max-width: var(--measure-prose);
+      max-width: 24em;
     }
-
-    /* ── Prose — problem / proposal ── */
-    .prose { max-width: var(--measure-prose); margin: 0 0 2.5rem; }
-    .prose p {
+    .hero-right {
+      max-width: 38rem;
+      padding-top: 0.45rem;
+    }
+    .hero-right p {
       margin: 0 0 1.05rem; line-height: 1.7;
       color: var(--warm-white-dim);
     }
-    .prose p:last-child { margin-bottom: 0; }
-    .prose strong { color: var(--warm-white); font-weight: 500; }
-    .prose code {
+    .hero-right p:last-child { margin-bottom: 0; }
+    .hero-right strong { color: var(--warm-white); font-weight: 500; }
+    .hero-right code {
       font-family: var(--font-mono); font-size: 0.88em;
       color: var(--warm-white);
     }
+    @media (max-width: 760px) {
+      .hero-spine {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+      .hero-left h1 { max-width: 18ch; }
+    }
 
-    /* ── Carved rule ── */
+    /* ── Carved rule (single, between install and specimens) ── */
     .carved-rule {
       display: flex; align-items: center; gap: 0.7rem;
       margin: 2.75rem 0;
@@ -129,7 +144,7 @@
       transform: rotate(45deg);
     }
 
-    /* ── Section eyebrow (above install + specimens + diagnostic) ── */
+    /* ── Section eyebrow ── */
     .section-label {
       display: block;
       font-family: var(--font-mono); font-size: 0.6rem;
@@ -138,7 +153,7 @@
       margin-bottom: 0.65rem;
     }
 
-    /* ── Install command (Command panel) ── */
+    /* ── Install command ── */
     .command {
       background: var(--void-up);
       border: 1px solid var(--border-dark);
@@ -154,7 +169,7 @@
     }
     .command .prompt { color: var(--moss); user-select: none; }
 
-    /* ── Story ledger — three specimens between install and diagnostic ── */
+    /* ── Story ledger — three specimens ── */
     .story-ledger {
       max-width: var(--measure-page);
       margin: 2.5rem 0;
@@ -165,8 +180,7 @@
       border: 1px solid var(--border-dark);
       border-radius: 4px;
       padding: 1rem 1.15rem 1.05rem;
-      display: grid;
-      gap: 0.75rem;
+      display: grid; gap: 0.75rem;
     }
     .specimen-head {
       display: flex; align-items: baseline; gap: 0.65rem;
@@ -197,6 +211,7 @@
     .specimen-code .com { color: var(--stone-faint); }
     .specimen-code .lit { color: var(--stone); }
     .specimen-code .add { color: var(--moss); }
+    .specimen-code .rem { color: var(--clay); }
     .specimen-code .clay { color: var(--clay); }
     .specimen-graph .node { color: var(--warm-white); }
     .specimen-graph .b    { color: var(--stone-faint); }
@@ -273,7 +288,6 @@
     @media (max-width: 480px) {
       .masthead { margin-bottom: 2.5rem; }
       .masthead .eyebrow { margin-left: 0; flex-basis: 100%; }
-      .identity { margin-bottom: 1.75rem; }
       .carved-rule { margin: 2rem 0; }
     }
   </style>
@@ -296,23 +310,23 @@
       <span class="eyebrow">gunbc · structural compiler</span>
     </header>
 
-    <!-- ── Identity — monumental H1, capped at ~18ch with balanced break ── -->
-    <section class="identity">
-      <h1>A structural compiler for composable systems.</h1>
-      <p class="tagline">Describe the system once. Let the compiler derive the rest.</p>
-    </section>
-
-    <!-- ── Problem / proposal ── -->
-    <section class="prose">
-      <p>
-        Modern systems are full of hand-written translations: backend types into client types, models into schemas, services into docs, code into tests, source into build rules.
-      </p>
-      <p>
-        <strong>daglang</strong> gives the system one structural description. <strong>gunbc</strong> checks that description and derives the mechanical pieces.
-      </p>
-      <p>
-        When the description is incomplete, the compiler refuses to guess.
-      </p>
+    <!-- ── Hero spine — identity on the left, problem/proposal on the right ── -->
+    <section class="hero-spine">
+      <div class="hero-left">
+        <h1>A structural compiler for composable systems.</h1>
+        <p class="tagline">Describe the system once. Let the compiler derive the rest.</p>
+      </div>
+      <div class="hero-right">
+        <p>
+          Modern systems are full of hand-written translations: types into clients, models into schemas, services into docs, code into tests, source into build rules.
+        </p>
+        <p>
+          <strong>daglang</strong> gives the system one structural description. <strong>gunbc</strong> checks that description and derives the mechanical pieces.
+        </p>
+        <p>
+          When the description is incomplete, the compiler refuses to guess.
+        </p>
+      </div>
     </section>
 
     <!-- ── Install / early access ── -->
@@ -325,83 +339,97 @@
 
     <div class="carved-rule" aria-hidden="true"><span class="notch"></span></div>
 
-    <!-- ── Three specimens — code + tiny graph + receipt ── -->
+    <!-- ── Three specimens — things normal compilers don't do ── -->
     <section class="story-ledger" aria-label="three specimens">
 
+      <!-- 01 — Projection closure -->
       <article class="specimen">
         <header class="specimen-head">
           <span class="specimen-num">01</span>
-          <span class="specimen-name">structural description</span>
+          <span class="specimen-name">projection closure</span>
         </header>
         <div class="specimen-body">
-<pre class="specimen-code"><span class="kw">type</span> <span class="ty">Condition</span> =
-  | <span class="ty">Sunny</span>
-  | <span class="ty">Cloudy</span>
-  | <span class="ty">Rainy</span></pre>
-<pre class="specimen-graph"><span class="node">Condition</span>
-  <span class="b">├─</span> Rust enum
-  <span class="b">├─</span> TypeScript union
-  <span class="b">└─</span> OpenAPI enum</pre>
+<pre class="specimen-code"><span class="kw">service</span> <span class="ty">WeatherStation</span> =
+  read    : () -> <span class="ty">Observation</span>
+  history : () -> <span class="ty">List</span>&lt;<span class="ty">Observation</span>&gt;
+
+<span class="kw">project</span> <span class="ty">WeatherStation</span> -> <span class="lit">rust</span>
+<span class="kw">project</span> <span class="ty">WeatherStation</span> -> <span class="lit">openapi</span></pre>
+<pre class="specimen-graph"><span class="node">WeatherStation</span>
+  <span class="b">├─</span> <span class="node">Observation</span>        <span class="ok">rust · openapi</span>
+  <span class="b">├─</span> <span class="node">List&lt;Observation&gt;</span>  <span class="ok">rust · openapi</span>
+  <span class="b">└─</span> <span class="node">Celsius</span>            <span class="ok">rust · openapi</span>
+
+<span class="dim">every reachable node must project</span></pre>
         </div>
-        <p class="specimen-receipt"><span class="label">derives</span><span class="moss">one node · three artifacts</span></p>
+        <p class="specimen-receipt"><span class="label">closure</span><span class="moss">held for rust + openapi</span><span class="sep">·</span><span class="label">otherwise</span>no artifact emitted</p>
       </article>
 
+      <!-- 02 — Affected set across artifacts -->
       <article class="specimen">
         <header class="specimen-head">
           <span class="specimen-num">02</span>
-          <span class="specimen-name">structural check</span>
+          <span class="specimen-name">affected set across artifacts</span>
         </header>
         <div class="specimen-body">
-<pre class="specimen-code"><span class="kw">fn</span> describe(c: <span class="ty">Condition</span>) -> <span class="ty">String</span> {
-  <span class="kw">match</span> c {
-    <span class="ty">Sunny</span>  => <span class="lit">"clear"</span>
-    <span class="ty">Cloudy</span> => <span class="lit">"cloudy"</span>
-  }
+<pre class="specimen-code"><span class="kw">type</span> <span class="ty">Observation</span> {
+  <span class="rem">- temperature: Celsius</span>
+  <span class="add">+ temperature: Fahrenheit</span>
 }</pre>
-<pre class="specimen-graph"><span class="node">Sunny</span>  <span class="b">→</span> <span class="ok">handler</span>
-<span class="node">Cloudy</span> <span class="b">→</span> <span class="ok">handler</span>
-<span class="node">Rainy</span>  <span class="b">→</span> <span class="fail">⊥ none</span>
+<pre class="specimen-graph"><span class="node">Observation.temperature</span>
+  <span class="b">├─</span> Rust struct       <span class="ok">recheck</span>
+  <span class="b">├─</span> TypeScript type   <span class="ok">recheck</span>
+  <span class="b">├─</span> OpenAPI schema    <span class="ok">regen</span>
+  <span class="b">├─</span> generated tests   <span class="ok">regen</span>
+  <span class="b">└─</span> effect checks     <span class="ok">recheck</span>
 
-<span class="dim">seam breaks at Rainy</span></pre>
+<span class="dim">skip: unrelated nodes with receipt</span></pre>
         </div>
-        <p class="specimen-receipt"><span class="clay">Invariant —</span> missing <span class="clay">Rainy</span><span class="sep">·</span><span class="label">result</span>no artifact emitted</p>
+        <p class="specimen-receipt"><span class="label">downstream</span><span class="moss">5 surfaces</span><span class="sep">·</span><span class="label">skip</span>21 nodes (with receipt)</p>
       </article>
 
+      <!-- 03 — Structural complexity + infra bringup -->
       <article class="specimen">
         <header class="specimen-head">
           <span class="specimen-num">03</span>
-          <span class="specimen-name">affected set</span>
+          <span class="specimen-name">complexity + infra bringup</span>
         </header>
         <div class="specimen-body">
-<pre class="specimen-code"><span class="kw">type</span> <span class="ty">Condition</span> =
-  | <span class="ty">Sunny</span>
-  | <span class="ty">Cloudy</span>
-  | <span class="ty">Rainy</span>
-  | <span class="add">Hail</span>          <span class="com">-- edit</span></pre>
-<pre class="specimen-graph"><span class="node">Condition</span> + <span class="ok">Hail</span>
-  <span class="b">├─</span> describe       <span class="ok">recheck</span>
-  <span class="b">├─</span> generated test <span class="ok">regen</span>
-  <span class="b">└─</span> rust · ts · oas <span class="ok">re-emit</span>
+<pre class="specimen-code"><span class="kw">fn</span> bringup(svcs: <span class="ty">List</span>&lt;<span class="ty">Service</span>&gt;) {
+  svcs |&gt; <span class="kw">each</span>(start_service)
+}
 
-<span class="dim">skip: 27 unrelated nodes</span></pre>
+<span class="kw">lens</span> bringup_complexity &lt;= <span class="lit">O(n)</span>
+<span class="kw">upsert</span> infra <span class="kw">for</span> <span class="ty">WeatherStation</span></pre>
+<pre class="specimen-graph"><span class="node">WeatherStation</span>
+  <span class="b">└─</span> <span class="node">bringup</span>     <span class="ok">O(n) · held</span>
+       <span class="b">├─</span> postgres <span class="ok">upsert · idempotent</span>
+       <span class="b">├─</span> redis    <span class="ok">upsert · idempotent</span>
+       <span class="b">└─</span> workers  <span class="ok">upsert · idempotent</span>
+
+<span class="dim">duplicate bringup: blocked</span></pre>
         </div>
-        <p class="specimen-receipt"><span class="label">affected</span><span class="moss">3 nodes</span><span class="sep">·</span><span class="label">skipped</span>27 with receipt</p>
+        <p class="specimen-receipt"><span class="label">cost</span><span class="moss">O(n)</span><span class="sep">·</span><span class="label">effect</span><span class="moss">idempotent</span><span class="sep">·</span><span class="label">duplicates</span>blocked</p>
       </article>
 
     </section>
 
-    <!-- ── Invariant — one full diagnostic, grounded by specimen 02 ── -->
+    <!-- ── Invariant — projection closure failure (not exhaustiveness) ── -->
     <section class="diagnostic">
       <span class="section-label">a diagnostic</span>
 <pre class="invariant"><span class="title">Invariant —</span>
-  match on Condition is not exhaustive
+  projection is not closed
+
+  requested:
+    WeatherStation -> openapi
 
   missing:
-    Rainy
-    Snowy
+    openapi projection for Celsius
 
-  at:
-    examples/weather.dag:14
+  reached through:
+    WeatherStation.history
+    List&lt;Observation&gt;
+    Observation.temperature
 
   result:
     no artifact emitted</pre>
