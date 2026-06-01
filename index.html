@@ -68,9 +68,11 @@
       <div data-card="card-03"></div>
     </section>
 
-    <!-- Invariant — IS the receipt for Card 03. Same failure, full form. -->
+    <!-- Invariant — IS the receipt for Card 03. Same failure, full form.
+         Includes the suggested replacement shape: the compiler does not
+         just diagnose, it shows the O(n) rewrite. -->
     <section class="diagnostic">
-      <span class="section-label">a diagnostic</span>
+      <span class="section-label">a diagnostic — and the suggested fix</span>
 <pre class="invariant"><span class="title">Invariant —</span>
   complexity bound violated
 
@@ -83,7 +85,14 @@
     composed: n × n = O(n²)
 
   reached through:
-    filter(users) -> count(users)
+    filter(users) -&gt; count(users)
+
+  suggested:
+    index users by id once, then filter buckets of size 1
+
+  replacement shape:
+    let by_id = group_by(users, key: fn(u) { u.id })
+    by_id |&gt; values |&gt; filter(fn(bucket) { length(bucket) == 1 })
 
   result:
     no artifact emitted</pre>

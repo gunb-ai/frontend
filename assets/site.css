@@ -267,13 +267,23 @@ a { color: inherit; }
 
 /* ╔══ ROLE TOKENS — shared between code spans and graph elements ═
    The visual-correspondence rule: every colored code token has a
-   same-colored graph object, and vice versa. */
+   same-colored graph object, and vice versa.
 
-.map-root      { color: var(--warm-white); }
-.map-affected  { color: var(--moss); }
-.map-changed   { color: var(--clay); }
+   Taxonomy (one color per structural meaning):
+     stable    ordinary structure                    warm-white
+     focus     the source fact this card pivots on   brass
+     derived   re-derived / held / downstream        moss
+     artifact  terminal generated slot               moss
+     removed   diff removal                          clay
+     boundary  violation / no artifact emitted       clay
+     context   ambient text without a role           stone */
+
+.map-stable    { color: var(--warm-white); }
+.map-focus     { color: var(--brass); }
+.map-derived   { color: var(--moss); }
 .map-artifact  { color: var(--moss); }
-.map-blocked   { color: var(--clay); }
+.map-removed   { color: var(--clay); }
+.map-boundary  { color: var(--clay); }
 .map-context   { color: var(--stone-dim); }
 
 
@@ -300,13 +310,14 @@ a { color: inherit; }
 .card-num  { color: var(--stone-faint); }
 .card-name { color: var(--warm-white); font-weight: 500; }
 
+/* Stacked vertically so code and graph each get the full card width.
+   Earlier 50/50 split squeezed graphs with long chains down to ~5 px
+   effective text. With one model and many derived views, the graph
+   may carry as much information as the code; both deserve the page. */
 .card-body {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  gap: 0.85rem; align-items: start;
-}
-@media (max-width: 760px) {
-  .card-body { grid-template-columns: 1fr; }
+  grid-template-columns: 1fr;
+  gap: 0.85rem;
 }
 
 /* Code pane */
@@ -371,35 +382,56 @@ a { color: inherit; }
 .graph-node rect,
 .graph-node.map-artifact path { fill: var(--void); }
 
-.graph-node.map-root rect       { stroke: var(--warm-white); stroke-width: 2; }
-.graph-node.map-root text       { fill: var(--warm-white); font-weight: 600; }
-.graph-node.map-affected rect   { stroke: var(--moss); stroke-width: 1.5; }
-.graph-node.map-affected text   { fill: var(--moss); }
-.graph-node.map-changed rect    { stroke: var(--clay); stroke-width: 2; }
-.graph-node.map-changed text    { fill: var(--clay); font-weight: 500; }
-.graph-node.map-context rect    { stroke: var(--stone-faint); stroke-width: 1; stroke-opacity: 0.55; }
-.graph-node.map-context text    { fill: var(--stone-dim); }
-.graph-node.map-blocked rect    { stroke: var(--clay); stroke-width: 1.5; stroke-dasharray: 4 3; }
-.graph-node.map-blocked text    { fill: var(--clay); }
+.graph-node.map-stable rect    { stroke: var(--warm-white); stroke-width: 2; }
+.graph-node.map-stable text    { fill: var(--warm-white); font-weight: 600; }
+.graph-node.map-focus rect     { stroke: var(--brass); stroke-width: 2; }
+.graph-node.map-focus text     { fill: var(--brass); font-weight: 500; }
+.graph-node.map-derived rect   { stroke: var(--moss); stroke-width: 1.5; }
+.graph-node.map-derived text   { fill: var(--moss); }
+.graph-node.map-removed rect   { stroke: var(--clay); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.graph-node.map-removed text   { fill: var(--clay); }
+.graph-node.map-boundary rect  { stroke: var(--clay); stroke-width: 2; }
+.graph-node.map-boundary text  { fill: var(--clay); font-weight: 500; }
+.graph-node.map-context rect   { stroke: var(--stone-faint); stroke-width: 1; stroke-opacity: 0.55; }
+.graph-node.map-context text   { fill: var(--stone-dim); }
 
 /* Artifact (cut-corner) */
 .graph-node.map-artifact path { stroke: var(--moss); stroke-width: 1.5; }
 .graph-node.map-artifact text { fill: var(--moss); }
 
 .graph-edge { fill: none; stroke-width: 1.5; stroke-linecap: round; }
-.graph-edge.map-affected { stroke: var(--moss); }
-.graph-edge.map-changed  { stroke: var(--clay); }
+.graph-edge.map-stable   { stroke: var(--warm-white); }
+.graph-edge.map-focus    { stroke: var(--brass); }
+.graph-edge.map-derived  { stroke: var(--moss); }
+.graph-edge.map-removed  { stroke: var(--clay); stroke-dasharray: 4 3; }
+.graph-edge.map-boundary { stroke: var(--clay); }
 .graph-edge.map-context  { stroke: var(--stone-faint); stroke-opacity: 0.5; }
-.graph-edge.map-blocked  { stroke: var(--clay); stroke-dasharray: 4 3; }
 
 .graph-edge-label {
   font-family: var(--font-mono);
   font-size: 7px;
   letter-spacing: 0.05em;
 }
-.graph-edge-label.map-affected { fill: var(--moss-dim); }
-.graph-edge-label.map-changed  { fill: var(--clay); }
+.graph-edge-label.map-stable   { fill: var(--warm-white); }
+.graph-edge-label.map-focus    { fill: var(--brass); }
+.graph-edge-label.map-derived  { fill: var(--moss-dim); }
+.graph-edge-label.map-removed  { fill: var(--clay); }
+.graph-edge-label.map-boundary { fill: var(--clay); }
 .graph-edge-label.map-context  { fill: var(--stone-faint); }
+
+/* Cost-area cells — for the complexity visualization. Two grids side-
+   by-side: declared O(n) as a 1×n strip, observed O(n²) as an n×n
+   square. The aspect ratio of the rendered grids IS the cost argument. */
+.cost-area rect { fill: none; stroke-width: 1; }
+.cost-area.map-derived  rect { stroke: var(--moss); fill: var(--moss-subtle); }
+.cost-area.map-boundary rect { stroke: var(--clay); fill: var(--clay-subtle); }
+.cost-area-label {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.05em;
+}
+.cost-area.map-derived  .cost-area-label { fill: var(--moss); }
+.cost-area.map-boundary .cost-area-label { fill: var(--clay); }
 
 /* Receipt */
 .card-receipt {
