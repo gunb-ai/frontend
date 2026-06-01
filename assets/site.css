@@ -14,19 +14,26 @@
 
 :root {
   /* Hue and accent parameters — change once, propagate everywhere */
-  --hue-warm: 37;
-  --hue-moss: 134;
-  --hue-clay: 3;
+  --hue-warm:  37;
+  --hue-moss:  134;
+  --hue-clay:  3;
+  --hue-brass: 43;
   --accent-sat: 36%;
   --accent-l: 48%;
 
-  /* Accents — moss = structural continuity, clay = boundary/diagnostic */
+  /* Accents — materials, not status signals.
+     moss   = structural continuity / derived / held / re-derived
+     clay   = boundary / removed / violated / no artifact emitted
+     brass  = human edit focus / selected source fact (rare, narrow) */
   --moss:        hsl(var(--hue-moss), var(--accent-sat), var(--accent-l));
   --moss-dim:    hsl(var(--hue-moss), var(--accent-sat), 36%);
   --moss-subtle: hsla(var(--hue-moss), var(--accent-sat), var(--accent-l), 0.14);
   --clay:        hsl(var(--hue-clay), var(--accent-sat), var(--accent-l));
   --clay-dim:    hsl(var(--hue-clay), var(--accent-sat), 36%);
   --clay-subtle: hsla(var(--hue-clay), var(--accent-sat), var(--accent-l), 0.14);
+  --brass:        hsl(var(--hue-brass), 34%, 54%);
+  --brass-dim:    hsl(var(--hue-brass), 28%, 40%);
+  --brass-subtle: hsla(var(--hue-brass), 34%, 54%, 0.13);
 
   /* Neutrals — void scale (dark surfaces) */
   --void:     hsl(var(--hue-warm), 0%, 5%);

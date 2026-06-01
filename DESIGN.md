@@ -53,7 +53,16 @@ Stone       Warm grey. Primary text on dark. Patient, recessive.
 Warm white  Off-white, warm cast. Light-mode surface.
 Moss        Structural continuity, link, held relation. Not "success."
 Clay        Boundary, diagnostic, invariant break. Not "danger."
+Brass       Human edit focus — the selected source fact a card argues from.
+            Rare and narrow: only the one node a card pivots on, never
+            broad highlighting. Aged-sturdy register, not warning-yellow.
 ```
+
+Brass exists to keep clay scoped to *boundary/break/violation*. Without
+it, the same color was carrying "edited variable" AND "violation" AND
+"removed diff line", which collapses three different structural ideas
+into one visual. Brass takes the "subject under examination" role so
+clay can stay singular.
 
 ## Type roles
 
