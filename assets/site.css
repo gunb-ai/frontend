@@ -311,6 +311,15 @@ a { color: inherit; }
 .specimen-graph .fail { color: var(--clay); }
 .specimen-graph .dim  { color: var(--stone-faint); }
 
+/* SVG inside .specimen-graph — workpad-canonical primitives at card scale */
+.specimen-graph svg {
+  display: block;
+  width: 100%; height: auto;
+  max-height: 11rem;
+  color: var(--stone);
+  overflow: visible;
+}
+
 .specimen-receipt {
   margin: 0;
   padding-top: 0.65rem;

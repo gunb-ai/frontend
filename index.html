@@ -14,6 +14,17 @@
 </head>
 <body>
 
+  <!-- Shared SVG defs — auto-orienting arrowhead. context-stroke makes
+       the arrow inherit the line's stroke color, so moss / clay edges
+       get matching arrowheads. -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="6" markerHeight="6"
+            markerUnits="strokeWidth" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="context-stroke"/>
+    </marker>
+  </svg>
+
   <main class="page">
 
     <!-- Mark + wordmark -->
@@ -80,14 +91,36 @@
   create : (<span class="ty">User</span>) -> <span class="ty">User</span>
 
 <span class="kw">project</span> <span class="ty">Users</span> -> <span class="lit">rust</span>, <span class="lit">typescript</span>, <span class="lit">openapi</span></pre>
-<pre class="specimen-graph"><span class="node">Users</span>
-  <span class="b">├─</span> <span class="node">User</span>           <span class="ok">rust · ts · openapi</span>
-  <span class="b">├─</span> <span class="node">List&lt;User&gt;</span>     <span class="ok">rust · ts · openapi</span>
-  <span class="b">├─</span> <span class="node">UserId</span>         <span class="ok">rust · ts · openapi</span>
-  <span class="b">├─</span> <span class="node">Email</span>          <span class="ok">rust · ts · openapi</span>
-  <span class="b">└─</span> <span class="node">Timestamp</span>      <span class="ok">rust · ts · openapi</span>
-
-<span class="dim">every reachable type projects to every target</span></pre>
+<div class="specimen-graph">
+            <svg viewBox="0 0 280 160" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-label="Users service with 3 reachable types, lassoed and projected to 3 artifact slots">
+              <!-- source structure: Users + 3 reachable types -->
+              <rect x="14" y="64" width="48" height="30" rx="4"/>
+              <rect x="76" y="32" width="36" height="20" rx="3"/>
+              <rect x="76" y="68" width="36" height="20" rx="3"/>
+              <rect x="76" y="104" width="36" height="20" rx="3"/>
+              <line x1="62" y1="74" x2="74" y2="42" marker-end="url(#arrow)"/>
+              <line x1="62" y1="80" x2="74" y2="78" marker-end="url(#arrow)"/>
+              <line x1="62" y1="86" x2="74" y2="114" marker-end="url(#arrow)"/>
+              <!-- moss lasso enclosing the reachable scope -->
+              <polygon points="8,80 12,26 118,26 118,130 12,130"
+                       stroke="var(--moss)" stroke-dasharray="5 3" stroke-width="1.8"
+                       fill="none" stroke-linejoin="round"/>
+              <!-- 3 moss projection edges to 3 artifacts -->
+              <line x1="118" y1="46" x2="190" y2="34"  stroke="var(--moss)" marker-end="url(#arrow)"/>
+              <line x1="118" y1="78" x2="190" y2="78"  stroke="var(--moss)" marker-end="url(#arrow)"/>
+              <line x1="118" y1="110" x2="190" y2="122" stroke="var(--moss)" marker-end="url(#arrow)"/>
+              <!-- 3 artifact slots (cut-corner — Artifact primitive) -->
+              <path d="M192,22 L228,22 L236,30 L236,46 L192,46 Z"/>
+              <line x1="228" y1="22" x2="228" y2="30"/>
+              <line x1="228" y1="30" x2="236" y2="30"/>
+              <path d="M192,66 L228,66 L236,74 L236,90 L192,90 Z"/>
+              <line x1="228" y1="66" x2="228" y2="74"/>
+              <line x1="228" y1="74" x2="236" y2="74"/>
+              <path d="M192,110 L228,110 L236,118 L236,134 L192,134 Z"/>
+              <line x1="228" y1="110" x2="228" y2="118"/>
+              <line x1="228" y1="118" x2="236" y2="118"/>
+            </svg>
+          </div>
         </div>
         <p class="specimen-receipt"><span class="label">closure</span><span class="moss">held for 3 targets</span><span class="sep">·</span><span class="label">otherwise</span>no artifact emitted</p>
       </article>
