@@ -1601,24 +1601,19 @@ diagnostics: 0</div></div>
         <p class="prim-cell-note">Typed boundary point on a node.</p>
       </div>
 
-      <!-- fold (zipper seam) -->
+      <!-- fold (single zigzag) -->
       <div class="prim-cell svg-cell">
-        <div class="prim-cell-head"><span class="prim-cell-name">Fold</span><span class="prim-cell-kind">zipper seam</span></div>
+        <div class="prim-cell-head"><span class="prim-cell-name">Fold</span><span class="prim-cell-kind">single seam</span></div>
         <div class="prim-cell-body">
-          <svg viewBox="0 0 128 80" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-            <!-- top teeth (variants above the seam) -->
-            <polyline points="10,40 19,24 28,40 37,24 46,40 55,24 64,40"/>
-            <!-- bottom teeth interlocking below the seam -->
-            <polyline points="10,56 19,40 28,56 37,40 46,56 55,40 64,56"/>
-            <!-- moss seam where teeth close -->
-            <line x1="10" y1="40" x2="64" y2="40" stroke="var(--moss-dim)" stroke-width="2"/>
-            <!-- output exits the seam -->
-            <line x1="64" y1="40" x2="80" y2="40" marker-end="url(#arrow)"/>
-            <!-- result node (canonical 48×30 ratio, scaled to cell) -->
-            <rect x="82" y="28" width="32" height="24" rx="4"/>
+          <svg viewBox="0 0 128 80" fill="none" stroke-linecap="round">
+            <!-- single zigzag: the fold's seam through every variant -->
+            <polyline points="8,50 18,30 28,50 38,30 48,50 58,30 68,50" stroke="var(--moss-dim)" stroke-width="2"/>
+            <!-- output exits to the result -->
+            <line x1="68" y1="50" x2="80" y2="50" stroke="var(--moss-dim)" stroke-width="2" marker-end="url(#arrow)"/>
+            <rect x="82" y="36" width="36" height="28" rx="4" stroke="currentColor" stroke-width="1.5"/>
           </svg>
         </div>
-        <p class="prim-cell-note">Variants on top, handlers below — every case must meet at the seam. A missing tooth means the structure can't close (non-exhaustive fold). Result exits right.</p>
+        <p class="prim-cell-note">The seam passes through every variant once. Missing a tooth means it can't close — non-exhaustive fold, no artifact emitted.</p>
       </div>
 
       <!-- lens -->
@@ -1960,16 +1955,13 @@ diagnostics: 0</div></div>
         </div>
         <div class="lesson-body">
           <div class="lesson-vis">
-            <svg viewBox="0 0 240 140" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-              <!-- top teeth: 3 variants (Sunny / Cloudy / Rainy) -->
-              <polyline points="20,70 50,40 80,70 110,40 140,70 170,40"/>
-              <!-- bottom teeth: 3 handlers interlocking -->
-              <polyline points="20,100 50,70 80,100 110,70 140,100 170,70"/>
-              <!-- moss seam — where every case must close -->
-              <line x1="20" y1="70" x2="170" y2="70" stroke="var(--moss-dim)" stroke-width="2.5"/>
-              <!-- output flows from the seam to the result node -->
-              <line x1="170" y1="70" x2="184" y2="70" marker-end="url(#arrow)"/>
-              <rect x="184" y="55" width="48" height="30" rx="4"/>
+            <svg viewBox="0 0 240 140" fill="none" stroke-linecap="round">
+              <!-- single zigzag: 3 variants (Sunny / Cloudy / Rainy), one seam -->
+              <polyline points="20,90 45,55 70,90 95,55 120,90 145,55 170,90"
+                        stroke="var(--moss-dim)" stroke-width="2.5"/>
+              <!-- output continues from the last valley to the result -->
+              <line x1="170" y1="90" x2="186" y2="90" stroke="var(--moss-dim)" stroke-width="2.5" marker-end="url(#arrow)"/>
+              <rect x="186" y="75" width="48" height="30" rx="4" stroke="currentColor" stroke-width="1.5"/>
             </svg>
           </div>
           <div class="lesson-code">
@@ -1983,7 +1975,7 @@ diagnostics: 0</div></div>
           </div>
         </div>
         <p class="lesson-desc">
-          A fold is a <strong>zipper</strong>: every variant on top must meet a handler on the bottom — the moss seam is where the cases close. If one tooth is missing (a variant without a handler), the structure can't close and no artifact is emitted. The result of the fold becomes a new node in the graph — <code>describe</code> — that other nodes can reference. Composition continues.
+          A fold is a <strong>seam through every variant</strong>. The line passes once over each case — <code>Sunny</code>, <code>Cloudy</code>, <code>Rainy</code> — and exits to a single result on the right. The result of the fold becomes a new node in the graph — <code>describe</code> — that other nodes can reference. Composition continues.
         </p>
       </article>
 
@@ -2040,18 +2032,15 @@ diagnostics: 0</div></div>
         </div>
         <div class="lesson-body">
           <div class="lesson-vis">
-            <svg viewBox="0 0 240 140" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-              <!-- top teeth: 3 variants present (Sunny / Cloudy / Rainy) -->
-              <polyline points="20,70 50,40 80,70 110,40 140,70 170,40"/>
-              <!-- bottom teeth: only 2 handlers (Sunny / Cloudy) — third is missing -->
-              <polyline points="20,100 50,70 80,100 110,70 140,100"/>
-              <!-- broken seam: moss for first 2/3, then clay where it can't close -->
-              <line x1="20" y1="70" x2="110" y2="70" stroke="var(--moss-dim)" stroke-width="2.5"/>
-              <line x1="110" y1="70" x2="170" y2="70" stroke="var(--clay)" stroke-width="2.5" stroke-dasharray="5 4"/>
-              <!-- clay boundary wall where the zipper failed to close -->
-              <line x1="180" y1="20" x2="180" y2="120" stroke="var(--clay)" stroke-dasharray="5 4"/>
-              <!-- result node is faded (no artifact emitted) -->
-              <rect x="194" y="55" width="48" height="30" rx="4" stroke-opacity="0.32" stroke-dasharray="3 3"/>
+            <svg viewBox="0 0 240 140" fill="none" stroke-linecap="round">
+              <!-- seam through first two variants (Sunny / Cloudy) — moss holds -->
+              <polyline points="20,90 45,55 70,90 95,55 120,90" stroke="var(--moss-dim)" stroke-width="2.5"/>
+              <!-- where the third tooth would have been: clay dashed, then nothing -->
+              <polyline points="120,90 138,68" stroke="var(--clay)" stroke-width="2.5" stroke-dasharray="4 4"/>
+              <!-- clay boundary wall — the seam can't continue past here -->
+              <line x1="160" y1="35" x2="160" y2="115" stroke="var(--clay)" stroke-dasharray="5 4" stroke-width="1.5"/>
+              <!-- ghost result rect: no artifact emitted -->
+              <rect x="176" y="75" width="48" height="30" rx="4" stroke="currentColor" stroke-width="1.5" stroke-opacity="0.32" stroke-dasharray="3 3"/>
             </svg>
           </div>
           <div class="lesson-code">
@@ -2069,7 +2058,7 @@ diagnostics: 0</div></div>
           </div>
         </div>
         <p class="lesson-desc">
-          The third variant has no handler. The zipper closes for <code>Sunny</code> and <code>Cloudy</code> — the moss seam holds — then opens to clay where <code>Rainy</code> should have met its handler. The compiler reaches the missing case at typecheck time, not at runtime. No Rust struct, no TypeScript type, no test is emitted past the clay wall: <strong>the compiler refuses to guess</strong>.
+          The third variant has no handler. The seam holds in moss across <code>Sunny</code> and <code>Cloudy</code>, then breaks into clay where <code>Rainy</code> should have been — and stops at the clay wall. The compiler reaches the missing case at typecheck time, not at runtime. No Rust struct, no TypeScript type, no test is emitted past the wall: <strong>the compiler refuses to guess</strong>.
         </p>
       </article>
 
