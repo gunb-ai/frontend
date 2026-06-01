@@ -47,6 +47,10 @@ receipt   → output, compile result, witness, install command, proof line
 
 12. **Glow is a material, not a decoration.** A subtle moss or clay `box-shadow` (≤ 8px blur, low opacity) is allowed as a *lit* affordance — focused link, active receipt, held invariant. It must read as the surface emitting light, not as a halo or glow effect for its own sake. Never as a hover decoration on inert text. Never on more than one surface at a time per viewport.
 
+13. **Every visual mark corresponds to source.** Any shape on a diagram must trace to one of: a visible code token, a graph node, a graph edge, a compiler receipt, or an emitted artifact. If a shape doesn't correspond to one of those, it's decoration — remove it. Color carries the correspondence: a clay identifier in source ↔ a clay-stroked node in the diagram; a moss expression in source ↔ a moss-stroked element in the diagram.
+
+14. **No hand-drawn arrowheads.** Directed edges use a shared `<marker id="arrow" orient="auto">` definition. The marker uses `fill="context-stroke"` so the arrowhead inherits the line's stroke color (moss, clay, currentColor). Hand-placed `<polyline>` arrowheads break orientation on diagonal edges and drift out of color sync with their lines — they are forbidden.
+
 ## Materials (canonical palette)
 
 From `legacy/moodboard.html`. Reasons over hexes — if a color drifts from its reason, re-derive the hex from the reason.
