@@ -480,11 +480,14 @@ a { color: inherit; }
 .graph-node.map-context line { stroke: var(--stone-faint); stroke-width: 1; stroke-opacity: 0.55; }
 .graph-node.map-context text { fill: var(--stone-dim); }
 
-.graph-edge { fill: none; stroke-width: 1.5; stroke-linecap: round; }
+/* Default stroke = stone so an edge with no matching role rule
+   is still visible (defensive: failing visibly beats failing silent). */
+.graph-edge { fill: none; stroke: var(--stone); stroke-width: 1.5; stroke-linecap: round; }
 .graph-edge.map-stable     { stroke: var(--warm-white); }
 .graph-edge.map-focus      { stroke: var(--brass); }
 .graph-edge.map-derived    { stroke: var(--moss); }
 .graph-edge.map-transitive { stroke: var(--warm-white-dim); stroke-opacity: 0.7; }
+.graph-edge.map-artifact   { stroke: var(--warm-white); }
 .graph-edge.map-removed    { stroke: var(--clay); stroke-dasharray: 4 3; }
 .graph-edge.map-boundary   { stroke: var(--clay); }
 .graph-edge.map-context    { stroke: var(--stone-faint); stroke-opacity: 0.5; }
@@ -499,6 +502,7 @@ a { color: inherit; }
 .graph-edge-label.map-focus      { fill: var(--brass); }
 .graph-edge-label.map-derived    { fill: var(--moss-dim); }
 .graph-edge-label.map-transitive { fill: var(--warm-white-dim); }
+.graph-edge-label.map-artifact   { fill: var(--warm-white); }
 .graph-edge-label.map-removed    { fill: var(--clay); }
 .graph-edge-label.map-boundary   { fill: var(--clay); }
 .graph-edge-label.map-context    { fill: var(--stone-faint); }
