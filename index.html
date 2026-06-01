@@ -30,7 +30,7 @@
       <span class="eyebrow right">gunbc · structural compiler</span>
     </header>
 
-    <!-- Hero spine — identity on the left, problem/proposal on the right -->
+    <!-- Hero spine — identity on the left; prose + install fill the right -->
     <section class="hero-spine">
       <div class="hero-left">
         <h1>A structural compiler for composable systems.</h1>
@@ -46,17 +46,16 @@
         <p>
           When the description is incomplete, the compiler refuses to guess.
         </p>
-      </div>
-    </section>
-
-    <!-- Install / early access -->
-    <section class="install">
-      <span class="section-label">early access · build from source</span>
+        <section class="install">
+          <span class="section-label">early access · build from source</span>
 <pre class="command"><span class="prompt">$ </span>git clone https://github.com/gunb-ai/daglang
 <span class="prompt">$ </span>cd daglang
 <span class="prompt">$ </span>cargo build --release</pre>
+        </section>
+      </div>
     </section>
 
+    <!-- Carved rule — fills page width, aligns with specimen cards below -->
     <div class="carved-rule" aria-hidden="true"><span class="notch"></span></div>
 
     <!-- Three specimens — things normal compilers don't do -->
@@ -134,8 +133,8 @@
 
     </section>
 
-    <!-- Invariant — projection closure failure -->
-    <section class="diagnostic">
+    <!-- Invariant — projection closure failure (prose-width wrapper) -->
+    <section class="diagnostic measure-prose">
       <span class="section-label">a diagnostic</span>
 <pre class="invariant"><span class="title">Invariant —</span>
   projection is not closed

@@ -128,20 +128,20 @@ a { color: inherit; }
 }
 
 
-/* ╔══ HERO — field-note split (left identity, right prose) ═════════ */
+/* ╔══ HERO — field-note split (left identity, right prose + install) ═ */
 
 .hero-spine {
   display: grid;
-  grid-template-columns: minmax(15rem, 0.72fr) minmax(0, 1fr);
-  gap: clamp(2rem, 6vw, 5rem);
+  grid-template-columns: minmax(21rem, 0.9fr) minmax(25rem, 1fr);
+  gap: clamp(2rem, 5vw, 4rem);
   align-items: start;
-  margin-bottom: 3.5rem;
+  margin-bottom: 2.75rem;
 }
 .hero-left h1 {
   margin: 0 0 0.85rem;
-  max-width: var(--measure-title);
+  max-width: 16.5ch;
   font-family: var(--font-sans); font-weight: 600;
-  font-size: clamp(2.2rem, 5.5vw, 4rem);
+  font-size: clamp(2.2rem, 4.8vw, 3.45rem);
   line-height: 1.04;
   letter-spacing: -0.04em;
   color: var(--warm-white);
@@ -155,20 +155,22 @@ a { color: inherit; }
   max-width: 24em;
 }
 .hero-right {
-  max-width: 38rem;
-  padding-top: 0.45rem;
+  max-width: var(--measure-prose);
+  padding-top: 0.35rem;
+  display: grid;
+  gap: 1.15rem;
 }
 .hero-right p {
-  margin: 0 0 1.05rem;
+  margin: 0;
   line-height: 1.7;
   color: var(--warm-white-dim);
 }
-.hero-right p:last-child { margin-bottom: 0; }
 .hero-right strong { color: var(--warm-white); font-weight: 500; }
 .hero-right code {
   font-family: var(--font-mono); font-size: 0.88em;
   color: var(--warm-white);
 }
+.hero-right .install { margin-top: 0.35rem; }
 
 
 /* ╔══ PROSE — generic body paragraphs ══════════════════════════════ */
@@ -187,12 +189,24 @@ a { color: inherit; }
 }
 
 
-/* ╔══ CARVED RULE — section break with moss diamond notch ═════════ */
+/* ╔══ MEASURE WRAPPERS ═════════════════════════════════════════════
+   Width is controlled by section CONTAINERS, not individual components.
+   Wrap a section in one of these to clamp its children. */
+
+.measure-prose { max-width: var(--measure-prose); }
+.measure-page  { max-width: var(--measure-page); }
+.measure-wide  { max-width: var(--measure-wide); }
+
+
+/* ╔══ CARVED RULE — section break with moss diamond notch ═════════
+   No max-width: inherits from its container (the section's measure
+   wrapper or .page). That keeps it aligned with whatever sits beside
+   or below it. */
 
 .carved-rule {
   display: flex; align-items: center; gap: 0.7rem;
+  width: 100%;
   margin: 2.75rem 0;
-  max-width: var(--measure-prose);
 }
 .carved-rule::before, .carved-rule::after {
   content: ""; flex: 1; height: 0;
@@ -218,7 +232,6 @@ a { color: inherit; }
   margin: 0;
   white-space: pre;
   overflow-x: auto;
-  max-width: var(--measure-prose);
 }
 .command .prompt { color: var(--moss); user-select: none; }
 
@@ -237,7 +250,6 @@ a { color: inherit; }
   margin: 0;
   white-space: pre;
   overflow-x: auto;
-  max-width: var(--measure-prose);
 }
 .invariant .title {
   color: var(--clay);
@@ -246,10 +258,10 @@ a { color: inherit; }
 }
 
 
-/* ╔══ STORY LEDGER — specimen card sequence ════════════════════════ */
+/* ╔══ STORY LEDGER — specimen card sequence ════════════════════════
+   No max-width: inherits page width from the parent .page. */
 
 .story-ledger {
-  max-width: var(--measure-page);
   margin: var(--gap-lg) 0;
   display: grid; gap: var(--gap-sm);
 }
