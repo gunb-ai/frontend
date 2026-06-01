@@ -58,7 +58,8 @@
     <!-- Carved rule — fills page width, aligns with specimen cards below -->
     <div class="carved-rule" aria-hidden="true"><span class="notch"></span></div>
 
-    <!-- Three specimens — things normal compilers don't do -->
+    <!-- Three specimens — things normal compilers don't do, against a
+         REST service every developer recognizes -->
     <section class="story-ledger" aria-label="three specimens">
 
       <!-- 01 — Projection closure -->
@@ -68,20 +69,27 @@
           <span class="specimen-name">projection closure</span>
         </header>
         <div class="specimen-body">
-<pre class="specimen-code"><span class="kw">service</span> <span class="ty">WeatherStation</span> =
-  read    : () -> <span class="ty">Observation</span>
-  history : () -> <span class="ty">List</span>&lt;<span class="ty">Observation</span>&gt;
+<pre class="specimen-code"><span class="kw">record</span> <span class="ty">User</span> =
+  id         : <span class="ty">UserId</span>
+  email      : <span class="ty">Email</span>
+  created_at : <span class="ty">Timestamp</span>
 
-<span class="kw">project</span> <span class="ty">WeatherStation</span> -> <span class="lit">rust</span>
-<span class="kw">project</span> <span class="ty">WeatherStation</span> -> <span class="lit">openapi</span></pre>
-<pre class="specimen-graph"><span class="node">WeatherStation</span>
-  <span class="b">├─</span> <span class="node">Observation</span>        <span class="ok">rust · openapi</span>
-  <span class="b">├─</span> <span class="node">List&lt;Observation&gt;</span>  <span class="ok">rust · openapi</span>
-  <span class="b">└─</span> <span class="node">Celsius</span>            <span class="ok">rust · openapi</span>
+<span class="kw">service</span> <span class="ty">Users</span> =
+  get    : (<span class="ty">UserId</span>) -> <span class="ty">User</span>
+  list   : () -> <span class="ty">List</span>&lt;<span class="ty">User</span>&gt;
+  create : (<span class="ty">User</span>) -> <span class="ty">User</span>
 
-<span class="dim">every reachable node must project</span></pre>
+<span class="kw">project</span> <span class="ty">Users</span> -> <span class="lit">rust</span>, <span class="lit">typescript</span>, <span class="lit">openapi</span></pre>
+<pre class="specimen-graph"><span class="node">Users</span>
+  <span class="b">├─</span> <span class="node">User</span>           <span class="ok">rust · ts · openapi</span>
+  <span class="b">├─</span> <span class="node">List&lt;User&gt;</span>     <span class="ok">rust · ts · openapi</span>
+  <span class="b">├─</span> <span class="node">UserId</span>         <span class="ok">rust · ts · openapi</span>
+  <span class="b">├─</span> <span class="node">Email</span>          <span class="ok">rust · ts · openapi</span>
+  <span class="b">└─</span> <span class="node">Timestamp</span>      <span class="ok">rust · ts · openapi</span>
+
+<span class="dim">every reachable type projects to every target</span></pre>
         </div>
-        <p class="specimen-receipt"><span class="label">closure</span><span class="moss">held for rust + openapi</span><span class="sep">·</span><span class="label">otherwise</span>no artifact emitted</p>
+        <p class="specimen-receipt"><span class="label">closure</span><span class="moss">held for 3 targets</span><span class="sep">·</span><span class="label">otherwise</span>no artifact emitted</p>
       </article>
 
       <!-- 02 — Affected set across artifacts -->
@@ -91,20 +99,21 @@
           <span class="specimen-name">affected set across artifacts</span>
         </header>
         <div class="specimen-body">
-<pre class="specimen-code"><span class="kw">type</span> <span class="ty">Observation</span> {
-  <span class="rem">- temperature: Celsius</span>
-  <span class="add">+ temperature: Fahrenheit</span>
+<pre class="specimen-code"><span class="kw">record</span> <span class="ty">User</span> {
+  <span class="rem">- email: String</span>
+  <span class="add">+ email: Email         </span><span class="com">-- format constraint</span>
 }</pre>
-<pre class="specimen-graph"><span class="node">Observation.temperature</span>
-  <span class="b">├─</span> Rust struct       <span class="ok">recheck</span>
-  <span class="b">├─</span> TypeScript type   <span class="ok">recheck</span>
-  <span class="b">├─</span> OpenAPI schema    <span class="ok">regen</span>
-  <span class="b">├─</span> generated tests   <span class="ok">regen</span>
-  <span class="b">└─</span> effect checks     <span class="ok">recheck</span>
+<pre class="specimen-graph"><span class="node">User.email</span>
+  <span class="b">├─</span> Rust struct        <span class="ok">recheck</span>
+  <span class="b">├─</span> TypeScript type    <span class="ok">recheck</span>
+  <span class="b">├─</span> OpenAPI schema     <span class="ok">regen</span>
+  <span class="b">├─</span> validation rules   <span class="ok">recheck</span>
+  <span class="b">├─</span> generated tests    <span class="ok">regen</span>
+  <span class="b">└─</span> docs reference     <span class="ok">regen</span>
 
-<span class="dim">skip: unrelated nodes with receipt</span></pre>
+<span class="dim">skip: 21 unrelated nodes with receipt</span></pre>
         </div>
-        <p class="specimen-receipt"><span class="label">downstream</span><span class="moss">5 surfaces</span><span class="sep">·</span><span class="label">skip</span>21 nodes (with receipt)</p>
+        <p class="specimen-receipt"><span class="label">downstream</span><span class="moss">6 surfaces</span><span class="sep">·</span><span class="label">skip</span>21 nodes (with receipt)</p>
       </article>
 
       <!-- 03 — Structural complexity + infra bringup -->
@@ -114,17 +123,18 @@
           <span class="specimen-name">complexity + infra bringup</span>
         </header>
         <div class="specimen-body">
-<pre class="specimen-code"><span class="kw">fn</span> bringup(svcs: <span class="ty">List</span>&lt;<span class="ty">Service</span>&gt;) {
-  svcs |&gt; <span class="kw">each</span>(start_service)
+<pre class="specimen-code"><span class="kw">fn</span> bringup(env: <span class="ty">Environment</span>) {
+  env.databases |&gt; <span class="kw">each</span>(connect)
+  env.caches    |&gt; <span class="kw">each</span>(connect)
 }
 
 <span class="kw">lens</span> bringup_complexity &lt;= <span class="lit">O(n)</span>
-<span class="kw">upsert</span> infra <span class="kw">for</span> <span class="ty">WeatherStation</span></pre>
-<pre class="specimen-graph"><span class="node">WeatherStation</span>
-  <span class="b">└─</span> <span class="node">bringup</span>     <span class="ok">O(n) · held</span>
-       <span class="b">├─</span> postgres <span class="ok">upsert · idempotent</span>
-       <span class="b">├─</span> redis    <span class="ok">upsert · idempotent</span>
-       <span class="b">└─</span> workers  <span class="ok">upsert · idempotent</span>
+<span class="kw">upsert</span> infra <span class="kw">for</span> <span class="ty">Users</span></pre>
+<pre class="specimen-graph"><span class="node">Users</span>
+  <span class="b">└─</span> <span class="node">bringup</span>      <span class="ok">O(n) · held</span>
+       <span class="b">├─</span> postgres  <span class="ok">upsert · idempotent</span>
+       <span class="b">├─</span> redis     <span class="ok">upsert · idempotent</span>
+       <span class="b">└─</span> api_pool  <span class="ok">upsert · idempotent</span>
 
 <span class="dim">duplicate bringup: blocked</span></pre>
         </div>
@@ -133,22 +143,23 @@
 
     </section>
 
-    <!-- Invariant — projection closure failure (prose-width wrapper) -->
-    <section class="diagnostic measure-prose">
+    <!-- Invariant — projection closure failure on Timestamp.
+         Page-width wrapper so it aligns with the specimens above. -->
+    <section class="diagnostic">
       <span class="section-label">a diagnostic</span>
 <pre class="invariant"><span class="title">Invariant —</span>
   projection is not closed
 
   requested:
-    WeatherStation -> openapi
+    Users -> openapi
 
   missing:
-    openapi projection for Celsius
+    openapi projection for Timestamp
 
   reached through:
-    WeatherStation.history
-    List&lt;Observation&gt;
-    Observation.temperature
+    Users.list
+    List&lt;User&gt;
+    User.created_at
 
   result:
     no artifact emitted</pre>
