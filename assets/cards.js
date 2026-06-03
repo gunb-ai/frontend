@@ -760,41 +760,35 @@
     }
   };
 
-  // Layout for card 01 — the integration vision, made concrete (roadmap).
-  // The thesis: model each concept once and completely (git, the GitHub
-  // REST API, and Rust are all really modeled in gunbc), then a THIN
-  // workflow wires them — no dual representations (nothing restated),
-  // no hand-written transforms (the coercion between concepts derives).
-  // Real today: the three models + workflow-as-data. Roadmap: emitting
-  // the complete working Rust artifact with derived glue end-to-end.
+  // Layout for card 01 — merge-readiness from THREE sources (dogfooded).
+  // gunbc models its own PR merge-readiness in .dag to DELETE hand-written
+  // TS glue (pr_{ci,conflict,merge_ready}_digest.mjs). Real today: the
+  // verdict type + PR/reviews judging (JudgeMergeReadiness). In progress
+  // (gunbc's own cut-over): folding in CI (github.actions) + conflicts
+  // (git) — the M>2 reach. The translations are NON-TRIVIAL (review list
+  // -> approval state, CI joined to the head commit, conflict detection),
+  // so the derived glue is worth something vs a value plopped through.
   //
-  //   git · GitBranch    ┐
-  //                      ├─▶ branch_pr (thin layer) ─emit─▶ Rust artifact
-  //   GitHub · PullReq   ┘                            [glue derived · roadmap]
+  //   GitHub · PR + reviews ┐
+  //   GitHub Actions · CI   ┼─▶ MergeReadinessVerdict   (deletes *.mjs glue)
+  //   git · conflicts       ┘    [PR/reviews real · CI+conflicts cut-over]
 
   /* ════════════════════════════════════════════════════════════════
-     CARD 01 · the integration vision (roadmap) — generate the glue
+     CARD 01 · merge-readiness from M sources — the glue gunbc deletes
      ══════════════════════════════════════════════════════════════ */
 
   function projectionClosureCard(system) {
     return {
       id: "card-01",
       num: "01",
-      name: "three concepts, modeled once — a thin layer wires them, the glue derives",
+      name: "merge-readiness from three sources — the glue gunbc is deleting from itself",
       systemId: system.id,
-      codeFile: "examples/integration.dag",
+      codeFile: "ctrl/pr_digests.dag",
       // Hover content — the REAL models behind the imports (verbatim
-      // from git.dag / github/pulls.dag). Keeps the modeling visible
-      // without burying the card in code.
+      // from github/pulls.dag). Keeps the modeling visible without
+      // burying the card in code.
       hovers: {
-        git: { title: "extdeps/git.dag · real model", lines: [
-          "type GitBranch {",
-          "  name:     String",
-          "  upstream: String?",
-          "  is_head:  Bool",
-          "}"
-        ]},
-        rest: { title: "extdeps/github/pulls.dag · real model", lines: [
+        pulls: { title: "extdeps/github/pulls.dag · real models", lines: [
           "type PullRequest {",
           "  number: Int",
           "  title:  String",
@@ -802,58 +796,64 @@
           "  head:   PullRequestRef",
           "  base:   PullRequestRef",
           "  …",
-          "}"
+          "}",
+          "// PullReview is modeled here too"
         ]}
       },
       code: [
-        ln(1,  [com("// each concept modeled once, independently —")]),
-        ln(2,  [com("// nothing restated, no dual representations:")]),
-        ln(3,  [kw("import"), tx(" extdeps.git { "), ref("git", "GitBranch", "stable"), tx(" }")]),
-        ln(4,  [kw("import"), tx(" extdeps.github { "), ref("rest", "PullRequest", "stable"), tx(", list_pulls }")]),
-        blank(5),
-        ln(6,  [com("// a thin workflow — wire them; don't transform by hand.")]),
-        ln(7,  [com("// matching a git ref to the REST query is a derived coercion:")]),
-        ln(8,  [kw("fn"), tx(" "), ref("flow", "branch_pr", "focus"), tx("(b: "), ty("GitBranch"),
-                tx(") -> "), ty("PullRequest"), tx(" {")]),
-        ln(9,  [tx("  list_pulls(head: b.name) |> first")]),
-        ln(10, [tx("}")]),
-        blank(11),
-        ln(12, [com("// emit a Rust artifact that drives git AND the GitHub REST")]),
-        ln(13, [com("// API — HTTP client, git access, glue all derived:")]),
-        ln(14, [com("//   gunbc compile branch_pr --target rust      [roadmap]")])
+        ln(1,  [com("// each source modeled once, independently — nothing restated:")]),
+        ln(2,  [kw("import"), tx(" extdeps.github.pulls { "), ref("pulls", "PullRequest", "stable"),
+                tx(", PullReview }")]),
+        blank(3),
+        ln(4,  [com("// a real modeled verdict — replacing pr_merge_ready_digest.mjs:")]),
+        ln(5,  [kw("type"), tx(" "), ref("verdict", "MergeReadinessVerdict", "focus"), tx(" = Ready")]),
+        ln(6,  [tx("  | NotReady { first_reason: String, more_reasons: List<String> }")]),
+        blank(7),
+        ln(8,  [com("// aggregate a PR + every review into one verdict —")]),
+        ln(9,  [com("// non-trivial, and never restating what a PR or review is:")]),
+        ln(10, [kw("operation"), tx(" JudgeMergeReadiness {")]),
+        ln(11, [tx("  input  { pr: "), ty("PullRequest"), tx(", reviews: List<"), ty("PullReview"), tx("> }")]),
+        ln(12, [tx("  output { verdict: "), ty("MergeReadinessVerdict"), tx(" }")]),
+        ln(13, [tx("}")]),
+        blank(14),
+        ln(15, [com("// in progress (gunbc's own cut-over): fold in CI runs")]),
+        ln(16, [com("// (github.actions) + merge conflicts (git) — the other")]),
+        ln(17, [com("// two .mjs glue scripts being deleted.")])
       ],
       graph: {
         nodes: [
-          node("git",  "git · GitBranch",      0, 0, "stable"),
-          node("rest", "GitHub · PullRequest", 0, 2, "stable"),
-          node("flow", "branch_pr",            1, 1, "focus"),
-          artifact("rust_art", "Rust artifact", 2, 1)
+          node("pulls",   "GitHub · PR + reviews", 0, 0, "stable"),
+          node("ci",      "GitHub Actions · CI",   0, 1, "context"),
+          node("conf",    "git · conflicts",       0, 2, "context"),
+          node("verdict", "MergeReadinessVerdict", 1, 1, "focus")
         ],
         edges: [
-          edge("git",  "flow", "GitBranch",   "derived"),
-          edge("rest", "flow", "PullRequest", "derived"),
-          edge("flow", "rust_art", "emit · glue derived", "derived")
+          edge("pulls", "verdict", "real",     "derived"),
+          edge("ci",    "verdict", "cut-over", "boundary"),
+          edge("conf",  "verdict", "cut-over", "boundary")
         ]
       },
       receipt: [
-        { label: "modeled once",        value: "{stable:git, GitHub's REST API, and Rust — each described completely and independently. all three are real models in gunbc today.}" },
-        { label: "no restating",        value: "{derived:you never re-declare what a branch or a PR is — git and GitHub already did; the workflow just refers to them}" },
-        { label: "no hand transforms",  value: "{derived:matching a git ref to the REST query is a coercion gunbc derives — not an adapter you write}" },
-        { label: "the artifact",        value: "{derived:one thin workflow → a Rust program that drives git and the GitHub API, glue and all}" },
-        { label: "roadmap",             value: "{boundary:the models and workflow-as-data are real; emitting the complete working artifact (HTTP client, git access, glue end-to-end) is the direction, not yet wired}" },
+        { label: "three sources", value: "{stable:git conflicts · the GitHub PR + its reviews · the CI runs — each modeled once, independently}" },
+        { label: "non-trivial",   value: "{derived:a list of reviews → an approval state; a CI run joined to the head commit; conflicts checked — reconciled into one verdict, not a value plopped through}" },
+        { label: "no restating",  value: "{derived:you never re-declare what a PR, a review, or a commit is — each source already did}" },
+        { label: "real today",    value: "{stable:the verdict type + PR/reviews judging are modeled in .dag — JudgeMergeReadiness}" },
+        { label: "in progress",   value: "{boundary:folding in CI (github.actions) + conflicts (git) is gunbc's own cut-over — the M>2 reach}" },
+        { label: "the proof",     value: "{derived:this is deleting real hand-written glue — pr_ci_digest.mjs, pr_conflict_digest.mjs, pr_merge_ready_digest.mjs. the pain isn't hypothetical.}" },
         { label: "expected Rust", code: [
-          "// illustrative — modeled on v2 stage0's real output style;",
-          "// this artifact is roadmap, not emitted by gunbc today.",
+          "// illustrative — modeled on v2 stage0's real output style.",
           "// Generated by gunbc -- do not edit.",
           "#[derive(Clone)]",
-          "pub struct GitBranch {",
-          "    pub name: String,",
-          "    pub upstream: Option<String>,",
-          "    pub is_head: bool,",
+          "pub enum MergeReadinessVerdict {",
+          "    Ready,",
+          "    NotReady { first_reason: String, more_reasons: Vec<String> },",
           "}",
           "",
-          "pub fn branch_pr(b: GitBranch) -> Option<PullRequest> {",
-          "    list_pulls(b.name).into_iter().next()",
+          "pub fn judge_merge_readiness(",
+          "    pr: PullRequest,",
+          "    reviews: Vec<PullReview>,",
+          ") -> MergeReadinessVerdict {",
+          "    // … aggregate reviews + PR state into the verdict",
           "}"
         ]}
       ]
