@@ -250,7 +250,14 @@
      CODE RENDERER
      ══════════════════════════════════════════════════════════════ */
 
-  function partHtml(p, refRole) {
+  function hoverHtml(h) {
+    if (!h) return "";
+    return '<span class="ck-hover-card">'
+         + (h.title ? '<span class="ck-hover-title">' + esc(h.title) + '</span>' : '')
+         + esc((h.lines || []).join("\n"))
+         + '</span>';
+  }
+  function partHtml(p, refRole, hovers) {
     if (p.kind === "text") return esc(p.value);
     if (p.kind === "kw")   return '<span class="ck-kw">'  + esc(p.value) + '</span>';
     if (p.kind === "ty")   return '<span class="ck-ty">'  + esc(p.value) + '</span>';
@@ -260,15 +267,18 @@
     if (p.kind === "ref") {
       const role = p.role || refRole(p.id);
       const cls  = role ? roleClass(role) : "";
-      return '<span class="ck-ref ' + cls + '" data-id="' + esc(p.id) + '">' + esc(p.text) + '</span>';
+      const h    = hovers && hovers[p.id];
+      return '<span class="ck-ref ' + cls + (h ? ' has-hover' : '')
+           + '" data-id="' + esc(p.id) + '"' + (h ? ' tabindex="0"' : '') + '>'
+           + esc(p.text) + hoverHtml(h) + '</span>';
     }
     return "";
   }
-  function lineHtml(line, refRole) {
+  function lineHtml(line, refRole, hovers) {
     const lnNo = line.n != null
       ? '<span class="ck-ln">' + String(line.n).padStart(2, "0") + '</span> '
       : '<span class="ck-ln">  </span> ';
-    const parts = line.parts.map(p => partHtml(p, refRole)).join("");
+    const parts = line.parts.map(p => partHtml(p, refRole, hovers)).join("");
     if (line.diff === "rm")  return '<div class="ck-line ck-diff-rm">'  + lnNo + '<span class="ck-diff-sign">-</span> ' + parts + '</div>';
     if (line.diff === "add") return '<div class="ck-line ck-diff-add">' + lnNo + '<span class="ck-diff-sign">+</span> ' + parts + '</div>';
     return '<div class="ck-line">' + lnNo + '  ' + (parts || '&nbsp;') + '</div>';
@@ -282,7 +292,7 @@
                + '<span class="ck-file">' + esc(card.codeFile || (card.id + ".dag")) + '</span>'
                + '</div>';
     const body = '<div class="card-code-body">'
-               + card.code.map(l => lineHtml(l, refRole)).join("")
+               + card.code.map(l => lineHtml(l, refRole, card.hovers)).join("")
                + '</div>';
     return '<div class="card-code">' + head + body + '</div>';
   }
@@ -773,6 +783,28 @@
       name: "three concepts, modeled once — a thin layer wires them, the glue derives",
       systemId: system.id,
       codeFile: "examples/integration.dag",
+      // Hover content — the REAL models behind the imports (verbatim
+      // from git.dag / github/pulls.dag). Keeps the modeling visible
+      // without burying the card in code.
+      hovers: {
+        git: { title: "extdeps/git.dag · real model", lines: [
+          "type GitBranch {",
+          "  name:     String",
+          "  upstream: String?",
+          "  is_head:  Bool",
+          "}"
+        ]},
+        rest: { title: "extdeps/github/pulls.dag · real model", lines: [
+          "type PullRequest {",
+          "  number: Int",
+          "  title:  String",
+          "  state:  String",
+          "  head:   PullRequestRef",
+          "  base:   PullRequestRef",
+          "  …",
+          "}"
+        ]}
+      },
       code: [
         ln(1,  [com("// each concept modeled once, independently —")]),
         ln(2,  [com("// nothing restated, no dual representations:")]),
@@ -808,7 +840,14 @@
         { label: "no restating",        value: "{derived:you never re-declare what a branch or a PR is — git and GitHub already did; the workflow just refers to them}" },
         { label: "no hand transforms",  value: "{derived:matching a git ref to the REST query is a coercion gunbc derives — not an adapter you write}" },
         { label: "the artifact",        value: "{derived:one thin workflow → a Rust program that drives git and the GitHub API, glue and all}" },
-        { label: "roadmap",             value: "{boundary:the models and workflow-as-data are real; emitting the complete working artifact (HTTP client, git access, glue end-to-end) is the direction, not yet wired}" }
+        { label: "roadmap",             value: "{boundary:the models and workflow-as-data are real; emitting the complete working artifact (HTTP client, git access, glue end-to-end) is the direction, not yet wired}" },
+        { label: "expected Rust", code: [
+          "// illustrative — what you'd get; this artifact is roadmap,",
+          "// not yet emitted by gunbc today:",
+          "pub fn branch_pr(b: &GitBranch) -> Option<PullRequest> {",
+          "    list_pulls(&b.name).into_iter().next()",
+          "}"
+        ]}
       ]
     };
   }
