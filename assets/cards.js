@@ -750,60 +750,59 @@
     }
   };
 
-  // Layout for card 01 — derived coercion (the N×M -> N+M thesis).
-  // One integration layer; gunbc DERIVES the structure-preserving
-  // coercion into each target (the homomorphism) and proves it — the
-  // adapter you'd otherwise hand-write per pair. ONE clean slice only:
-  // the structural coercion. Serialization, coordination, and SEMANTIC
-  // reconciliation are deliberately fenced off (that bundle is what
-  // muddied the wire-contract card). Reality-gate: one coercion across
-  // language targets runs today; M-system integration is the direction.
+  // Layout for card 01 — the integration VISION (explicitly roadmap).
+  // Operator's call: this vision IS the product ("irrelevant without
+  // it"), so lead with it and label it honestly. Real today: the
+  // integration targets are modeled (git, cargo, cron, apt, shell, …).
+  // Roadmap: deriving the GLUE between them — the part that matters —
+  // is the direction, not yet wired. Keep it a clean picture (hub +
+  // derived-glue spokes), NOT the serialization/coordination/semantic
+  // bundle that muddied the wire-contract card.
   //
-  //   layer ──coercion (derived, proven)──▶ Rust
-  //         ├──────────────────────────────▶ Python
-  //         └──────────────────────────────▶ Go
+  //   one description ──glue (derived) [roadmap]──▶ git
+  //                   ├────────────────────────────▶ cargo
+  //                   └────────────────────────────▶ shell
 
   /* ════════════════════════════════════════════════════════════════
-     CARD 01 · derived coercion — the N×M → N+M thesis (one clean slice)
+     CARD 01 · the integration vision (roadmap) — generate the glue
      ══════════════════════════════════════════════════════════════ */
 
   function projectionClosureCard(system) {
     return {
       id: "card-01",
       num: "01",
-      name: "one integration layer, M targets — derive the coercions, don't hand-write them",
+      name: "the goal — define your integration targets, generate the glue between them",
       systemId: system.id,
-      codeFile: "examples/layer.dag",
+      codeFile: "examples/integration.dag",
       code: [
-        ln(1, [com("// the integration layer — define the data and ops once")]),
-        ln(2, [kw("type"), tx(" "), ref("Amount", "Amount", "stable"), tx(" = Int")]),
-        ln(3, [kw("fn"), tx(" settle(a: "), ty("Amount"), tx(", b: "), ty("Amount"),
-               tx(") -> "), ty("Amount"), tx(" { a + b }")]),
-        blank(4),
-        ln(5, [com("// gunbc derives the coercion into each target and proves")]),
-        ln(6, [com("// it preserves structure — not the adapter you'd hand-write")]),
-        ln(7, [com("// per pair. add a target → its coercions to the rest derive.")])
+        ln(1, [com("// integration targets gunbc models today:")]),
+        ln(2, [com("//   git · cargo · cron · apt · shell · …")]),
+        blank(3),
+        ln(4, [com("// the goal: describe each once — gunbc generates the glue")]),
+        ln(5, [com("// BETWEEN any two. no hand-written adapter, no \"normal")]),
+        ln(6, [com("// language\" code at the seam. add a target → its glue to")]),
+        ln(7, [com("// all the rest derives.   ( N+M, not N×M )       [roadmap]")])
       ],
       graph: {
         nodes: [
-          node("Amount", "integration layer", 0, 1, "stable"),
-          artifact("t_rs", "Rust",   1, 0),
-          artifact("t_py", "Python", 1, 1),
-          artifact("t_go", "Go",     1, 2)
+          node("layer", "one description", 0, 1, "context"),
+          artifact("git",   "git",   1, 0),
+          artifact("cargo", "cargo", 1, 1),
+          artifact("shell", "shell", 1, 2)
         ],
         edges: [
-          edge("Amount", "t_rs", "coercion ✓", "derived"),
-          edge("Amount", "t_py", "coercion ✓", "derived"),
-          edge("Amount", "t_go", "coercion ✓", "derived")
+          edge("layer", "git",   "glue · derived", "derived"),
+          edge("layer", "cargo", "glue · derived", "derived"),
+          edge("layer", "shell", "glue · derived", "derived")
         ]
       },
       receipt: [
-        { label: "the layer",     value: "{stable:define your data and operations once}" },
-        { label: "the coercions", value: "{derived:gunbc derives the mapping into each target and proves it preserves structure (the homomorphism) — not the adapter you'd otherwise hand-write and maintain per pair}" },
-        { label: "the win",       value: "{derived:M targets, one layer → write each target's model once; the coercions between them derive. N+M, not N×M.}" },
-        { label: "only when",     value: "{context:the layer is a faithful superset of the targets — if a target needs a concept the layer lacks, you widen the layer once}" },
-        { label: "not this card", value: "{context:semantic reconciliation (this id is a UUID, that one an int) you state once in the layer; behavioral glue (retries, timeouts) stays yours. Only the structural coercion derives.}" },
-        { label: "today vs ahead",value: "{context:one coercion deriving across language targets runs now; M-system integration (APIs, services, stores) through one layer is the direction}" }
+        { label: "the goal",      value: "{stable:describe each integration target once}" },
+        { label: "the glue",      value: "{derived:gunbc generates the coercion BETWEEN any two — you never hand-write the adapter or drop to \"normal language\" code at the seam}" },
+        { label: "the win",       value: "{derived:add a target → its glue to all the others derives. N+M, not N×M.}" },
+        { label: "real today",    value: "{stable:the integration targets are modeled — git, cargo, cron, apt, shell, …}" },
+        { label: "roadmap",       value: "{boundary:deriving the glue between them — the part that makes this matter — is the direction, not yet wired}" },
+        { label: "still bounded", value: "{context:the structural coercion is what derives; semantic reconciliation (this id is a UUID, that one an int) you state once; behavioral glue (retries, timeouts) stays yours}" }
       ]
     };
   }
