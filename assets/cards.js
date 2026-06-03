@@ -750,74 +750,60 @@
     }
   };
 
-  // Layout for card 01 — one type, three faithful representations.
-  // Direct fan-out (no intermediate operation nodes): teach that one
-  // structural fact emits a polyglot artifact set with zero hand-
-  // written translation between them.
+  // Layout for card 01 — the heterogeneous boundary. NOT a fan-out of
+  // one type to N targets (that's just parallel codegen, the boring
+  // half). Two components pick different targets; the contract between
+  // them — field shape + serialization — derives from one model and is
+  // therefore single-sourced. The seam (the central contract node) is
+  // the hero; the component boxes are secondary.
   //
-  //   User → User.rs  (Rust struct)
-  //        → user.go  (Go struct)
-  //        → user.py  (Python dataclass)
-  function projectionLayoutNodes(system) {
-    return [
-      node("User", "User", 0, 1),
-      artifact("user_rs", system.artifacts.user_rs.label, 1, 0),
-      artifact("user_go", system.artifacts.user_go.label, 1, 1),
-      artifact("user_py", system.artifacts.user_py.label, 1, 2)
-    ];
-  }
-  function projectionLayoutEdges() {
-    return [
-      edge("User", "user_rs", "rust"),
-      edge("User", "user_go", "go"),
-      edge("User", "user_py", "python")
-    ];
-  }
-  function applyNodeRoles(nodes, roleMap) {
-    return nodes.map(n => {
-      if (n.kind === "artifact") return n;
-      return Object.assign({}, n, { role: roleMap[n.id] || n.role || "context" });
-    });
-  }
-  function applyEdgeRoles(edges, roleMap, defaultRole) {
-    return edges.map(e => {
-      const key = e.from + "→" + e.to;
-      return Object.assign({}, e, { role: roleMap[key] || defaultRole || "derived" });
-    });
-  }
+  //   User ──derived──▶ [User contract] ──▶ auth · Rust
+  //                                      └─▶ analytics · Python
 
   /* ════════════════════════════════════════════════════════════════
-     CARD 01 · projection closure
+     CARD 01 · the heterogeneous boundary — seam is the hero
      ══════════════════════════════════════════════════════════════ */
 
   function projectionClosureCard(system) {
     return {
       id: "card-01",
       num: "01",
-      name: "one type · three faithful representations",
+      name: "two components, two languages — the contract between them is derived",
       systemId: system.id,
       codeFile: "examples/user.dag",
       code: [
-        ln(1, [kw("type"), tx(" "), ref("User", "User", "stable"), tx(" {")]),
-        ln(2, [tx("  id:    String")]),
-        ln(3, [tx("  email: String")]),
-        ln(4, [tx("  name:  String")]),
-        ln(5, [tx("}")]),
+        ln(1,  [kw("type"), tx(" "), ref("User", "User", "stable"), tx(" {")]),
+        ln(2,  [tx("  id:    String")]),
+        ln(3,  [tx("  email: String")]),
+        ln(4,  [tx("  name:  String")]),
+        ln(5,  [tx("}")]),
         blank(6),
-        ln(7, [com("// gunbc compile --target rust | go | python")])
+        ln(7,  [com("// one model, two components, each its own target —")]),
+        ln(8,  [com("// the User contract between them is derived, not hand-written:")]),
+        ln(9,  [com("//   auth      → gunbc compile --target rust")]),
+        ln(10, [com("//   analytics → gunbc compile --target python")])
       ],
       graph: {
-        nodes: applyNodeRoles(projectionLayoutNodes(system), { User: "stable" }),
-        edges: applyEdgeRoles(projectionLayoutEdges(), {}, "derived")
+        nodes: [
+          node("User", "User · one model", 0, 1, "stable"),
+          artifact("wire",     "User contract", 1, 1),
+          artifact("rust_svc", "auth · Rust",   2, 0),
+          artifact("py_pipe",  "analytics · Python", 2, 2)
+        ],
+        edges: [
+          edge("User", "wire",     "derived",     "derived"),
+          edge("wire", "rust_svc", "Rust side",   "derived"),
+          edge("wire", "py_pipe",  "Python side", "derived")
+        ]
       },
-      // Structural receipt only — no literal emitted snippets. The
-      // capability (one type → three faithful target artifacts, zero
-      // hand-written translation) is the real claim; drop in actual
-      // `cargo test` emission per target when capturing it for the page.
       receipt: [
-        { label: "source",       value: "{stable:one User type · pure data}" },
-        { label: "targets",      value: "{derived:Rust struct · Go struct · Python dataclass}" },
-        { label: "translations", value: "{derived:zero hand-written · each target derived from the same fact}" }
+        { label: "one model",   value: "{stable:User — described once}" },
+        { label: "the seam",    value: "{derived:the contract between the components — field shape + serialization — derived from User, single-sourced}" },
+        { label: "Rust side",   value: "{derived:auth · hot path · its serializer derived}" },
+        { label: "Python side", value: "{derived:analytics · its deserializer derived}" },
+        { label: "what you get",value: "{derived:pick a target per component — the boundary between them comes free, instead of a hand-maintained contract that drifts}" },
+        { label: "still on you",value: "{context:the STRUCTURE derives — shape and serialization. What happens across the seam on error — retries, partial failure, timeouts — does not. A single-sourced contract, not integration solved.}" },
+        { label: "where it heads", value: "{context:splitting one in-process program across languages with derived FFI is the direction this points — not shown here}" }
       ]
     };
   }
