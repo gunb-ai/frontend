@@ -737,17 +737,16 @@
 
   const USERS_SYSTEM = {
     id: "users-system",
-    // One User type, three faithful target representations — a Rust
-    // struct, a TypeScript interface, and a JSON Schema. Two are
-    // Turing-complete (rust, ts: can hold behavior); the third is a
-    // pure shape target (json schema: data only, no computation).
-    // Card 01 shows all three carry pure DATA; card 02 adds a
-    // behavioral fact and the shape target refuses BY NATURE — an
-    // expressiveness gap no realization can close.
+    // One User type, three faithful target representations across the
+    // real gunbc emit set — a Rust struct, a Go struct, a Python
+    // dataclass. Card 01 shows the clean fan-out; card 02 changes one
+    // field to a fixed-width machine integer and Python refuses (no
+    // primitive carries a 32-bit width) — a real-target refusal,
+    // modeled today, labeled as designed behavior.
     artifacts: {
-      user_rs:   { label: "User.rs",          from: "User" },
-      user_ts:   { label: "User.ts",          from: "User" },
-      user_json: { label: "user.schema.json", from: "User" }
+      user_rs: { label: "User.rs", from: "User" },
+      user_go: { label: "user.go", from: "User" },
+      user_py: { label: "user.py", from: "User" }
     }
   };
 
@@ -756,22 +755,22 @@
   // structural fact emits a polyglot artifact set with zero hand-
   // written translation between them.
   //
-  //   User → User.rs           (Rust struct)
-  //        → User.ts           (TypeScript interface)
-  //        → user.schema.json  (JSON Schema)
+  //   User → User.rs  (Rust struct)
+  //        → user.go  (Go struct)
+  //        → user.py  (Python dataclass)
   function projectionLayoutNodes(system) {
     return [
       node("User", "User", 0, 1),
-      artifact("user_rs",   system.artifacts.user_rs.label,   1, 0),
-      artifact("user_ts",   system.artifacts.user_ts.label,   1, 1),
-      artifact("user_json", system.artifacts.user_json.label, 1, 2)
+      artifact("user_rs", system.artifacts.user_rs.label, 1, 0),
+      artifact("user_go", system.artifacts.user_go.label, 1, 1),
+      artifact("user_py", system.artifacts.user_py.label, 1, 2)
     ];
   }
   function projectionLayoutEdges() {
     return [
-      edge("User", "user_rs",   "rust"),
-      edge("User", "user_ts",   "ts"),
-      edge("User", "user_json", "schema")
+      edge("User", "user_rs", "rust"),
+      edge("User", "user_go", "go"),
+      edge("User", "user_py", "python")
     ];
   }
   function applyNodeRoles(nodes, roleMap) {
@@ -805,21 +804,20 @@
         ln(4, [tx("  name:  String")]),
         ln(5, [tx("}")]),
         blank(6),
-        ln(7, [com("// gunbc compile --target rust | ts | python")])
+        ln(7, [com("// gunbc compile --target rust | go | python")])
       ],
       graph: {
         nodes: applyNodeRoles(projectionLayoutNodes(system), { User: "stable" }),
         edges: applyEdgeRoles(projectionLayoutEdges(), {}, "derived")
       },
-      // NOTE: the snippets below are illustrative shapes, not exact
-      // emitter output — replace with real `cargo test` emission
-      // before this goes live.
+      // Structural receipt only — no literal emitted snippets. The
+      // capability (one type → three faithful target artifacts, zero
+      // hand-written translation) is the real claim; drop in actual
+      // `cargo test` emission per target when capturing it for the page.
       receipt: [
         { label: "source",       value: "{stable:one User type · pure data}" },
-        { label: "rust",         code: ["struct User { id: String, email: String, name: String }"] },
-        { label: "typescript",   code: ["interface User { id: string; email: string; name: string }"] },
-        { label: "json schema",  code: ['{ "type": "object", "properties": {', '    "id": {"type":"string"}, "email": {"type":"string"}, "name": {"type":"string"} } }'] },
-        { label: "translations", value: "{derived:zero hand-written · every target carries pure data}" }
+        { label: "targets",      value: "{derived:Rust struct · Go struct · Python dataclass}" },
+        { label: "translations", value: "{derived:zero hand-written · each target derived from the same fact}" }
       ]
     };
   }
