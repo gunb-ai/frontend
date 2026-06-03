@@ -750,55 +750,60 @@
     }
   };
 
-  // Layout for card 01 — ONE concern only: cross-language emission.
-  // One User definition; a Rust service and a Python worker each get
-  // their own derived User, so they can't drift. Serialization (how
-  // User becomes bytes) and IPC (how the processes talk) are
-  // deliberately NOT here — the real WireContract bundles all three and
-  // muddied the card; this keeps a single idea.
+  // Layout for card 01 — derived coercion (the N×M -> N+M thesis).
+  // One integration layer; gunbc DERIVES the structure-preserving
+  // coercion into each target (the homomorphism) and proves it — the
+  // adapter you'd otherwise hand-write per pair. ONE clean slice only:
+  // the structural coercion. Serialization, coordination, and SEMANTIC
+  // reconciliation are deliberately fenced off (that bundle is what
+  // muddied the wire-contract card). Reality-gate: one coercion across
+  // language targets runs today; M-system integration is the direction.
   //
-  //   User ──derived──▶ Rust service
-  //        └─derived──▶ Python worker
+  //   layer ──coercion (derived, proven)──▶ Rust
+  //         ├──────────────────────────────▶ Python
+  //         └──────────────────────────────▶ Go
 
   /* ════════════════════════════════════════════════════════════════
-     CARD 01 · the heterogeneous boundary — seam is the hero
+     CARD 01 · derived coercion — the N×M → N+M thesis (one clean slice)
      ══════════════════════════════════════════════════════════════ */
 
   function projectionClosureCard(system) {
     return {
       id: "card-01",
       num: "01",
-      name: "one definition, two languages — no hand-written copies, no drift",
+      name: "one integration layer, M targets — derive the coercions, don't hand-write them",
       systemId: system.id,
-      codeFile: "examples/user.dag",
+      codeFile: "examples/layer.dag",
       code: [
-        ln(1, [kw("type"), tx(" "), ref("User", "User", "stable"), tx(" {")]),
-        ln(2, [tx("  id:    String")]),
-        ln(3, [tx("  email: String")]),
-        ln(4, [tx("  name:  String")]),
-        ln(5, [tx("}")]),
-        blank(6),
-        ln(7, [com("// written once. the Rust service and the Python worker")]),
-        ln(8, [com("// each get their own User — neither hand-written, and")]),
-        ln(9, [com("// they can't drift, because both come from this.")])
+        ln(1, [com("// the integration layer — define the data and ops once")]),
+        ln(2, [kw("type"), tx(" "), ref("Amount", "Amount", "stable"), tx(" = Int")]),
+        ln(3, [kw("fn"), tx(" settle(a: "), ty("Amount"), tx(", b: "), ty("Amount"),
+               tx(") -> "), ty("Amount"), tx(" { a + b }")]),
+        blank(4),
+        ln(5, [com("// gunbc derives the coercion into each target and proves")]),
+        ln(6, [com("// it preserves structure — not the adapter you'd hand-write")]),
+        ln(7, [com("// per pair. add a target → its coercions to the rest derive.")])
       ],
       graph: {
         nodes: [
-          node("User", "User · one definition", 0, 1, "stable"),
-          artifact("rust_svc", "Rust service", 1, 0),
-          artifact("py_pipe",  "Python worker", 1, 2)
+          node("Amount", "integration layer", 0, 1, "stable"),
+          artifact("t_rs", "Rust",   1, 0),
+          artifact("t_py", "Python", 1, 1),
+          artifact("t_go", "Go",     1, 2)
         ],
         edges: [
-          edge("User", "rust_svc", "derived", "derived"),
-          edge("User", "py_pipe",  "derived", "derived")
+          edge("Amount", "t_rs", "coercion ✓", "derived"),
+          edge("Amount", "t_py", "coercion ✓", "derived"),
+          edge("Amount", "t_go", "coercion ✓", "derived")
         ]
       },
       receipt: [
-        { label: "one definition", value: "{stable:User — written once}" },
-        { label: "Rust service",   value: "{derived:gets its own User — derived, not hand-written}" },
-        { label: "Python worker",  value: "{derived:gets its own User — derived, not hand-written}" },
-        { label: "change it",      value: "{derived:edit User once — both sides update together; they can't drift apart}" },
-        { label: "set aside here", value: "{context:how User is serialized, and how the two processes talk, are separate concerns — this card is only: one definition, no hand-written copies}" }
+        { label: "the layer",     value: "{stable:define your data and operations once}" },
+        { label: "the coercions", value: "{derived:gunbc derives the mapping into each target and proves it preserves structure (the homomorphism) — not the adapter you'd otherwise hand-write and maintain per pair}" },
+        { label: "the win",       value: "{derived:M targets, one layer → write each target's model once; the coercions between them derive. N+M, not N×M.}" },
+        { label: "only when",     value: "{context:the layer is a faithful superset of the targets — if a target needs a concept the layer lacks, you widen the layer once}" },
+        { label: "not this card", value: "{context:semantic reconciliation (this id is a UUID, that one an int) you state once in the layer; behavioral glue (retries, timeouts) stays yours. Only the structural coercion derives.}" },
+        { label: "today vs ahead",value: "{context:one coercion deriving across language targets runs now; M-system integration (APIs, services, stores) through one layer is the direction}" }
       ]
     };
   }
