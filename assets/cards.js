@@ -750,15 +750,15 @@
     }
   };
 
-  // Layout for card 01 — the heterogeneous boundary. NOT a fan-out of
-  // one type to N targets (that's just parallel codegen, the boring
-  // half). Two components pick different targets; the contract between
-  // them — field shape + serialization — derives from one model and is
-  // therefore single-sourced. The seam (the central contract node) is
-  // the hero; the component boxes are secondary.
+  // Layout for card 01 — ONE concern only: cross-language emission.
+  // One User definition; a Rust service and a Python worker each get
+  // their own derived User, so they can't drift. Serialization (how
+  // User becomes bytes) and IPC (how the processes talk) are
+  // deliberately NOT here — the real WireContract bundles all three and
+  // muddied the card; this keeps a single idea.
   //
-  //   User ──derived──▶ [User contract] ──▶ Rust service  (sends User)
-  //                                      └─▶ Python worker (receives User)
+  //   User ──derived──▶ Rust service
+  //        └─derived──▶ Python worker
 
   /* ════════════════════════════════════════════════════════════════
      CARD 01 · the heterogeneous boundary — seam is the hero
@@ -768,52 +768,37 @@
     return {
       id: "card-01",
       num: "01",
-      name: "two components, two languages — the contract between them is derived",
+      name: "one definition, two languages — no hand-written copies, no drift",
       systemId: system.id,
       codeFile: "examples/user.dag",
       code: [
-        ln(1,  [kw("type"), tx(" "), ref("User", "User", "stable"), tx(" {")]),
-        ln(2,  [tx("  id:    String")]),
-        ln(3,  [tx("  email: String")]),
-        ln(4,  [tx("  name:  String")]),
-        ln(5,  [tx("}")]),
+        ln(1, [kw("type"), tx(" "), ref("User", "User", "stable"), tx(" {")]),
+        ln(2, [tx("  id:    String")]),
+        ln(3, [tx("  email: String")]),
+        ln(4, [tx("  name:  String")]),
+        ln(5, [tx("}")]),
         blank(6),
-        ln(7,  [com("// get_user's types are the single authority for the wire type")]),
-        ln(8,  [kw("fn"), tx(" get_user(id: String) -> "), ty("User"), tx(" { ... }")]),
-        blank(9),
-        ln(10, [com("// the wire contract binds that operation across the seam —")]),
-        ln(11, [com("// one spec; both endpoints serialize against it:")]),
-        ln(12, [kw("data"), tx(" user_wire: "), ty("WireContract"), tx(" = WireContract {")]),
-        ln(13, [tx("  facts: WireContractFacts {")]),
-        ln(14, [tx("    from: EndpointRef { identity: python_worker },")]),
-        ln(15, [tx("    to:   EndpointRef { identity: rust_service },")]),
-        ln(16, [tx("    exchange: RequestReply,")]),
-        ln(17, [com("    // settlement, consistency")]),
-        ln(18, [tx("  },")]),
-        ln(19, [tx("  bind: CoordinationBind { bind: BindRef { identity: get_user }, effect: Http }")]),
-        ln(20, [tx("}")])
+        ln(7, [com("// written once. the Rust service and the Python worker")]),
+        ln(8, [com("// each get their own User — neither hand-written, and")]),
+        ln(9, [com("// they can't drift, because both come from this.")])
       ],
       graph: {
         nodes: [
-          node("User", "User · one model", 0, 1, "stable"),
-          artifact("wire",     "wire contract", 1, 1),
-          artifact("rust_svc", "Rust service",  2, 0),
-          artifact("py_pipe",  "Python worker", 2, 2)
+          node("User", "User · one definition", 0, 1, "stable"),
+          artifact("rust_svc", "Rust service", 1, 0),
+          artifact("py_pipe",  "Python worker", 1, 2)
         ],
         edges: [
-          edge("User", "wire",     "derived",      "derived"),
-          edge("wire", "rust_svc", "serializer",   "derived"),
-          edge("wire", "py_pipe",  "deserializer", "derived")
+          edge("User", "rust_svc", "derived", "derived"),
+          edge("User", "py_pipe",  "derived", "derived")
         ]
       },
       receipt: [
-        { label: "one model",      value: "{stable:User — described once}" },
-        { label: "the authority",  value: "{stable:get_user — its argument and return types fix the wire type}" },
-        { label: "the seam",       value: "{derived:the wire contract binds get_user between the two endpoints — request/reply shape + how User serializes — single-sourced}" },
-        { label: "both sides",     value: "{derived:Rust service and Python worker bind to the same contract — serializer and deserializer derived}" },
-        { label: "what you get",   value: "{derived:one spec, not a hand-maintained pair that drifts}" },
-        { label: "still on you",   value: "{context:the wire shape and the coordination facts (request/reply, settlement, consistency) are declared once here and enforced. The failure handling — retry logic, timeout values, partial-failure recovery — is still your code; the contract pins the shape, not the behavior.}" },
-        { label: "where it heads", value: "{context:in-process splits across languages with derived FFI — the direction, not shown here}" }
+        { label: "one definition", value: "{stable:User — written once}" },
+        { label: "Rust service",   value: "{derived:gets its own User — derived, not hand-written}" },
+        { label: "Python worker",  value: "{derived:gets its own User — derived, not hand-written}" },
+        { label: "change it",      value: "{derived:edit User once — both sides update together; they can't drift apart}" },
+        { label: "set aside here", value: "{context:how User is serialized, and how the two processes talk, are separate concerns — this card is only: one definition, no hand-written copies}" }
       ]
     };
   }
