@@ -106,12 +106,12 @@ a { color: inherit; }
   flex-wrap: wrap;
 }
 .mark {
-  width: 28px; height: 28px;
+  width: 44px; height: 44px;
   color: var(--stone);
   flex: 0 0 auto;
 }
 .wordmark {
-  font-family: var(--font-mono); font-size: 0.95rem;
+  font-family: var(--font-mono); font-size: 1.2rem;
   letter-spacing: 0.04em;
   color: var(--warm-white);
 }
