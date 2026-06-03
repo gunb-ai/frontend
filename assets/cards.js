@@ -787,7 +787,7 @@
       graph: {
         nodes: [
           node("User", "User · one model", 0, 1, "stable"),
-          artifact("wire",     "User contract", 1, 1),
+          artifact("wire",     "wire contract", 1, 1),
           artifact("rust_svc", "Rust service",  2, 0),
           artifact("py_pipe",  "Python worker", 2, 2)
         ],
@@ -799,7 +799,7 @@
       },
       receipt: [
         { label: "one model",     value: "{stable:User — described once}" },
-        { label: "the seam",      value: "{derived:the contract between the two components — field shape + serialization — derived from User, single-sourced}" },
+        { label: "the seam",      value: "{derived:User's wire contract — field names, encoding, Json or Text — derived once; both sides serialize against it}" },
         { label: "Rust service",  value: "{derived:sends User · its serializer derived}" },
         { label: "Python worker", value: "{derived:receives User · its deserializer derived}" },
         { label: "what you get",  value: "{derived:pick a target per component — the boundary between them comes free, instead of a hand-maintained contract that drifts}" },
