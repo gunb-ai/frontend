@@ -830,48 +830,44 @@
     return {
       id: "card-02",
       num: "02",
-      name: "one field gets a fixed width · Rust & Go carry it, Python refuses",
+      name: "what Python carries — and the one fact it can't",
       systemId: system.id,
       codeFile: "examples/user.dag",
-      // Add a 32-bit machine-integer field and ground to the trio.
-      // Rust (i32) and Go (int32) carry a fixed width natively; Python
-      // int is arbitrary-precision — no primitive carries Word32 — so
-      // it refuses rather than emit an int that won't wrap at 2^31.
-      // Real targets, real carrier gap; the diagnostic is MODELED, not
-      // yet exercised (Python grounding rows are loaded but unconsumed)
-      // — labeled "designed behavior" on the card, not shown as a live
-      // screenshot. Realizing the wrap (% 2^32) is a priced step
-      // (Option B), not enabled.
+      // Illustrative: shows HOW gunbc decides emit-vs-refuse for one
+      // target, not a captured diagnostic. Two fields, same target:
+      // Python carries the strings fine; it has no fixed-width integer,
+      // so the 32-bit field has no faithful representation and gunbc
+      // refuses rather than emit a plain int that would silently fail
+      // to wrap. The lesson is fact-specific (Python isn't "weak" — it
+      // carries everything else), so no across-target bashing and no
+      // captured-result disclaimer needed. Plain language only.
       code: [
         ln(1, [kw("type"), tx(" User {")]),
         ln(2, [tx("  id:    String")]),
         ln(3, [tx("  email: String")]),
-        ln(4, [tx("  name:  String")]),
-        diffAdd(5, [tx("  "), ref("user_flags", "flags", "focus"), tx(": "), ty("Int32")]),
+        ln(4, [tx("  "), ref("user_name", "name", "derived"), tx(":  String")]),
+        diffAdd(5, [tx("  "), ref("user_flags", "flags", "focus"), tx(": "), ty("Int32"),
+                    com("   // exactly 32 bits wide")]),
         ln(6, [tx("}")]),
         blank(7),
-        ln(8, [com("// Int32 = Compose<Int, MachineWidth<32>> — a 32-bit machine integer")])
+        ln(8, [com("// emit → Python")])
       ],
       graph: {
         nodes: [
-          node("user_flags", "User.flags", 0, 1, "focus"),
-          artifact("user_rs", system.artifacts.user_rs.label, 1, 0),
-          artifact("user_go", system.artifacts.user_go.label, 1, 1),
-          artifact("user_py", system.artifacts.user_py.label, 1, 2)
+          node("user_name",  "name : String", 0, 0, "derived"),
+          node("user_flags", "flags : Int32", 0, 2, "focus"),
+          artifact("user_py", system.artifacts.user_py.label, 1, 1)
         ],
         edges: [
-          edge("user_flags", "user_rs", "i32",    "derived"),
-          edge("user_flags", "user_go", "int32",  "derived"),
+          edge("user_name",  "user_py", "str",    "derived"),
           edge("user_flags", "user_py", "refuse", "boundary")
         ]
       },
       receipt: [
-        { label: "added",    value: "{focus:User.flags : Int32 — a 32-bit machine integer}" },
-        { label: "rust",     value: "{derived:i32 — native fixed width · derived}" },
-        { label: "go",       value: "{derived:int32 — native fixed width · derived}" },
-        { label: "python",   value: "{boundary:int is arbitrary-precision — no primitive carries a 32-bit width · refused}" },
-        { label: "why",      value: "{boundary:a Python int would not wrap at 2^31 — silently wrong; realizing the wrap (% 2^32) is a priced step (Option B), not enabled. So the compiler refuses rather than guess.}" },
-        { label: "status",   value: "{context:designed behavior — Python grounding modeled, not yet an exercised diagnostic; not a live screenshot}" }
+        { label: "carries",     value: "{derived:id · email · name → Python str, no problem}" },
+        { label: "can't carry", value: "{boundary:flags is exactly 32 bits wide — Python's int is arbitrary-precision, so nothing in Python represents a fixed 32-bit width}" },
+        { label: "so",          value: "{boundary:gunbc stops rather than emit a plain int that would not wrap at ~2 billion — silently wrong}" },
+        { label: "the point",   value: "{context:the refusal is about the fact, not the language — Python carries everything else fine. Carry what fits; stop, loudly, on what doesn't.}" }
       ]
     };
   }
