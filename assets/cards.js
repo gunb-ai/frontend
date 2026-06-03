@@ -757,8 +757,8 @@
   // therefore single-sourced. The seam (the central contract node) is
   // the hero; the component boxes are secondary.
   //
-  //   User ──derived──▶ [User contract] ──▶ auth · Rust
-  //                                      └─▶ analytics · Python
+  //   User ──derived──▶ [User contract] ──▶ Rust service  (sends User)
+  //                                      └─▶ Python worker (receives User)
 
   /* ════════════════════════════════════════════════════════════════
      CARD 01 · the heterogeneous boundary — seam is the hero
@@ -778,31 +778,32 @@
         ln(4,  [tx("  name:  String")]),
         ln(5,  [tx("}")]),
         blank(6),
-        ln(7,  [com("// one model, two components, each its own target —")]),
-        ln(8,  [com("// the User contract between them is derived, not hand-written:")]),
-        ln(9,  [com("//   auth      → gunbc compile --target rust")]),
-        ln(10, [com("//   analytics → gunbc compile --target python")])
+        ln(7,  [com("// a Rust service sends User to a Python worker —")]),
+        ln(8,  [com("// gunbc derives the wire contract (shape + serialization)")]),
+        ln(9,  [com("// for both sides from this one type:")]),
+        ln(10, [com("//   service → gunbc compile --target rust")]),
+        ln(11, [com("//   worker  → gunbc compile --target python")])
       ],
       graph: {
         nodes: [
           node("User", "User · one model", 0, 1, "stable"),
           artifact("wire",     "User contract", 1, 1),
-          artifact("rust_svc", "auth · Rust",   2, 0),
-          artifact("py_pipe",  "analytics · Python", 2, 2)
+          artifact("rust_svc", "Rust service",  2, 0),
+          artifact("py_pipe",  "Python worker", 2, 2)
         ],
         edges: [
-          edge("User", "wire",     "derived",     "derived"),
-          edge("wire", "rust_svc", "Rust side",   "derived"),
-          edge("wire", "py_pipe",  "Python side", "derived")
+          edge("User", "wire",     "derived",      "derived"),
+          edge("wire", "rust_svc", "serializer",   "derived"),
+          edge("wire", "py_pipe",  "deserializer", "derived")
         ]
       },
       receipt: [
-        { label: "one model",   value: "{stable:User — described once}" },
-        { label: "the seam",    value: "{derived:the contract between the components — field shape + serialization — derived from User, single-sourced}" },
-        { label: "Rust side",   value: "{derived:auth · hot path · its serializer derived}" },
-        { label: "Python side", value: "{derived:analytics · its deserializer derived}" },
-        { label: "what you get",value: "{derived:pick a target per component — the boundary between them comes free, instead of a hand-maintained contract that drifts}" },
-        { label: "still on you",value: "{context:the STRUCTURE derives — shape and serialization. What happens across the seam on error — retries, partial failure, timeouts — does not. A single-sourced contract, not integration solved.}" },
+        { label: "one model",     value: "{stable:User — described once}" },
+        { label: "the seam",      value: "{derived:the contract between the two components — field shape + serialization — derived from User, single-sourced}" },
+        { label: "Rust service",  value: "{derived:sends User · its serializer derived}" },
+        { label: "Python worker", value: "{derived:receives User · its deserializer derived}" },
+        { label: "what you get",  value: "{derived:pick a target per component — the boundary between them comes free, instead of a hand-maintained contract that drifts}" },
+        { label: "still on you",  value: "{context:the STRUCTURE derives — shape and serialization. What happens across the seam on error — retries, partial failure, timeouts — does not. A single-sourced contract, not integration solved.}" },
         { label: "where it heads", value: "{context:splitting one in-process program across languages with derived FFI is the direction this points — not shown here}" }
       ]
     };
