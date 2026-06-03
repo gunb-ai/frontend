@@ -830,50 +830,48 @@
     return {
       id: "card-02",
       num: "02",
-      name: "add behavior · two targets carry it, the schema refuses",
+      name: "one field gets a fixed width · Rust & Go carry it, Python refuses",
       systemId: system.id,
       codeFile: "examples/user.dag",
-      // Same three targets as card 01, but now emit a BEHAVIORAL fact —
-      // a derived value computed from other fields. Rust and TypeScript
-      // can hold computation; JSON Schema cannot. This refusal is BY
-      // NATURE, not by missing carrier: a declarative schema has no
-      // place to put a function, and no software realization gives it
-      // one (survives Option B). Contrast with the width/carrier case
-      // (Int32 → Python), which refuses today but is realizable. The
-      // emit status here is the modeled fail-closed behavior — verify
-      // against cargo test before this goes live.
+      // Add a 32-bit machine-integer field and ground to the trio.
+      // Rust (i32) and Go (int32) carry a fixed width natively; Python
+      // int is arbitrary-precision — no primitive carries Word32 — so
+      // it refuses rather than emit an int that won't wrap at 2^31.
+      // Real targets, real carrier gap; the diagnostic is MODELED, not
+      // yet exercised (Python grounding rows are loaded but unconsumed)
+      // — labeled "designed behavior" on the card, not shown as a live
+      // screenshot. Realizing the wrap (% 2^32) is a priced step
+      // (Option B), not enabled.
       code: [
         ln(1, [kw("type"), tx(" User {")]),
-        ln(2, [tx("  first: String")]),
-        ln(3, [tx("  last:  String")]),
-        ln(4, [tx("  email: String")]),
-        ln(5, [tx("}")]),
-        blank(6),
-        ln(7, [kw("fn"), tx(" "), ref("display_name", "display_name", "focus"),
-               tx("(u: User) -> String {")]),
-        ln(8, [tx("  concat(a: u.first, b: u.last)"), com("   // derived — not a stored field")]),
-        ln(9, [tx("}")])
+        ln(2, [tx("  id:    String")]),
+        ln(3, [tx("  email: String")]),
+        ln(4, [tx("  name:  String")]),
+        diffAdd(5, [tx("  "), ref("user_flags", "flags", "focus"), tx(": "), ty("Int32")]),
+        ln(6, [tx("}")]),
+        blank(7),
+        ln(8, [com("// Int32 = Compose<Int, MachineWidth<32>> — a 32-bit machine integer")])
       ],
       graph: {
         nodes: [
-          node("display_name", "display_name", 0, 1, "focus"),
-          artifact("user_rs",   system.artifacts.user_rs.label,   1, 0),
-          artifact("user_ts",   system.artifacts.user_ts.label,   1, 1),
-          artifact("user_json", system.artifacts.user_json.label, 1, 2)
+          node("user_flags", "User.flags", 0, 1, "focus"),
+          artifact("user_rs", system.artifacts.user_rs.label, 1, 0),
+          artifact("user_go", system.artifacts.user_go.label, 1, 1),
+          artifact("user_py", system.artifacts.user_py.label, 1, 2)
         ],
         edges: [
-          edge("display_name", "user_rs",   "fn",     "derived"),
-          edge("display_name", "user_ts",   "fn",     "derived"),
-          edge("display_name", "user_json", "refuse", "boundary")
+          edge("user_flags", "user_rs", "i32",    "derived"),
+          edge("user_flags", "user_go", "int32",  "derived"),
+          edge("user_flags", "user_py", "refuse", "boundary")
         ]
       },
       receipt: [
-        { label: "emit",        value: "{focus:display_name — a derived value (behavior, not data)}" },
-        { label: "rust",        value: "{derived:a function over User · derived}" },
-        { label: "typescript",  value: "{derived:a function over User · derived}" },
-        { label: "json schema", value: "{boundary:no construct for a computation · refused}" },
-        { label: "why",         value: "{boundary:a schema describes shape, not behavior. Emitting display_name as a plain field would silently imply consumers supply it, when it is derived — so the compiler refuses rather than misrepresent it.}" },
-        { label: "by nature",   value: "{boundary:this is an expressiveness gap, not a missing carrier — no software realization gives a declarative schema a place to hold a function. The refusal survives Option B.}" }
+        { label: "added",    value: "{focus:User.flags : Int32 — a 32-bit machine integer}" },
+        { label: "rust",     value: "{derived:i32 — native fixed width · derived}" },
+        { label: "go",       value: "{derived:int32 — native fixed width · derived}" },
+        { label: "python",   value: "{boundary:int is arbitrary-precision — no primitive carries a 32-bit width · refused}" },
+        { label: "why",      value: "{boundary:a Python int would not wrap at 2^31 — silently wrong; realizing the wrap (% 2^32) is a priced step (Option B), not enabled. So the compiler refuses rather than guess.}" },
+        { label: "status",   value: "{context:designed behavior — Python grounding modeled, not yet an exercised diagnostic; not a live screenshot}" }
       ]
     };
   }
