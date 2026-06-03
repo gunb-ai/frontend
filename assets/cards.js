@@ -778,11 +778,20 @@
         ln(4,  [tx("  name:  String")]),
         ln(5,  [tx("}")]),
         blank(6),
-        ln(7,  [com("// a Rust service sends User to a Python worker —")]),
-        ln(8,  [com("// gunbc derives the wire contract (shape + serialization)")]),
-        ln(9,  [com("// for both sides from this one type:")]),
-        ln(10, [com("//   service → gunbc compile --target rust")]),
-        ln(11, [com("//   worker  → gunbc compile --target python")])
+        ln(7,  [com("// get_user's types are the single authority for the wire type")]),
+        ln(8,  [kw("fn"), tx(" get_user(id: String) -> "), ty("User"), tx(" { ... }")]),
+        blank(9),
+        ln(10, [com("// the wire contract binds that operation across the seam —")]),
+        ln(11, [com("// one spec; both endpoints serialize against it:")]),
+        ln(12, [kw("data"), tx(" user_wire: "), ty("WireContract"), tx(" = WireContract {")]),
+        ln(13, [tx("  facts: WireContractFacts {")]),
+        ln(14, [tx("    from: EndpointRef { identity: python_worker },")]),
+        ln(15, [tx("    to:   EndpointRef { identity: rust_service },")]),
+        ln(16, [tx("    exchange: RequestReply,")]),
+        ln(17, [com("    // settlement, consistency")]),
+        ln(18, [tx("  },")]),
+        ln(19, [tx("  bind: CoordinationBind { bind: BindRef { identity: get_user }, effect: Http }")]),
+        ln(20, [tx("}")])
       ],
       graph: {
         nodes: [
@@ -798,13 +807,13 @@
         ]
       },
       receipt: [
-        { label: "one model",     value: "{stable:User — described once}" },
-        { label: "the seam",      value: "{derived:User's wire contract — field names, encoding, Json or Text — derived once; both sides serialize against it}" },
-        { label: "Rust service",  value: "{derived:sends User · its serializer derived}" },
-        { label: "Python worker", value: "{derived:receives User · its deserializer derived}" },
-        { label: "what you get",  value: "{derived:pick a target per component — the boundary between them comes free, instead of a hand-maintained contract that drifts}" },
-        { label: "still on you",  value: "{context:the STRUCTURE derives — shape and serialization. What happens across the seam on error — retries, partial failure, timeouts — does not. A single-sourced contract, not integration solved.}" },
-        { label: "where it heads", value: "{context:splitting one in-process program across languages with derived FFI is the direction this points — not shown here}" }
+        { label: "one model",      value: "{stable:User — described once}" },
+        { label: "the authority",  value: "{stable:get_user — its argument and return types fix the wire type}" },
+        { label: "the seam",       value: "{derived:the wire contract binds get_user between the two endpoints — request/reply shape + how User serializes — single-sourced}" },
+        { label: "both sides",     value: "{derived:Rust service and Python worker bind to the same contract — serializer and deserializer derived}" },
+        { label: "what you get",   value: "{derived:one spec, not a hand-maintained pair that drifts}" },
+        { label: "still on you",   value: "{context:the wire shape and the coordination facts (request/reply, settlement, consistency) are declared once here and enforced. The failure handling — retry logic, timeout values, partial-failure recovery — is still your code; the contract pins the shape, not the behavior.}" },
+        { label: "where it heads", value: "{context:in-process splits across languages with derived FFI — the direction, not shown here}" }
       ]
     };
   }
