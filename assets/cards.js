@@ -809,51 +809,56 @@
   }
 
   /* ════════════════════════════════════════════════════════════════
-     CARD 02 · affected-set propagation — same layout, different roles
+     CARD 02 · behavior at the seam — a schema can't hold a function
      ══════════════════════════════════════════════════════════════ */
 
   function affectedSetCard(system) {
     return {
       id: "card-02",
       num: "02",
-      name: "what Python carries — and the one fact it can't",
+      name: "a function compiles to any language — a schema has nowhere to put it",
       systemId: system.id,
       codeFile: "examples/user.dag",
-      // Illustrative: shows HOW gunbc decides emit-vs-refuse for one
-      // target, not a captured diagnostic. Two fields, same target:
-      // Python carries the strings fine; it has no fixed-width integer,
-      // so the 32-bit field has no faithful representation and gunbc
-      // refuses rather than emit a plain int that would silently fail
-      // to wrap. The lesson is fact-specific (Python isn't "weak" — it
-      // carries everything else), so no across-target bashing and no
-      // captured-result disclaimer needed. Plain language only.
+      // Stitches to card 01's seam (the contract there is shape-only).
+      // Treat every LANGUAGE target as fully capable — baseline; a
+      // function compiles to Rust, Python, any of them. The refusal is
+      // NOT a language being weak or half-modeled. It is a SCHEMA — a
+      // shape-only contract, a categorically different target — that
+      // cannot express a computation, BY CONSTRUCTION. No library
+      // closes that gap (unlike the earlier 32-bit-width example, which
+      // numpy.int32 / ctypes dissolve — that was a coverage gap, not a
+      // limit). Illustrative; the claim is a logical fact, not a run.
       code: [
         ln(1, [kw("type"), tx(" User {")]),
-        ln(2, [tx("  id:    String")]),
-        ln(3, [tx("  email: String")]),
-        ln(4, [tx("  "), ref("user_name", "name", "derived"), tx(":  String")]),
-        diffAdd(5, [tx("  "), ref("user_flags", "flags", "focus"), tx(": "), ty("Int32"),
-                    com("   // exactly 32 bits wide")]),
-        ln(6, [tx("}")]),
-        blank(7),
-        ln(8, [com("// emit → Python")])
+        ln(2, [tx("  first: String")]),
+        ln(3, [tx("  last:  String")]),
+        ln(4, [tx("  email: String")]),
+        ln(5, [tx("}")]),
+        blank(6),
+        ln(7, [kw("fn"), tx(" "), ref("display_name", "display_name", "focus"),
+               tx("(u: User) -> String {")]),
+        ln(8, [tx("  u.first + \" \" + u.last"), com("   // computed, not stored")]),
+        ln(9, [tx("}")])
       ],
       graph: {
         nodes: [
-          node("user_name",  "name : String", 0, 0, "derived"),
-          node("user_flags", "flags : Int32", 0, 2, "focus"),
-          artifact("user_py", system.artifacts.user_py.label, 1, 1)
+          node("display_name", "display_name", 0, 1, "focus"),
+          artifact("c2_rust",   "User.rs",          1, 0),
+          artifact("c2_py",     "user.py",          1, 1),
+          artifact("c2_schema", "user.schema.json", 1, 2)
         ],
         edges: [
-          edge("user_name",  "user_py", "str",    "derived"),
-          edge("user_flags", "user_py", "refuse", "boundary")
+          edge("display_name", "c2_rust",   "fn",     "derived"),
+          edge("display_name", "c2_py",     "fn",     "derived"),
+          edge("display_name", "c2_schema", "refuse", "boundary")
         ]
       },
       receipt: [
-        { label: "carries",     value: "{derived:id · email · name → Python str, no problem}" },
-        { label: "can't carry", value: "{boundary:flags is exactly 32 bits wide — Python's int is arbitrary-precision, so nothing in Python represents a fixed 32-bit width}" },
-        { label: "so",          value: "{boundary:gunbc stops rather than emit a plain int that would not wrap at ~2 billion — silently wrong}" },
-        { label: "the point",   value: "{context:the refusal is about the fact, not the language — Python carries everything else fine. Carry what fits; stop, loudly, on what doesn't.}" }
+        { label: "the fact",     value: "{focus:display_name — a value computed from other fields (behavior, not data)}" },
+        { label: "any language", value: "{derived:Rust, Python, any of them — a function compiles fine. That's baseline.}" },
+        { label: "a schema",     value: "{boundary:a JSON Schema describes shape, not computation — there is no place to put a function}" },
+        { label: "so",           value: "{boundary:emitting display_name as a plain field would lie — telling consumers to send a value the system computes. gunbc refuses rather than ship a contract that misrepresents it.}" },
+        { label: "the line",     value: "{context:not not-wired-yet, not a weak language — a schema cannot express a computation, by construction. No library closes that gap. A real limit, not a coverage hole.}" }
       ]
     };
   }
