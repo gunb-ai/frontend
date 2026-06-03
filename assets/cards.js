@@ -750,18 +750,17 @@
     }
   };
 
-  // Layout for card 01 — the integration VISION (explicitly roadmap).
-  // Operator's call: this vision IS the product ("irrelevant without
-  // it"), so lead with it and label it honestly. Real today: the
-  // integration targets are modeled (git, cargo, cron, apt, shell, …).
-  // Roadmap: deriving the GLUE between them — the part that matters —
-  // is the direction, not yet wired. Keep it a clean picture (hub +
-  // derived-glue spokes), NOT the serialization/coordination/semantic
-  // bundle that muddied the wire-contract card.
+  // Layout for card 01 — the integration vision, made concrete (roadmap).
+  // The thesis: model each concept once and completely (git, the GitHub
+  // REST API, and Rust are all really modeled in gunbc), then a THIN
+  // workflow wires them — no dual representations (nothing restated),
+  // no hand-written transforms (the coercion between concepts derives).
+  // Real today: the three models + workflow-as-data. Roadmap: emitting
+  // the complete working Rust artifact with derived glue end-to-end.
   //
-  //   one description ──glue (derived) [roadmap]──▶ git
-  //                   ├────────────────────────────▶ cargo
-  //                   └────────────────────────────▶ shell
+  //   git · GitBranch    ┐
+  //                      ├─▶ branch_pr (thin layer) ─emit─▶ Rust artifact
+  //   GitHub · PullReq   ┘                            [glue derived · roadmap]
 
   /* ════════════════════════════════════════════════════════════════
      CARD 01 · the integration vision (roadmap) — generate the glue
@@ -771,38 +770,45 @@
     return {
       id: "card-01",
       num: "01",
-      name: "the goal — define your integration targets, generate the glue between them",
+      name: "three concepts, modeled once — a thin layer wires them, the glue derives",
       systemId: system.id,
       codeFile: "examples/integration.dag",
       code: [
-        ln(1, [com("// integration targets gunbc models today:")]),
-        ln(2, [com("//   git · cargo · cron · apt · shell · …")]),
-        blank(3),
-        ln(4, [com("// the goal: describe each once — gunbc generates the glue")]),
-        ln(5, [com("// BETWEEN any two. no hand-written adapter, no \"normal")]),
-        ln(6, [com("// language\" code at the seam. add a target → its glue to")]),
-        ln(7, [com("// all the rest derives.   ( N+M, not N×M )       [roadmap]")])
+        ln(1,  [com("// each concept modeled once, independently —")]),
+        ln(2,  [com("// nothing restated, no dual representations:")]),
+        ln(3,  [kw("import"), tx(" extdeps.git    { "), ref("git", "GitBranch", "stable"), tx(" }")]),
+        ln(4,  [kw("import"), tx(" extdeps.github { "), ref("rest", "PullRequest", "stable"), tx(", list_pulls }")]),
+        blank(5),
+        ln(6,  [com("// a thin workflow — wire them; don't transform by hand.")]),
+        ln(7,  [com("// matching a git ref to the REST query is a derived coercion:")]),
+        ln(8,  [kw("fn"), tx(" "), ref("flow", "branch_pr", "focus"), tx("(b: "), ty("GitBranch"),
+                tx(") -> "), ty("PullRequest"), tx(" {")]),
+        ln(9,  [tx("  list_pulls(head: b.name) |> first")]),
+        ln(10, [tx("}")]),
+        blank(11),
+        ln(12, [com("// emit a Rust artifact that drives git AND the GitHub REST")]),
+        ln(13, [com("// API — HTTP client, git access, glue all derived:")]),
+        ln(14, [com("//   gunbc compile branch_pr --target rust      [roadmap]")])
       ],
       graph: {
         nodes: [
-          node("layer", "one description", 0, 1, "context"),
-          artifact("git",   "git",   1, 0),
-          artifact("cargo", "cargo", 1, 1),
-          artifact("shell", "shell", 1, 2)
+          node("git",  "git · GitBranch",      0, 0, "stable"),
+          node("rest", "GitHub · PullRequest", 0, 2, "stable"),
+          node("flow", "branch_pr",            1, 1, "focus"),
+          artifact("rust_art", "Rust artifact", 2, 1)
         ],
         edges: [
-          edge("layer", "git",   "glue · derived", "derived"),
-          edge("layer", "cargo", "glue · derived", "derived"),
-          edge("layer", "shell", "glue · derived", "derived")
+          edge("git",  "flow", "GitBranch",   "derived"),
+          edge("rest", "flow", "PullRequest", "derived"),
+          edge("flow", "rust_art", "emit · glue derived", "derived")
         ]
       },
       receipt: [
-        { label: "the goal",      value: "{stable:describe each integration target once}" },
-        { label: "the glue",      value: "{derived:gunbc generates the coercion BETWEEN any two — you never hand-write the adapter or drop to \"normal language\" code at the seam}" },
-        { label: "the win",       value: "{derived:add a target → its glue to all the others derives. N+M, not N×M.}" },
-        { label: "real today",    value: "{stable:the integration targets are modeled — git, cargo, cron, apt, shell, …}" },
-        { label: "roadmap",       value: "{boundary:deriving the glue between them — the part that makes this matter — is the direction, not yet wired}" },
-        { label: "still bounded", value: "{context:the structural coercion is what derives; semantic reconciliation (this id is a UUID, that one an int) you state once; behavioral glue (retries, timeouts) stays yours}" }
+        { label: "modeled once",        value: "{stable:git, GitHub's REST API, and Rust — each described completely and independently. all three are real models in gunbc today.}" },
+        { label: "no restating",        value: "{derived:you never re-declare what a branch or a PR is — git and GitHub already did; the workflow just refers to them}" },
+        { label: "no hand transforms",  value: "{derived:matching a git ref to the REST query is a coercion gunbc derives — not an adapter you write}" },
+        { label: "the artifact",        value: "{derived:one thin workflow → a Rust program that drives git and the GitHub API, glue and all}" },
+        { label: "roadmap",             value: "{boundary:the models and workflow-as-data are real; emitting the complete working artifact (HTTP client, git access, glue end-to-end) is the direction, not yet wired}" }
       ]
     };
   }
