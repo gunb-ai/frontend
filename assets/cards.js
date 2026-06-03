@@ -737,48 +737,40 @@
 
   const USERS_SYSTEM = {
     id: "users-system",
-    // One service with three operations, each using a different
-    // field of User. This is the "single tree" structure the
-    // operator asked for: the three coloring categories (direct,
-    // transitive, unrelated) are siblings under the same root.
-    // The three operations project into three DIFFERENT backends —
-    // a Rust library, a TypeScript library, and a SQL schema — to
-    // show that one description emits a polyglot artifact set with
-    // zero hand-written translation between them.
+    // One User type, three faithful target representations — a Rust
+    // struct, a TypeScript interface, and a Python dataclass. Same
+    // structural fact, three derived artifacts, zero hand-written
+    // translation. Targets are the real gunbc emit set
+    // (rust · ts · python · go · cpp); SQL is intentionally NOT here —
+    // gunbc does not emit SQL.
     artifacts: {
-      profile_rs: { label: "profile.rs",  from: "UsersProfile" },
-      email_rs:   { label: "email.ts",    from: "UsersEmail"   },
-      token_rs:   { label: "token.sql",   from: "UsersToken"   }
+      user_rs: { label: "User.rs", from: "User" },
+      user_ts: { label: "User.ts", from: "User" },
+      user_py: { label: "user.py", from: "User" }
     }
   };
 
-  // Layout for card 01 (projection view) — simple User-rooted tree.
-  // Card 01 is "one description · three operations · three artifacts":
-  // teach the SHAPE of the system. format_joined and field-level
-  // dependencies belong to card 02's lane-tree view, not here.
+  // Layout for card 01 — one type, three faithful representations.
+  // Direct fan-out (no intermediate operation nodes): teach that one
+  // structural fact emits a polyglot artifact set with zero hand-
+  // written translation between them.
   //
-  //   User → Users.profile → profile.rs  (Rust library)
-  //        → Users.email   → email.ts    (TypeScript library)
-  //        → Users.token   → token.sql   (SQL schema)
+  //   User → User.rs  (Rust struct)
+  //        → User.ts  (TypeScript interface)
+  //        → user.py  (Python dataclass)
   function projectionLayoutNodes(system) {
     return [
-      node("User",         "User",          0, 1),
-      node("UsersProfile", "Users.profile", 1, 0),
-      node("UsersEmail",   "Users.email",   1, 1),
-      node("UsersToken",   "Users.token",   1, 2),
-      artifact("profile_rs", system.artifacts.profile_rs.label, 2, 0),
-      artifact("email_rs",   system.artifacts.email_rs.label,   2, 1),
-      artifact("token_rs",   system.artifacts.token_rs.label,   2, 2)
+      node("User", "User", 0, 1),
+      artifact("user_rs", system.artifacts.user_rs.label, 1, 0),
+      artifact("user_ts", system.artifacts.user_ts.label, 1, 1),
+      artifact("user_py", system.artifacts.user_py.label, 1, 2)
     ];
   }
   function projectionLayoutEdges() {
     return [
-      edge("User", "UsersProfile", "profile"),
-      edge("User", "UsersEmail",   "email"),
-      edge("User", "UsersToken",   "token"),
-      edge("UsersProfile", "profile_rs", ""),
-      edge("UsersEmail",   "email_rs",   ""),
-      edge("UsersToken",   "token_rs",   "")
+      edge("User", "user_rs", "rust"),
+      edge("User", "user_ts", "ts"),
+      edge("User", "user_py", "python")
     ];
   }
   function applyNodeRoles(nodes, roleMap) {
@@ -802,52 +794,30 @@
     return {
       id: "card-01",
       num: "01",
-      name: "one description · three operations · three artifacts",
+      name: "one type · three faithful representations",
       systemId: system.id,
-      codeFile: "examples/users.dag",
+      codeFile: "examples/user.dag",
       code: [
-        ln(1,  [kw("type"), tx(" "), ref("User", "User", "stable"), tx(" {")]),
-        ln(2,  [tx("  id: String")]),
-        ln(3,  [tx("  email: String")]),
-        ln(4,  [tx("  name: String")]),
-        ln(5,  [tx("  created_at: "), ty("Timestamp")]),
-        ln(6,  [tx("}")]),
-        blank(7),
-        ln(8,  [kw("type"), tx(" Profile {")]),
-        ln(9,  [tx("  name: String")]),
-        ln(10, [tx("  joined: String")]),
-        ln(11, [tx("}")]),
-        blank(12),
-        ln(13, [kw("service"), tx(" Users {")]),
-        ln(14, [tx("  "), kw("operation"), tx(" "), ref("UsersProfile", "Profile", "derived"), tx(" {")]),
-        ln(15, [tx("    input  { id: String }")]),
-        ln(16, [tx("    output { profile: Profile }")]),
-        ln(17, [tx("  }")]),
-        ln(18, [tx("  "), kw("operation"), tx(" "), ref("UsersEmail", "Email", "derived"), tx(" {")]),
-        ln(19, [tx("    input  { id: String }")]),
-        ln(20, [tx("    output { email: String }")]),
-        ln(21, [tx("  }")]),
-        ln(22, [tx("  "), kw("operation"), tx(" "), ref("UsersToken", "Token", "derived"), tx(" {")]),
-        ln(23, [tx("    input  { id: String }")]),
-        ln(24, [tx("    output { token: String }")]),
-        ln(25, [tx("  }")]),
-        ln(26, [tx("}")]),
-        blank(27),
-        ln(28, [com("// gunbc compile --target rust|ts|sql")])
+        ln(1, [kw("type"), tx(" "), ref("User", "User", "stable"), tx(" {")]),
+        ln(2, [tx("  id:    String")]),
+        ln(3, [tx("  email: String")]),
+        ln(4, [tx("  name:  String")]),
+        ln(5, [tx("}")]),
+        blank(6),
+        ln(7, [com("// gunbc compile --target rust | ts | python")])
       ],
       graph: {
-        nodes: applyNodeRoles(projectionLayoutNodes(system), {
-          User:         "stable",
-          UsersProfile: "derived",
-          UsersEmail:   "derived",
-          UsersToken:   "derived"
-        }),
+        nodes: applyNodeRoles(projectionLayoutNodes(system), { User: "stable" }),
         edges: applyEdgeRoles(projectionLayoutEdges(), {}, "derived")
       },
+      // NOTE: the rust/ts/python snippets below are illustrative shapes,
+      // not exact emitter output — replace with real `cargo test`
+      // emission before this goes live.
       receipt: [
-        { label: "structure",    value: "{stable:one description} · {derived:three operations}" },
-        { label: "emissions",    value: "{artifact:profile.rs} · {artifact:email.ts} · {artifact:token.sql}" },
-        { label: "backends",     value: "{derived:Rust · TypeScript · SQL}" },
+        { label: "source",       value: "{stable:one User type}" },
+        { label: "rust",         code: ["struct User { id: String, email: String, name: String }"] },
+        { label: "typescript",   code: ["interface User { id: string; email: string; name: string }"] },
+        { label: "python",       code: ["@dataclass", "class User: id: str; email: str; name: str"] },
         { label: "translations", value: "{derived:zero hand-written}" }
       ]
     };
