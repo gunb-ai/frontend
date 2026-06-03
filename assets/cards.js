@@ -738,15 +738,16 @@
   const USERS_SYSTEM = {
     id: "users-system",
     // One User type, three faithful target representations — a Rust
-    // struct, a TypeScript interface, and a Python dataclass. Same
-    // structural fact, three derived artifacts, zero hand-written
-    // translation. Targets are the real gunbc emit set
-    // (rust · ts · python · go · cpp); SQL is intentionally NOT here —
-    // gunbc does not emit SQL.
+    // struct, a TypeScript interface, and a JSON Schema. Two are
+    // Turing-complete (rust, ts: can hold behavior); the third is a
+    // pure shape target (json schema: data only, no computation).
+    // Card 01 shows all three carry pure DATA; card 02 adds a
+    // behavioral fact and the shape target refuses BY NATURE — an
+    // expressiveness gap no realization can close.
     artifacts: {
-      user_rs: { label: "User.rs", from: "User" },
-      user_ts: { label: "User.ts", from: "User" },
-      user_py: { label: "user.py", from: "User" }
+      user_rs:   { label: "User.rs",          from: "User" },
+      user_ts:   { label: "User.ts",          from: "User" },
+      user_json: { label: "user.schema.json", from: "User" }
     }
   };
 
@@ -755,22 +756,22 @@
   // structural fact emits a polyglot artifact set with zero hand-
   // written translation between them.
   //
-  //   User → User.rs  (Rust struct)
-  //        → User.ts  (TypeScript interface)
-  //        → user.py  (Python dataclass)
+  //   User → User.rs           (Rust struct)
+  //        → User.ts           (TypeScript interface)
+  //        → user.schema.json  (JSON Schema)
   function projectionLayoutNodes(system) {
     return [
       node("User", "User", 0, 1),
-      artifact("user_rs", system.artifacts.user_rs.label, 1, 0),
-      artifact("user_ts", system.artifacts.user_ts.label, 1, 1),
-      artifact("user_py", system.artifacts.user_py.label, 1, 2)
+      artifact("user_rs",   system.artifacts.user_rs.label,   1, 0),
+      artifact("user_ts",   system.artifacts.user_ts.label,   1, 1),
+      artifact("user_json", system.artifacts.user_json.label, 1, 2)
     ];
   }
   function projectionLayoutEdges() {
     return [
-      edge("User", "user_rs", "rust"),
-      edge("User", "user_ts", "ts"),
-      edge("User", "user_py", "python")
+      edge("User", "user_rs",   "rust"),
+      edge("User", "user_ts",   "ts"),
+      edge("User", "user_json", "schema")
     ];
   }
   function applyNodeRoles(nodes, roleMap) {
@@ -810,15 +811,15 @@
         nodes: applyNodeRoles(projectionLayoutNodes(system), { User: "stable" }),
         edges: applyEdgeRoles(projectionLayoutEdges(), {}, "derived")
       },
-      // NOTE: the rust/ts/python snippets below are illustrative shapes,
-      // not exact emitter output — replace with real `cargo test`
-      // emission before this goes live.
+      // NOTE: the snippets below are illustrative shapes, not exact
+      // emitter output — replace with real `cargo test` emission
+      // before this goes live.
       receipt: [
-        { label: "source",       value: "{stable:one User type}" },
+        { label: "source",       value: "{stable:one User type · pure data}" },
         { label: "rust",         code: ["struct User { id: String, email: String, name: String }"] },
         { label: "typescript",   code: ["interface User { id: string; email: string; name: string }"] },
-        { label: "python",       code: ["@dataclass", "class User: id: str; email: str; name: str"] },
-        { label: "translations", value: "{derived:zero hand-written}" }
+        { label: "json schema",  code: ['{ "type": "object", "properties": {', '    "id": {"type":"string"}, "email": {"type":"string"}, "name": {"type":"string"} } }'] },
+        { label: "translations", value: "{derived:zero hand-written · every target carries pure data}" }
       ]
     };
   }
@@ -831,91 +832,50 @@
     return {
       id: "card-02",
       num: "02",
-      name: "edit Timestamp · one branch re-derived, two unrelated",
+      name: "add behavior · two targets carry it, the schema refuses",
       systemId: system.id,
-      codeFile: "examples/users.dag",
-      shape: "lane-tree",
+      codeFile: "examples/user.dag",
+      // Same three targets as card 01, but now emit a BEHAVIORAL fact —
+      // a derived value computed from other fields. Rust and TypeScript
+      // can hold computation; JSON Schema cannot. This refusal is BY
+      // NATURE, not by missing carrier: a declarative schema has no
+      // place to put a function, and no software realization gives it
+      // one (survives Option B). Contrast with the width/carrier case
+      // (Int32 → Python), which refuses today but is realizable. The
+      // emit status here is the modeled fail-closed behavior — verify
+      // against cargo test before this goes live.
       code: [
-        diffRm(1,  [kw("type"), tx(" "), ref("Timestamp", "Timestamp", "focus"), tx(" = UnixMillis")]),
-        diffAdd(1, [kw("type"), tx(" "), ref("Timestamp", "Timestamp", "focus"), tx(" = IsoDateTime")]),
-        blank(2),
-        ln(3,  [kw("type"), tx(" User {")]),
-        ln(4,  [tx("  id: String")]),
-        ln(5,  [tx("  email: String")]),
-        ln(6,  [tx("  name: String")]),
-        ln(7,  [tx("  "), ref("user_created_at", "created_at", "derived"), tx(": "), ref("Timestamp")]),
-        ln(8,  [tx("}")]),
-        blank(9),
-        ln(10, [kw("type"), tx(" Profile {")]),
-        ln(11, [tx("  name: String")]),
-        ln(12, [tx("  joined: String")]),
-        ln(13, [tx("}")]),
-        blank(14),
-        ln(15, [kw("fn"), tx(" format_joined(t: "), ref("Timestamp"), tx(") -> String {")]),
-        ln(16, [tx("  iso8601(t: t)")]),
-        ln(17, [tx("}")]),
-        blank(18),
-        ln(19, [kw("fn"), tx(" build_profile(u: "), ty("User"), tx(") -> Profile {")]),
-        ln(20, [tx("  Profile {")]),
-        ln(21, [tx("    name: u.name,")]),
-        ln(22, [tx("    joined: format_joined(t: u."),
-                ref("user_created_at", "created_at", "derived"), tx(")")]),
-        ln(23, [tx("  }")]),
-        ln(24, [tx("}")]),
-        blank(25),
-        ln(26, [kw("service"), tx(" Users {")]),
-        ln(27, [tx("  "), kw("operation"), tx(" "), ref("UsersProfile", "Profile", "transitive"), tx(" {")]),
-        ln(28, [tx("    input  { id: String }")]),
-        ln(29, [tx("    output { profile: Profile }")]),
-        ln(30, [tx("  }")]),
-        ln(31, [tx("}")])
+        ln(1, [kw("type"), tx(" User {")]),
+        ln(2, [tx("  first: String")]),
+        ln(3, [tx("  last:  String")]),
+        ln(4, [tx("  email: String")]),
+        ln(5, [tx("}")]),
+        blank(6),
+        ln(7, [kw("fn"), tx(" "), ref("display_name", "display_name", "focus"),
+               tx("(u: User) -> String {")]),
+        ln(8, [tx("  concat(a: u.first, b: u.last)"), com("   // derived — not a stored field")]),
+        ln(9, [tx("}")])
       ],
-      // Lane tree: 4 columns × 3 rows. Each row is a branch; edges
-      // only connect adjacent cells in the same row. Overlap is
-      // structurally impossible.
-      lanes: {
-        columns: ["fact", "field", "operation", "artifact"],
-        rows: [
-          {
-            id: "profile",
-            cells: [
-              { id: "Timestamp",       label: "Timestamp",        role: "focus" },
-              { id: "user_created_at", label: "User.created_at",  role: "derived",
-                via: "format_joined(...)" },
-              { id: "UsersProfile",    label: "Users.profile",    role: "transitive" },
-              { id: "profile_rs",      label: "profile.rs",       role: "artifact",
-                kind: "artifact" }
-            ]
-          },
-          {
-            id: "email",
-            cells: [
-              null,
-              { id: "user_email",      label: "User.email",       role: "context" },
-              { id: "UsersEmail",      label: "Users.email",      role: "context" },
-              { id: "email_rs",        label: "email.ts",         role: "context",
-                kind: "artifact" }
-            ]
-          },
-          {
-            id: "token",
-            cells: [
-              null,
-              { id: "user_id",         label: "User.id",          role: "context" },
-              { id: "UsersToken",      label: "Users.token",      role: "context" },
-              { id: "token_rs",        label: "token.sql",        role: "context",
-                kind: "artifact" }
-            ]
-          }
+      graph: {
+        nodes: [
+          node("display_name", "display_name", 0, 1, "focus"),
+          artifact("user_rs",   system.artifacts.user_rs.label,   1, 0),
+          artifact("user_ts",   system.artifacts.user_ts.label,   1, 1),
+          artifact("user_json", system.artifacts.user_json.label, 1, 2)
+        ],
+        edges: [
+          edge("display_name", "user_rs",   "fn",     "derived"),
+          edge("display_name", "user_ts",   "fn",     "derived"),
+          edge("display_name", "user_json", "refuse", "boundary")
         ]
       },
       receipt: [
-        { label: "changed",    value: "{focus:Timestamp representation}" },
-        { label: "direct",     value: "{derived:User.created_at}" },
-        { label: "transitive", value: "{transitive:Profile.joined} · {transitive:Users.profile}" },
-        { label: "re-derived", value: "{artifact:profile.rs}" },
-        { label: "unrelated",  value: "{context:User.email · User.id · Users.email · Users.token · email.ts · token.sql}" },
-        { label: "hand-edits", value: "{derived:zero}" }
+        { label: "emit",        value: "{focus:display_name — a derived value (behavior, not data)}" },
+        { label: "rust",        value: "{derived:a function over User · derived}" },
+        { label: "typescript",  value: "{derived:a function over User · derived}" },
+        { label: "json schema", value: "{boundary:no construct for a computation · refused}" },
+        { label: "why",         value: "{boundary:a schema describes shape, not behavior. Emitting display_name as a plain field would silently imply consumers supply it, when it is derived — so the compiler refuses rather than misrepresent it.}" },
+        { label: "by nature",   value: "{boundary:this is an expressiveness gap, not a missing carrier — no software realization gives a declarative schema a place to hold a function. The refusal survives Option B.}" }
       ]
     };
   }
