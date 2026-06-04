@@ -378,8 +378,20 @@
 
     const edgeLabels = card.graph.edges.filter(e => e.label).map(e => {
       const g = geomFor(e);
-      const lx = g.sameRow ? (g.sx + g.tx) / 2 : (g.mid + g.tx) / 2;
-      const ly = (g.sameRow ? g.sy : g.ty) - 4;
+      // Convergence-aware label placement. When several edges land on
+      // one node (fan-in), labels positioned at the shared target pile
+      // up — so place each near its SOURCE instead, where they spread
+      // vertically with the source nodes. Divergence (fan-out) keeps
+      // target-side placement, which already spreads across targets.
+      const converge = incomingCount[e.to] > 1;
+      let lx, ly;
+      if (converge) {
+        lx = g.sameRow ? g.sx + (g.tx - g.sx) * 0.32 : (g.sx + g.mid) / 2;
+        ly = g.sy - 4;
+      } else {
+        lx = g.sameRow ? (g.sx + g.tx) / 2 : (g.mid + g.tx) / 2;
+        ly = (g.sameRow ? g.sy : g.ty) - 4;
+      }
       const cls = roleClass(e.role);
       return '<text class="graph-edge-label ' + cls + '" x="' + lx
            + '" y="' + ly + '" text-anchor="middle">' + esc(e.label) + '</text>';
