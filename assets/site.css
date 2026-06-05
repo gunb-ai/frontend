@@ -558,6 +558,12 @@ a { color: inherit; }
   font-family: var(--font-mono);
   font-size: 7px;
   letter-spacing: 0.05em;
+  /* Halo: draw the panel-coloured stroke behind the fill so a label
+     stays legible over edges or boxes it happens to cross. */
+  paint-order: stroke;
+  stroke: var(--void-up);
+  stroke-width: 3px;
+  stroke-linejoin: round;
 }
 .graph-edge-label.map-stable     { fill: var(--warm-white); }
 .graph-edge-label.map-focus      { fill: var(--brass); }

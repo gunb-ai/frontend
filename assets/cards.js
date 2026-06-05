@@ -386,7 +386,10 @@
       const converge = incomingCount[e.to] > 1;
       let lx, ly;
       if (converge) {
-        lx = g.sameRow ? g.sx + (g.tx - g.sx) * 0.32 : (g.sx + g.mid) / 2;
+        // Sit in the gap between source and target at the source's
+        // vertical level, so fan-in labels spread with the sources and
+        // land in open space rather than on the target or the boxes.
+        lx = (g.sx + g.tx) / 2;
         ly = g.sy - 4;
       } else {
         lx = g.sameRow ? (g.sx + g.tx) / 2 : (g.mid + g.tx) / 2;
@@ -834,15 +837,19 @@
       ],
       graph: {
         nodes: [
-          node("pulls",   "GitHub · PR + reviews", 0, 0, "stable"),
-          node("ci",      "GitHub Actions · CI",   0, 1, "context"),
-          node("conf",    "git · conflicts",       0, 2, "context"),
-          node("verdict", "MergeReadinessVerdict", 1, 1, "focus")
+          node("pulls",   "GitHub · PR + reviews",      0, 0, "stable"),
+          node("ci",      "GitHub Actions · CI · soon", 0, 1, "context"),
+          node("conf",    "git · conflicts · soon",     0, 2, "context"),
+          node("verdict", "MergeReadinessVerdict",      1, 1, "focus")
         ],
+        // No edge labels here: real-vs-cut-over reads from the node
+        // labels (· soon), the node styling (solid vs muted), the edge
+        // colour (derived vs boundary), and the receipt — so the labels
+        // don't fight the nodes in this fan-in.
         edges: [
-          edge("pulls", "verdict", "real",     "derived"),
-          edge("ci",    "verdict", "cut-over", "boundary"),
-          edge("conf",  "verdict", "cut-over", "boundary")
+          edge("pulls", "verdict", "", "derived"),
+          edge("ci",    "verdict", "", "boundary"),
+          edge("conf",  "verdict", "", "boundary")
         ]
       },
       receipt: [
