@@ -438,48 +438,7 @@ a { color: inherit; }
 .ck-diff-sign { font-weight: 600; }
 .ck-diff-rm  .ck-diff-sign { color: var(--clay); }
 .ck-diff-add .ck-diff-sign { color: var(--moss); }
-.ck-ref { font-weight: 500; position: relative; }
-
-/* Hover cards — reveal the real model behind an imported concept on
-   hover/focus, so the modeling stays visible without bloating the card. */
-.ck-ref.has-hover {
-  text-decoration: underline dotted var(--stone-faint);
-  text-underline-offset: 3px;
-  cursor: help;
-  outline: none;
-}
-.ck-hover-card {
-  display: none;
-  position: absolute;
-  left: 0;
-  top: calc(100% + 6px);
-  z-index: 30;
-  min-width: 16rem;
-  max-width: 24rem;
-  padding: 0.55rem 0.7rem;
-  background: var(--void-up2);
-  border: 1px solid var(--border-dark-strong);
-  border-radius: 6px;
-  box-shadow: 0 10px 28px hsla(0, 0%, 0%, 0.5);
-  white-space: pre;
-  font-family: var(--font-mono);
-  font-size: 0.66rem;
-  line-height: 1.55;
-  font-weight: 400;
-  color: var(--stone);
-  text-decoration: none;
-  cursor: text;
-}
-.ck-ref.has-hover:hover .ck-hover-card,
-.ck-ref.has-hover:focus .ck-hover-card { display: block; }
-.ck-hover-card .ck-hover-title {
-  display: block;
-  margin-bottom: 0.4rem;
-  color: var(--warm-white-dim);
-  font-size: 0.58rem;
-  letter-spacing: 0.05em;
-  opacity: 0.85;
-}
+.ck-ref { font-weight: 500; }
 
 /* Graph pane — SVG fills available width, capped at a reasonable
    max-height so a tall viewBox does not push card height to absurd. */
@@ -558,12 +517,6 @@ a { color: inherit; }
   font-family: var(--font-mono);
   font-size: 7px;
   letter-spacing: 0.05em;
-  /* Halo: draw the panel-coloured stroke behind the fill so a label
-     stays legible over edges or boxes it happens to cross. */
-  paint-order: stroke;
-  stroke: var(--void-up);
-  stroke-width: 3px;
-  stroke-linejoin: round;
 }
 .graph-edge-label.map-stable     { fill: var(--warm-white); }
 .graph-edge-label.map-focus      { fill: var(--brass); }

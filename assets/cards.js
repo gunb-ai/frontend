@@ -250,14 +250,7 @@
      CODE RENDERER
      ══════════════════════════════════════════════════════════════ */
 
-  function hoverHtml(h) {
-    if (!h) return "";
-    return '<span class="ck-hover-card">'
-         + (h.title ? '<span class="ck-hover-title">' + esc(h.title) + '</span>' : '')
-         + esc((h.lines || []).join("\n"))
-         + '</span>';
-  }
-  function partHtml(p, refRole, hovers) {
+  function partHtml(p, refRole) {
     if (p.kind === "text") return esc(p.value);
     if (p.kind === "kw")   return '<span class="ck-kw">'  + esc(p.value) + '</span>';
     if (p.kind === "ty")   return '<span class="ck-ty">'  + esc(p.value) + '</span>';
@@ -267,18 +260,15 @@
     if (p.kind === "ref") {
       const role = p.role || refRole(p.id);
       const cls  = role ? roleClass(role) : "";
-      const h    = hovers && hovers[p.id];
-      return '<span class="ck-ref ' + cls + (h ? ' has-hover' : '')
-           + '" data-id="' + esc(p.id) + '"' + (h ? ' tabindex="0"' : '') + '>'
-           + esc(p.text) + hoverHtml(h) + '</span>';
+      return '<span class="ck-ref ' + cls + '" data-id="' + esc(p.id) + '">' + esc(p.text) + '</span>';
     }
     return "";
   }
-  function lineHtml(line, refRole, hovers) {
+  function lineHtml(line, refRole) {
     const lnNo = line.n != null
       ? '<span class="ck-ln">' + String(line.n).padStart(2, "0") + '</span> '
       : '<span class="ck-ln">  </span> ';
-    const parts = line.parts.map(p => partHtml(p, refRole, hovers)).join("");
+    const parts = line.parts.map(p => partHtml(p, refRole)).join("");
     if (line.diff === "rm")  return '<div class="ck-line ck-diff-rm">'  + lnNo + '<span class="ck-diff-sign">-</span> ' + parts + '</div>';
     if (line.diff === "add") return '<div class="ck-line ck-diff-add">' + lnNo + '<span class="ck-diff-sign">+</span> ' + parts + '</div>';
     return '<div class="ck-line">' + lnNo + '  ' + (parts || '&nbsp;') + '</div>';
@@ -292,7 +282,7 @@
                + '<span class="ck-file">' + esc(card.codeFile || (card.id + ".dag")) + '</span>'
                + '</div>';
     const body = '<div class="card-code-body">'
-               + card.code.map(l => lineHtml(l, refRole, card.hovers)).join("")
+               + card.code.map(l => lineHtml(l, refRole)).join("")
                + '</div>';
     return '<div class="card-code">' + head + body + '</div>';
   }
@@ -378,23 +368,8 @@
 
     const edgeLabels = card.graph.edges.filter(e => e.label).map(e => {
       const g = geomFor(e);
-      // Convergence-aware label placement. When several edges land on
-      // one node (fan-in), labels positioned at the shared target pile
-      // up — so place each near its SOURCE instead, where they spread
-      // vertically with the source nodes. Divergence (fan-out) keeps
-      // target-side placement, which already spreads across targets.
-      const converge = incomingCount[e.to] > 1;
-      let lx, ly;
-      if (converge) {
-        // Sit in the gap between source and target at the source's
-        // vertical level, so fan-in labels spread with the sources and
-        // land in open space rather than on the target or the boxes.
-        lx = (g.sx + g.tx) / 2;
-        ly = g.sy - 4;
-      } else {
-        lx = g.sameRow ? (g.sx + g.tx) / 2 : (g.mid + g.tx) / 2;
-        ly = (g.sameRow ? g.sy : g.ty) - 4;
-      }
+      const lx = g.sameRow ? (g.sx + g.tx) / 2 : (g.mid + g.tx) / 2;
+      const ly = (g.sameRow ? g.sy : g.ty) - 4;
       const cls = roleClass(e.role);
       return '<text class="graph-edge-label ' + cls + '" x="' + lx
            + '" y="' + ly + '" text-anchor="middle">' + esc(e.label) + '</text>';
@@ -762,174 +737,215 @@
 
   const USERS_SYSTEM = {
     id: "users-system",
-    // One User type, three faithful target representations across the
-    // real gunbc emit set — a Rust struct, a Go struct, a Python
-    // dataclass. Card 01 shows the clean fan-out; card 02 changes one
-    // field to a fixed-width machine integer and Python refuses (no
-    // primitive carries a 32-bit width) — a real-target refusal,
-    // modeled today, labeled as designed behavior.
+    // One service with three operations, each using a different
+    // field of User. This is the "single tree" structure the
+    // operator asked for: the three coloring categories (direct,
+    // transitive, unrelated) are siblings under the same root.
+    // The three operations project into three DIFFERENT backends —
+    // a Rust library, a TypeScript library, and a SQL schema — to
+    // show that one description emits a polyglot artifact set with
+    // zero hand-written translation between them.
     artifacts: {
-      user_rs: { label: "User.rs", from: "User" },
-      user_go: { label: "user.go", from: "User" },
-      user_py: { label: "user.py", from: "User" }
+      profile_rs: { label: "profile.rs",  from: "UsersProfile" },
+      email_rs:   { label: "email.ts",    from: "UsersEmail"   },
+      token_rs:   { label: "token.sql",   from: "UsersToken"   }
     }
   };
 
-  // Layout for card 01 — merge-readiness from THREE sources (dogfooded).
-  // gunbc models its own PR merge-readiness in .dag to DELETE hand-written
-  // TS glue (pr_{ci,conflict,merge_ready}_digest.mjs). Real today: the
-  // verdict type + PR/reviews judging (JudgeMergeReadiness). In progress
-  // (gunbc's own cut-over): folding in CI (github.actions) + conflicts
-  // (git) — the M>2 reach. The translations are NON-TRIVIAL (review list
-  // -> approval state, CI joined to the head commit, conflict detection),
-  // so the derived glue is worth something vs a value plopped through.
+  // Layout for card 01 (projection view) — simple User-rooted tree.
+  // Card 01 is "one description · three operations · three artifacts":
+  // teach the SHAPE of the system. format_joined and field-level
+  // dependencies belong to card 02's lane-tree view, not here.
   //
-  //   GitHub · PR + reviews ┐
-  //   GitHub Actions · CI   ┼─▶ MergeReadinessVerdict   (deletes *.mjs glue)
-  //   git · conflicts       ┘    [PR/reviews real · CI+conflicts cut-over]
+  //   User → Users.profile → profile.rs  (Rust library)
+  //        → Users.email   → email.ts    (TypeScript library)
+  //        → Users.token   → token.sql   (SQL schema)
+  function projectionLayoutNodes(system) {
+    return [
+      node("User",         "User",          0, 1),
+      node("UsersProfile", "Users.profile", 1, 0),
+      node("UsersEmail",   "Users.email",   1, 1),
+      node("UsersToken",   "Users.token",   1, 2),
+      artifact("profile_rs", system.artifacts.profile_rs.label, 2, 0),
+      artifact("email_rs",   system.artifacts.email_rs.label,   2, 1),
+      artifact("token_rs",   system.artifacts.token_rs.label,   2, 2)
+    ];
+  }
+  function projectionLayoutEdges() {
+    return [
+      edge("User", "UsersProfile", "profile"),
+      edge("User", "UsersEmail",   "email"),
+      edge("User", "UsersToken",   "token"),
+      edge("UsersProfile", "profile_rs", ""),
+      edge("UsersEmail",   "email_rs",   ""),
+      edge("UsersToken",   "token_rs",   "")
+    ];
+  }
+  function applyNodeRoles(nodes, roleMap) {
+    return nodes.map(n => {
+      if (n.kind === "artifact") return n;
+      return Object.assign({}, n, { role: roleMap[n.id] || n.role || "context" });
+    });
+  }
+  function applyEdgeRoles(edges, roleMap, defaultRole) {
+    return edges.map(e => {
+      const key = e.from + "→" + e.to;
+      return Object.assign({}, e, { role: roleMap[key] || defaultRole || "derived" });
+    });
+  }
 
   /* ════════════════════════════════════════════════════════════════
-     CARD 01 · merge-readiness from M sources — the glue gunbc deletes
+     CARD 01 · projection closure
      ══════════════════════════════════════════════════════════════ */
 
   function projectionClosureCard(system) {
     return {
       id: "card-01",
       num: "01",
-      name: "merge-readiness from three sources — the glue gunbc is deleting from itself",
+      name: "one description · three operations · three artifacts",
       systemId: system.id,
-      codeFile: "ctrl/pr_digests.dag",
-      // Hover content — the REAL models behind the imports (verbatim
-      // from github/pulls.dag). Keeps the modeling visible without
-      // burying the card in code.
-      hovers: {
-        pulls: { title: "extdeps/github/pulls.dag · real models", lines: [
-          "type PullRequest {",
-          "  number: Int",
-          "  title:  String",
-          "  state:  String",
-          "  head:   PullRequestRef",
-          "  base:   PullRequestRef",
-          "  …",
-          "}",
-          "// PullReview is modeled here too"
-        ]}
-      },
+      codeFile: "examples/users.dag",
       code: [
-        ln(1,  [com("// each source modeled once, independently — nothing restated:")]),
-        ln(2,  [kw("import"), tx(" extdeps.github.pulls { "), ref("pulls", "PullRequest", "stable"),
-                tx(", PullReview }")]),
-        blank(3),
-        ln(4,  [com("// a real modeled verdict — replacing pr_merge_ready_digest.mjs:")]),
-        ln(5,  [kw("type"), tx(" "), ref("verdict", "MergeReadinessVerdict", "focus"), tx(" = Ready")]),
-        ln(6,  [tx("  | NotReady { first_reason: String, more_reasons: List<String> }")]),
+        ln(1,  [kw("type"), tx(" "), ref("User", "User", "stable"), tx(" {")]),
+        ln(2,  [tx("  id: String")]),
+        ln(3,  [tx("  email: String")]),
+        ln(4,  [tx("  name: String")]),
+        ln(5,  [tx("  created_at: "), ty("Timestamp")]),
+        ln(6,  [tx("}")]),
         blank(7),
-        ln(8,  [com("// aggregate a PR + every review into one verdict —")]),
-        ln(9,  [com("// non-trivial, and never restating what a PR or review is:")]),
-        ln(10, [kw("operation"), tx(" JudgeMergeReadiness {")]),
-        ln(11, [tx("  input  { pr: "), ty("PullRequest"), tx(", reviews: List<"), ty("PullReview"), tx("> }")]),
-        ln(12, [tx("  output { verdict: "), ty("MergeReadinessVerdict"), tx(" }")]),
-        ln(13, [tx("}")]),
-        blank(14),
-        ln(15, [com("// in progress (gunbc's own cut-over): fold in CI runs")]),
-        ln(16, [com("// (github.actions) + merge conflicts (git) — the other")]),
-        ln(17, [com("// two .mjs glue scripts being deleted.")])
+        ln(8,  [kw("type"), tx(" Profile {")]),
+        ln(9,  [tx("  name: String")]),
+        ln(10, [tx("  joined: String")]),
+        ln(11, [tx("}")]),
+        blank(12),
+        ln(13, [kw("service"), tx(" Users {")]),
+        ln(14, [tx("  "), kw("operation"), tx(" "), ref("UsersProfile", "Profile", "derived"), tx(" {")]),
+        ln(15, [tx("    input  { id: String }")]),
+        ln(16, [tx("    output { profile: Profile }")]),
+        ln(17, [tx("  }")]),
+        ln(18, [tx("  "), kw("operation"), tx(" "), ref("UsersEmail", "Email", "derived"), tx(" {")]),
+        ln(19, [tx("    input  { id: String }")]),
+        ln(20, [tx("    output { email: String }")]),
+        ln(21, [tx("  }")]),
+        ln(22, [tx("  "), kw("operation"), tx(" "), ref("UsersToken", "Token", "derived"), tx(" {")]),
+        ln(23, [tx("    input  { id: String }")]),
+        ln(24, [tx("    output { token: String }")]),
+        ln(25, [tx("  }")]),
+        ln(26, [tx("}")]),
+        blank(27),
+        ln(28, [com("// gunbc compile --target rust|ts|sql")])
       ],
       graph: {
-        nodes: [
-          node("pulls",   "GitHub · PR + reviews",      0, 0, "stable"),
-          node("ci",      "GitHub Actions · CI · soon", 0, 1, "context"),
-          node("conf",    "git · conflicts · soon",     0, 2, "context"),
-          node("verdict", "MergeReadinessVerdict",      1, 1, "focus")
-        ],
-        // No edge labels here: real-vs-cut-over reads from the node
-        // labels (· soon), the node styling (solid vs muted), the edge
-        // colour (derived vs boundary), and the receipt — so the labels
-        // don't fight the nodes in this fan-in.
-        edges: [
-          edge("pulls", "verdict", "", "derived"),
-          edge("ci",    "verdict", "", "boundary"),
-          edge("conf",  "verdict", "", "boundary")
-        ]
+        nodes: applyNodeRoles(projectionLayoutNodes(system), {
+          User:         "stable",
+          UsersProfile: "derived",
+          UsersEmail:   "derived",
+          UsersToken:   "derived"
+        }),
+        edges: applyEdgeRoles(projectionLayoutEdges(), {}, "derived")
       },
       receipt: [
-        { label: "three sources", value: "{stable:git conflicts · the GitHub PR + its reviews · the CI runs — each modeled once, independently}" },
-        { label: "non-trivial",   value: "{derived:a list of reviews → an approval state; a CI run joined to the head commit; conflicts checked — reconciled into one verdict, not a value plopped through}" },
-        { label: "no restating",  value: "{derived:you never re-declare what a PR, a review, or a commit is — each source already did}" },
-        { label: "real today",    value: "{stable:the verdict type + PR/reviews judging are modeled in .dag — JudgeMergeReadiness}" },
-        { label: "in progress",   value: "{boundary:folding in CI (github.actions) + conflicts (git) is gunbc's own cut-over — the M>2 reach}" },
-        { label: "the proof",     value: "{derived:this is deleting real hand-written glue — pr_ci_digest.mjs, pr_conflict_digest.mjs, pr_merge_ready_digest.mjs. the pain isn't hypothetical.}" },
-        { label: "expected Rust", code: [
-          "// illustrative — modeled on v2 stage0's real output style.",
-          "// Generated by gunbc -- do not edit.",
-          "#[derive(Clone)]",
-          "pub enum MergeReadinessVerdict {",
-          "    Ready,",
-          "    NotReady { first_reason: String, more_reasons: Vec<String> },",
-          "}",
-          "",
-          "pub fn judge_merge_readiness(",
-          "    pr: PullRequest,",
-          "    reviews: Vec<PullReview>,",
-          ") -> MergeReadinessVerdict {",
-          "    // … aggregate reviews + PR state into the verdict",
-          "}"
-        ]}
+        { label: "structure",    value: "{stable:one description} · {derived:three operations}" },
+        { label: "emissions",    value: "{artifact:profile.rs} · {artifact:email.ts} · {artifact:token.sql}" },
+        { label: "backends",     value: "{derived:Rust · TypeScript · SQL}" },
+        { label: "translations", value: "{derived:zero hand-written}" }
       ]
     };
   }
 
   /* ════════════════════════════════════════════════════════════════
-     CARD 02 · behavior at the seam — a schema can't hold a function
+     CARD 02 · affected-set propagation — same layout, different roles
      ══════════════════════════════════════════════════════════════ */
 
   function affectedSetCard(system) {
     return {
       id: "card-02",
       num: "02",
-      name: "a function compiles to any language — a schema has nowhere to put it",
+      name: "edit Timestamp · one branch re-derived, two unrelated",
       systemId: system.id,
-      codeFile: "examples/user.dag",
-      // Stitches to card 01's seam (the contract there is shape-only).
-      // Treat every LANGUAGE target as fully capable — baseline; a
-      // function compiles to Rust, Python, any of them. The refusal is
-      // NOT a language being weak or half-modeled. It is a SCHEMA — a
-      // shape-only contract, a categorically different target — that
-      // cannot express a computation, BY CONSTRUCTION. No library
-      // closes that gap (unlike the earlier 32-bit-width example, which
-      // numpy.int32 / ctypes dissolve — that was a coverage gap, not a
-      // limit). Illustrative; the claim is a logical fact, not a run.
+      codeFile: "examples/users.dag",
+      shape: "lane-tree",
       code: [
-        ln(1, [kw("type"), tx(" User {")]),
-        ln(2, [tx("  first: String")]),
-        ln(3, [tx("  last:  String")]),
-        ln(4, [tx("  email: String")]),
-        ln(5, [tx("}")]),
-        blank(6),
-        ln(7, [kw("fn"), tx(" "), ref("display_name", "display_name", "focus"),
-               tx("(u: User) -> String {")]),
-        ln(8, [tx("  u.first + \" \" + u.last"), com("   // computed, not stored")]),
-        ln(9, [tx("}")])
+        diffRm(1,  [kw("type"), tx(" "), ref("Timestamp", "Timestamp", "focus"), tx(" = UnixMillis")]),
+        diffAdd(1, [kw("type"), tx(" "), ref("Timestamp", "Timestamp", "focus"), tx(" = IsoDateTime")]),
+        blank(2),
+        ln(3,  [kw("type"), tx(" User {")]),
+        ln(4,  [tx("  id: String")]),
+        ln(5,  [tx("  email: String")]),
+        ln(6,  [tx("  name: String")]),
+        ln(7,  [tx("  "), ref("user_created_at", "created_at", "derived"), tx(": "), ref("Timestamp")]),
+        ln(8,  [tx("}")]),
+        blank(9),
+        ln(10, [kw("type"), tx(" Profile {")]),
+        ln(11, [tx("  name: String")]),
+        ln(12, [tx("  joined: String")]),
+        ln(13, [tx("}")]),
+        blank(14),
+        ln(15, [kw("fn"), tx(" format_joined(t: "), ref("Timestamp"), tx(") -> String {")]),
+        ln(16, [tx("  iso8601(t: t)")]),
+        ln(17, [tx("}")]),
+        blank(18),
+        ln(19, [kw("fn"), tx(" build_profile(u: "), ty("User"), tx(") -> Profile {")]),
+        ln(20, [tx("  Profile {")]),
+        ln(21, [tx("    name: u.name,")]),
+        ln(22, [tx("    joined: format_joined(t: u."),
+                ref("user_created_at", "created_at", "derived"), tx(")")]),
+        ln(23, [tx("  }")]),
+        ln(24, [tx("}")]),
+        blank(25),
+        ln(26, [kw("service"), tx(" Users {")]),
+        ln(27, [tx("  "), kw("operation"), tx(" "), ref("UsersProfile", "Profile", "transitive"), tx(" {")]),
+        ln(28, [tx("    input  { id: String }")]),
+        ln(29, [tx("    output { profile: Profile }")]),
+        ln(30, [tx("  }")]),
+        ln(31, [tx("}")])
       ],
-      graph: {
-        nodes: [
-          node("display_name", "display_name", 0, 1, "focus"),
-          artifact("c2_rust",   "User.rs",          1, 0),
-          artifact("c2_py",     "user.py",          1, 1),
-          artifact("c2_schema", "user.schema.json", 1, 2)
-        ],
-        edges: [
-          edge("display_name", "c2_rust",   "fn",     "derived"),
-          edge("display_name", "c2_py",     "fn",     "derived"),
-          edge("display_name", "c2_schema", "refuse", "boundary")
+      // Lane tree: 4 columns × 3 rows. Each row is a branch; edges
+      // only connect adjacent cells in the same row. Overlap is
+      // structurally impossible.
+      lanes: {
+        columns: ["fact", "field", "operation", "artifact"],
+        rows: [
+          {
+            id: "profile",
+            cells: [
+              { id: "Timestamp",       label: "Timestamp",        role: "focus" },
+              { id: "user_created_at", label: "User.created_at",  role: "derived",
+                via: "format_joined(...)" },
+              { id: "UsersProfile",    label: "Users.profile",    role: "transitive" },
+              { id: "profile_rs",      label: "profile.rs",       role: "artifact",
+                kind: "artifact" }
+            ]
+          },
+          {
+            id: "email",
+            cells: [
+              null,
+              { id: "user_email",      label: "User.email",       role: "context" },
+              { id: "UsersEmail",      label: "Users.email",      role: "context" },
+              { id: "email_rs",        label: "email.ts",         role: "context",
+                kind: "artifact" }
+            ]
+          },
+          {
+            id: "token",
+            cells: [
+              null,
+              { id: "user_id",         label: "User.id",          role: "context" },
+              { id: "UsersToken",      label: "Users.token",      role: "context" },
+              { id: "token_rs",        label: "token.sql",        role: "context",
+                kind: "artifact" }
+            ]
+          }
         ]
       },
       receipt: [
-        { label: "the fact",     value: "{focus:display_name — a value computed from other fields (behavior, not data)}" },
-        { label: "any language", value: "{derived:Rust, Python, any of them — a function compiles fine. That's baseline.}" },
-        { label: "a schema",     value: "{boundary:a JSON Schema describes shape, not computation — there is no place to put a function}" },
-        { label: "so",           value: "{boundary:emitting display_name as a plain field would lie — telling consumers to send a value the system computes. gunbc refuses rather than ship a contract that misrepresents it.}" },
-        { label: "the line",     value: "{context:not not-wired-yet, not a weak language — a schema cannot express a computation, by construction. No library closes that gap. A real limit, not a coverage hole.}" }
+        { label: "changed",    value: "{focus:Timestamp representation}" },
+        { label: "direct",     value: "{derived:User.created_at}" },
+        { label: "transitive", value: "{transitive:Profile.joined} · {transitive:Users.profile}" },
+        { label: "re-derived", value: "{artifact:profile.rs}" },
+        { label: "unrelated",  value: "{context:User.email · User.id · Users.email · Users.token · email.ts · token.sql}" },
+        { label: "hand-edits", value: "{derived:zero}" }
       ]
     };
   }
